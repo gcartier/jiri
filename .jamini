@@ -7,4 +7,4 @@
 
 
 (jazz:default-safety 'release)
-(jazz:default-target 'install)
+(jazz:default-target 'jiri)

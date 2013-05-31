@@ -50,7 +50,7 @@ display_module_info () {
 }
 
 display_info () {
-    (display_module_info "Install" "$REL")
+    (display_module_info "Jiri" "$REL")
     echo
     (display_module_info "Jazz" "$JAZ")
 }

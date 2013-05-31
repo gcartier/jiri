@@ -1,0 +1,9 @@
+(package jiri
+  
+  (root "src")
+  (products (jiri (title "Jiri")
+                  (run jiri.run)
+                  (update jiri.run)
+                  (build (jiri resources: "resources"))
+                  (dependencies jazz)))
+  (project ".project"))

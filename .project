@@ -1,0 +1,15 @@
+;;;==============
+;;;  JazzScheme
+;;;==============
+;;;
+;;;; Project
+;;;
+
+
+(data jazz.ide.data.project
+
+
+(form
+  (<Project> name: jiri description-file: {File :context ".repository"}
+    (<*>                tag-reference: {File :context "jazz" ".project"})
+    (<*>                tag-reference: {File :context "lib" "jiri" ".project"}))))
