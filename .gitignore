@@ -1,0 +1,8 @@
+/binaries
+/bin
+/build
+/deploy
+/gambit
+/.jazzini
+.configuration
+.DS_Store
