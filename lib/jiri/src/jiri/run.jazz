@@ -6,9 +6,9 @@
 ;;;
 
 
-(unit jiri.run
+(module jiri.run jazz
 
 
-(jazz:register-product-run 'jiri
+(register-product-run 'jiri
   (lambda (descriptor)
-    #f)))
+    (load-unit 'jiri.install))))

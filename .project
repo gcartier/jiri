@@ -9,7 +9,14 @@
 (data jazz.ide.data.project
 
 
+(import (jazz.project))
+
+
 (form
-  (<Project> name: jiri description-file: {File :context ".repository"}
-    (<*>                tag-reference: {File :context "jazz" ".project"})
-    (<*>                tag-reference: {File :context "lib" "jiri" ".project"}))))
+  (<Project>               name: jiri description-file: {File :context ".repository"} active-project: jiri:Jiri
+    (<*>                              tag-reference: {File :context "jazz" ".project"})
+    (<*>                              tag-reference: {File :context "lib" "jiri" ".project"})
+    (<Project-Directory>              directory: {Directory :context "devel"}
+      (<Project-Directory>            directory: {Directory :context "devel" "setup"}
+        (<Project-File>               source: {File :context "devel" "setup" "libgit2.scm"})
+        (<Project-File>               source: {File :context "devel" "setup" "run.scm"}))))))

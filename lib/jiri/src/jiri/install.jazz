@@ -1,0 +1,44 @@
+;;;==============
+;;;  JazzScheme
+;;;==============
+;;;
+;;;; Jiri Install
+;;;
+
+
+(module jiri.install jazz
+
+
+(import (jazz.git.interface)
+        (jazz.io)
+        (jazz.system))
+
+
+;;;
+;;;; Initialize
+;;;
+
+
+(define (jiri-initialize)
+  (initialize-aliases)
+  (let ((file {File Home ".jiri" ".settings"}))
+    (when (not (exists?~ file))
+      (create~ file))
+    (let ((settings (new File-Settings file: file)))
+      (let ((remote (get-setting~ settings 'jiri.remote #f)))
+        (debug #f)))))
+
+
+;;;
+;;;; Install
+;;;
+
+
+(define (jiri-install)
+  (git-clone)
+  (git-pull)
+  (sleep 1))
+
+
+(jiri-initialize)
+(jiri-install))

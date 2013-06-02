@@ -13,8 +13,9 @@
 
 
 (form
-  (<Project>                 name: jiri
-    (<*>                                   tag-reference: {File :context "jiri.project"}
-      (<Project-Directory>                 directory: {Directory :context "src"}
-        (<Project-Directory>               directory: {Directory :context "src" "jiri"}
-          (<Jazz-File>       name: run     source: {File :context "src" "jiri" "run.scm"})))))))
+  (<Project>               name: jiri
+    (<*>                                 tag-reference: {File :context "jiri.project"})
+    (<Project-Directory>                 directory: {Directory :context "src"}
+      (<Project-Directory>               directory: {Directory :context "src" "jiri"}
+        (<Jazz-File>       name: install source: {File :context "src" "jiri" "install.jazz"})
+        (<Jazz-File>       name: run     source: {File :context "src" "jiri" "run.jazz"}))))))
