@@ -1,16 +1,33 @@
 #!/bin/sh
 
 REL="$(dirname "$0")"
-JIRI="$REL/.."
+ABS="$(cd "$REL"; pwd)"
+
+JIRI="$ABS/.."
 JAZZ="$JIRI/jazz"
 LIBGIT2="$JAZZ/foreign/libgit2"
 GAMBIT="$JAZZ_GAMBITDIR"
 
-NAME="$1Setup"
-echo $REL
+BUILD="build"
+INSTALL="install"
+SETUP="setup"
 
-windres --input $REL/setup.rc --output setup.res --output-format=coff
-#gsc -link foreign run
-gsc -keep-c -link foreign run
-gsc -cc-options "-I$LIBGIT2/include" -obj foreign.c run.c run_.c
-gcc -L$GAMBIT/lib -L$LIBGIT2/lib foreign.o run.o run_.o setup.res -mwindows -lgit2 -lgambc -lws2_32 -lgdi32 -o $NAME
+NAME="$1Setup"
+
+if [ ! -d $BUILD ]; then
+    mkdir $BUILD
+fi
+if [ ! -d $INSTALL ]; then
+    mkdir $INSTALL
+fi
+if [ ! -d $SETUP ]; then
+    mkdir $SETUP
+fi
+
+windres --input $ABS/setup.rc --output $BUILD/setup.res --output-format=coff
+gsc -c -o $BUILD $ABS/foreign
+gsc -c -o $BUILD $ABS/run
+gsc -link -o $BUILD $BUILD/foreign.c $BUILD/run.c
+gsc -cc-options "-I$LIBGIT2/include" -obj $BUILD/foreign.c $BUILD/run.c $BUILD/run_.c
+gcc -L$GAMBIT/lib -L$LIBGIT2/lib $BUILD/foreign.o $BUILD/run.o $BUILD/run_.o $BUILD/setup.res -mwindows -lgit2 -lgambc -lws2_32 -lgdi32 -o $INSTALL/Install
+cp $LIBGIT2/lib/libgit2.dll $INSTALL

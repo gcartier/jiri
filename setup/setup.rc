@@ -1,5 +1,5 @@
 #include "winuser.h"
-2 RT_MANIFEST setup.exe.manifest
-app   ICON   "setup.ico"
-Background BITMAP background.bmp
-YO 500 run.scm
+
+1          RT_MANIFEST setup.manifest
+app        ICON        setup.ico
+Background BITMAP      background.bmp
