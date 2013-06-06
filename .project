@@ -9,14 +9,16 @@
 (data jazz.ide.data.project
 
 
-(import (jazz.project))
+(import (jazz.editor.c)
+        (jazz.project))
 
 
 (form
-  (<Project>               name: jiri description-file: {File :context ".repository"} active-project: jiri:Jiri
-    (<*>                              tag-reference: {File :context "jazz" ".project"})
-    (<*>                              tag-reference: {File :context "lib" "jiri" ".project"})
-    (<Project-Directory>              directory: {Directory :context "devel"}
-      (<Project-Directory>            directory: {Directory :context "devel" "setup"}
-        (<Project-File>               source: {File :context "devel" "setup" "libgit2.scm"})
-        (<Project-File>               source: {File :context "devel" "setup" "run.scm"}))))))
+  (<Project>             name: jiri description-file: {File :context ".repository"} active-project: jiri:Jiri
+    (<*>                            tag-reference: {File :context "jazz" ".project"})
+    (<*>                            tag-reference: {File :context "lib" "jiri" ".project"})
+    (<Project-Directory>            directory: {Directory :context "setup"}
+      (<Project-File>               source: {File :context "setup" "build"})
+      (<Project-File>               source: {File :context "setup" "foreign.scm"})
+      (<Project-File>               source: {File :context "setup" "run.scm"})
+      (<Project-File>               source: {File :context "setup" "setup.rc"})))))

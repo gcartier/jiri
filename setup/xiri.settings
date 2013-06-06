@@ -1,0 +1,10 @@
+;;;==============
+;;;  JazzScheme
+;;;==============
+;;;
+;;;; Xiri Setup
+;;;
+
+
+jiri.name     "Xiri"
+jiri.remote   "git://github.com/jazzscheme/test.git"

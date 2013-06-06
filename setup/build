@@ -1,0 +1,16 @@
+#!/bin/sh
+
+REL="$(dirname "$0")"
+JIRI="$REL/.."
+JAZZ="$JIRI/jazz"
+LIBGIT2="$JAZZ/foreign/libgit2"
+GAMBIT="$JAZZ_GAMBITDIR"
+
+NAME="$1Setup"
+echo $REL
+
+windres --input $REL/setup.rc --output setup.res --output-format=coff
+#gsc -link foreign run
+gsc -keep-c -link foreign run
+gsc -cc-options "-I$LIBGIT2/include" -obj foreign.c run.c run_.c
+gcc -L$GAMBIT/lib -L$LIBGIT2/lib foreign.o run.o run_.o setup.res -mwindows -lgit2 -lgambc -lws2_32 -lgdi32 -o $NAME
