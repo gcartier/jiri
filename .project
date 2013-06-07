@@ -14,13 +14,7 @@
 
 
 (form
-  (<Project>             name: jiri description-file: {File :context ".repository"} active-project: jiri:Jiri
-    (<*>                            tag-reference: {File :context "jazz" ".project"})
-    (<*>                            tag-reference: {File :context "lib" "jiri" ".project"})
-    (<Project-Directory>            directory: {Directory :context "setup"}
-      (<Project-File>               source: {File :context "setup" "build"})
-      (<Project-File>               source: {File :context "setup" "run.scm"})
-      (<Project-File>               source: {File :context "setup" "setup.rc"})
-      (<Project-File>               source: {File :context "setup" "git.scm"})
-      (<Project-File>               source: {File :context "setup" "syntax.scm"})
-      (<Project-File>               source: {File :context "setup" "windows.scm"})))))
+  (<Project> name: jiri description-file: {File :context ".repository"} active-project: jiri:Jiri
+    (<*>                tag-reference: {File :context "jazz" ".project"})
+    (<*>                tag-reference: {File :context "lib" "jiri" ".project"})
+    (<*>                tag-reference: {File :context "setup" ".project"}))))
