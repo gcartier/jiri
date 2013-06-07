@@ -15,12 +15,12 @@
 
 (form
   (<Project>        name: setup
-    (<Project-File>             source: {File :context "setup" "build"})
-    (<Project-File>             source: {File :context "setup" "run.scm"})
-    (<Project-File>             source: {File :context "setup" "setup.rc"})
-    (<Project-File>             source: {File :context "setup" "git.scm"})
-    (<Project-File>             source: {File :context "setup" "syntax.scm"})
-    (<Project-File>             source: {File :context "setup" "windows.scm"})
+    (<Project-File>             source: {File :context "build"})
+    (<Project-File>             source: {File :context "run.scm"})
+    (<Project-File>             source: {File :context "setup.rc"})
+    (<Project-File>             source: {File :context "git.scm"})
+    (<Project-File>             source: {File :context "syntax.scm"})
+    (<Project-File>             source: {File :context "windows.scm"})
     (<Project-File>             source: {File :context "geometry.scm"})
     (<Project-File>             source: {File :context "view.scm"})
     (<Project-File>             source: {File :context "window.scm"}))))
