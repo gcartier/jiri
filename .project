@@ -19,6 +19,7 @@
     (<*>                            tag-reference: {File :context "lib" "jiri" ".project"})
     (<Project-Directory>            directory: {Directory :context "setup"}
       (<Project-File>               source: {File :context "setup" "build"})
-      (<Project-File>               source: {File :context "setup" "foreign.scm"})
       (<Project-File>               source: {File :context "setup" "run.scm"})
-      (<Project-File>               source: {File :context "setup" "setup.rc"})))))
+      (<Project-File>               source: {File :context "setup" "setup.rc"})
+      (<Project-File>               source: {File :context "setup" "git.scm"})
+      (<Project-File>               source: {File :context "setup" "syntax.scm"})))))

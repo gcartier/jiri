@@ -6,21 +6,15 @@
 ;;;
 
 
+(include "syntax.scm")
+
+
 (c-declare "#include <git2.h>")
 
 
 ;;;
 ;;;; Enumerations
 ;;;
-
-
-(define-macro (c-enumerant name)
-  `(define ,name
-     (let ()
-       (declare (extended-bindings))
-       (##c-code ,(string-append "___RESULT = ___U32BOX("
-                                 (symbol->string name)
-                                 ");")))))
 
 
 (c-enumerant GIT_DIRECTION_FETCH)
@@ -41,25 +35,26 @@
 ;;;
 
 
-(c-define-type git_otype int)
-(c-define-type git_reset_t int)
-(c-define-type git_error "git_error")
-(c-define-type git_error* (pointer git_error))
-(c-define-type git_object "git_object")
-(c-define-type git_object* (pointer git_object))
-(c-define-type git_oid "git_oid")
-(c-define-type git_oid* (pointer git_oid))
-(c-define-type git_reference "git_reference")
-(c-define-type git_reference* (pointer git_reference))
-(c-define-type git_remote "git_remote")
-(c-define-type git_remote* (pointer git_remote))
-(c-define-type git_repository "git_repository")
-(c-define-type git_repository* (pointer git_repository))
+(c-type git_otype int)
+(c-type git_reset_t int)
+(c-type git_error "git_error")
+(c-type git_error* (pointer git_error))
+(c-type git_object "git_object")
+(c-type git_object* (pointer git_object))
+(c-type git_oid "git_oid")
+(c-type git_oid* (pointer git_oid))
+(c-type git_reference "git_reference")
+(c-type git_reference* (pointer git_reference))
+(c-type git_remote "git_remote")
+(c-type git_remote* (pointer git_remote))
+(c-type git_repository "git_repository")
+(c-type git_repository* (pointer git_repository))
 
 
 ;;;
 ;;;; Error
 ;;;
+
 
 (c-define (git-check-error code) (int) void "git_check_error" ""
   (if (not (= code 0))
