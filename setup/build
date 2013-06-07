@@ -14,6 +14,9 @@ SETUP="setup"
 
 NAME="$1Setup"
 
+CFILES="$BUILD/git.c $BUILD/geometry.c $BUILD/window.c $BUILD/view.c $BUILD/windows.c $BUILD/run.c"
+OFILES="$BUILD/git.o $BUILD/geometry.o $BUILD/window.o $BUILD/view.o $BUILD/windows.o $BUILD/run.o"
+
 if [ ! -d $BUILD ]; then
     mkdir $BUILD
 fi
@@ -26,9 +29,12 @@ fi
 
 windres --input $ABS/setup.rc --output $BUILD/setup.res --output-format=coff
 gsc -c -o $BUILD $ABS/git
+gsc -c -o $BUILD $ABS/geometry
+gsc -c -o $BUILD $ABS/window
+gsc -c -o $BUILD $ABS/view
 gsc -c -o $BUILD $ABS/windows
 gsc -c -o $BUILD $ABS/run
-gsc -link -o $BUILD $BUILD/git.c $BUILD/windows.c $BUILD/run.c
-gsc -cc-options "-I$LIBGIT2/include" -obj $BUILD/git.c $BUILD/windows.c $BUILD/run.c $BUILD/run_.c
-gcc -L$GAMBIT/lib -L$LIBGIT2/lib $BUILD/git.o $BUILD/windows.o $BUILD/run.o $BUILD/run_.o $BUILD/setup.res -mwindows -lgit2 -lgambc -lws2_32 -lgdi32 -o $INSTALL/Install
+gsc -link -o $BUILD $CFILES
+gsc -cc-options "-I$LIBGIT2/include" -obj $CFILES $BUILD/run_.c
+gcc -L$GAMBIT/lib -L$LIBGIT2/lib $OFILES $BUILD/run_.o $BUILD/setup.res -mwindows -lgit2 -lgambc -lws2_32 -lgdi32 -o $INSTALL/Install
 cp $LIBGIT2/lib/libgit2.dll $INSTALL

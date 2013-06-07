@@ -22,4 +22,5 @@
       (<Project-File>               source: {File :context "setup" "run.scm"})
       (<Project-File>               source: {File :context "setup" "setup.rc"})
       (<Project-File>               source: {File :context "setup" "git.scm"})
-      (<Project-File>               source: {File :context "setup" "syntax.scm"})))))
+      (<Project-File>               source: {File :context "setup" "syntax.scm"})
+      (<Project-File>               source: {File :context "setup" "windows.scm"})))))

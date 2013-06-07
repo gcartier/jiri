@@ -113,7 +113,7 @@
 (c-external (GetBValue          INT) INT)
 
 
-(define new-rect
+(define make-RECT
   (c-lambda (int int int int) RECT*
     #<<end-of-c-code
     RECT* rect = malloc(sizeof(RECT));
@@ -165,44 +165,26 @@ end-of-c-code
         (else unprocessed)))
 
 
-(define draw-callback
-  #f)
-
-(define (set-draw-callback callback)
-  (set! draw-callback callback))
-
-
 (define (process-paint hwnd)
   (let ((ps (PAINTSTRUCT-make)))
     (let ((hdc (BeginPaint hwnd ps)))
-      (if draw-callback
-          (draw-callback hdc))
+      (let ((draw (window-draw current-window)))
+        (if draw
+            (draw hdc)))
       (EndPaint hdc ps))
     (PAINTSTRUCT-free ps)))
 
 
-(define key-down-callback
-  #f)
-
-(define (set-key-down-callback callback)
-  (set! key-down-callback callback))
-
-
 (define (process-key-down wparam)
-  (if key-down-callback
-      (key-down-callback wparam)))
-
-
-(define mouse-down-callback
-  #f)
-
-(define (set-mouse-down-callback callback)
-  (set! mouse-down-callback callback))
+  (let ((key-down (window-key-down current-window)))
+    (if key-down
+        (key-down wparam))))
 
 
 (define (process-mouse-down x y)
-  (if mouse-down-callback
-      (mouse-down-callback x y)))
+  (let ((mouse-down (window-mouse-down current-window)))
+    (if mouse-down
+        (mouse-down x y))))
 
 
 (define (process-close hwnd)
@@ -243,14 +225,14 @@ end-of-c-code
         (bStep (/ (- (GetBValue to) (GetBValue from)) 256.)))
     (let loop ((i 0))
       (let ((rectFill (if vertical?
-                          (new-rect left
-                                    (+ top (fxround (* i fStep)))
-                                    (+ right 1)
-                                    (+ top (fxround (* (+ i 1) fStep))))
-                        (new-rect (+ left (fxround (* i fStep)))
-                                  top
-                                  (+ left (fxround (* (+ i 1) fStep)))
-                                  (+ bottom 1)))))
+                          (make-RECT left
+                                     (+ top (fxround (* i fStep)))
+                                     (+ right 1)
+                                     (+ top (fxround (* (+ i 1) fStep))))
+                        (make-RECT (+ left (fxround (* i fStep)))
+                                   top
+                                   (+ left (fxround (* (+ i 1) fStep)))
+                                   (+ bottom 1)))))
         (let ((r (+ (GetRValue from) (fxround (* i rStep))))
               (g (+ (GetGValue from) (fxround (* i gStep))))
               (b (+ (GetBValue from) (fxround (* i bStep)))))
@@ -283,10 +265,11 @@ end-of-c-code
 
 
 (define SetupWindow
-  (c-lambda (HINSTANCE BITMAP*) int
+  (c-lambda (HINSTANCE int int) int
     #<<end-of-c-code
     HINSTANCE hInstance = ___arg1;
-    BITMAP* bm = ___arg2;
+    int width = ___arg2;
+    int height = ___arg3;
     
     WNDCLASSEX wc;
     HWND hwnd;
@@ -311,14 +294,14 @@ end-of-c-code
     // Create the Window
     int screenX = GetSystemMetrics(SM_CXSCREEN);
     int screenY = GetSystemMetrics(SM_CYSCREEN);
-    int xCtr = (screenX / 2) - (bm->bmWidth / 2);
-    int yCtr = (screenY/ 2) - (bm->bmHeight / 2);
+    int xCtr = (screenX / 2) - (width / 2);
+    int yCtr = (screenY/ 2) - (height / 2);
     hwnd = CreateWindowEx(
         0,
         g_szClassName,
         "Dawn of Space",
         WS_POPUP,
-        xCtr, yCtr, bm->bmWidth, bm->bmHeight,
+        xCtr, yCtr, width, height,
         NULL, NULL, hInstance, NULL);
 
     ShowWindow(hwnd, SW_SHOWNORMAL);
