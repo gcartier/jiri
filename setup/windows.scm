@@ -75,6 +75,8 @@
 (c-enumerant DT_CENTER)
 (c-enumerant DT_NOCLIP)
 
+(c-enumerant SW_SHOWNORMAL)
+
 (c-enumerant WM_PAINT)
 (c-enumerant WM_KEYDOWN)
 (c-enumerant WM_LBUTTONDOWN)
@@ -83,6 +85,23 @@
 
 (c-enumerant VK_ESCAPE)
 
+(c-enumerant MB_ICONWARNING)
+(c-enumerant MB_ICONERROR)
+(c-enumerant MB_OK)
+(c-enumerant MB_ICONINFORMATION)
+(c-enumerant MB_OKCANCEL)
+(c-enumerant MB_YESNO)
+(c-enumerant MB_YESNOCANCEL)
+(c-enumerant MB_TASKMODAL)
+
+(c-enumerant IDOK)
+(c-enumerant IDCANCEL)
+(c-enumerant IDABORT)
+(c-enumerant IDRETRY)
+(c-enumerant IDIGNORE)
+(c-enumerant IDYES)
+(c-enumerant IDNO)
+
 
 ;;;
 ;;;; External
@@ -90,6 +109,8 @@
 
 
 (c-external (DefWindowProc      HWND UINT WPARAM LPARAM) LRESULT "DefWindowProcW")
+(c-external (ShowWindow         HWND INT) BOOL)
+(c-external (UpdateWindow       HWND) BOOL)
 (c-external (DestroyWindow      HWND) BOOL)
 (c-external (PostQuitMessage    INT) VOID)
 (c-external (BeginPaint         HWND PAINTSTRUCT*) HDC)
@@ -111,6 +132,7 @@
 (c-external (GetRValue          INT) INT)
 (c-external (GetGValue          INT) INT)
 (c-external (GetBValue          INT) INT)
+(c-external (MessageBox         HWND LPCWSTR LPCWSTR INT) INT "MessageBoxW")
 
 
 (define make-RECT
@@ -249,6 +271,34 @@ end-of-c-code
     (##flonum->fixnum (##round r))))
 
 
+(define eol-encoding
+  'cr-lf)
+
+
+(define (system-message text #!key (type 'message) (title #f))
+  (let ((window current-window)
+        (title
+          (or title (case type
+                      ((message) "Message")
+                      ((question) "Question")
+                      ((confirmation) "Confirmation")
+                      ((problem) "Problem")
+                      ((error) "Error"))))
+        (flags
+          (case type
+            ((message) (bitwise-ior MB_OK MB_ICONINFORMATION))
+            ((question) (bitwise-ior MB_YESNO MB_ICONWARNING))
+            ((confirmation) (bitwise-ior MB_YESNOCANCEL MB_ICONWARNING))
+            ((problem) (bitwise-ior MB_OK MB_ICONERROR))
+            ((error) (bitwise-ior MB_OKCANCEL MB_ICONERROR)))))
+    (let ((code (MessageBox (if window (window-handle window) #f) text title (bitwise-ior MB_TASKMODAL flags))))
+      (cond ((= code IDOK) 'yes)
+            ((= code IDCANCEL) 'cancel)
+            ((= code IDYES) 'yes)
+            ((= code IDNO) 'no)
+            (else #f)))))
+
+
 (c-declare #<<end-of-c-code
 const char g_szClassName[] = "JiriWindowClass";
 end-of-c-code
@@ -265,7 +315,7 @@ end-of-c-code
 
 
 (define SetupWindow
-  (c-lambda (HINSTANCE int int) int
+  (c-lambda (HINSTANCE int int) HWND
     #<<end-of-c-code
     HINSTANCE hInstance = ___arg1;
     int width = ___arg2;
@@ -273,7 +323,6 @@ end-of-c-code
     
     WNDCLASSEX wc;
     HWND hwnd;
-    MSG Msg;
     
     // Register the Window Class
     wc.cbSize        = sizeof(WNDCLASSEX);
@@ -303,17 +352,23 @@ end-of-c-code
         WS_POPUP,
         xCtr, yCtr, width, height,
         NULL, NULL, hInstance, NULL);
+    
+    ___result = hwnd;
+end-of-c-code
+))
 
-    ShowWindow(hwnd, SW_SHOWNORMAL);
-    UpdateWindow(hwnd);
 
-    // The Message Loop
+(define MessageLoop
+  (c-lambda () int
+    #<<end-of-c-code
+    MSG Msg;
+    
     while(GetMessage(&Msg, NULL, 0, 0) > 0)
     {
         TranslateMessage(&Msg);
         DispatchMessage(&Msg);
     }
     
-    return Msg.wParam;
+    ___result = Msg.wParam;
 end-of-c-code
 ))

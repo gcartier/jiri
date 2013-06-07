@@ -14,8 +14,8 @@ SETUP="setup"
 
 NAME="$1Setup"
 
-CFILES="$BUILD/git.c $BUILD/geometry.c $BUILD/window.c $BUILD/view.c $BUILD/windows.c $BUILD/run.c"
-OFILES="$BUILD/git.o $BUILD/geometry.o $BUILD/window.o $BUILD/view.o $BUILD/windows.o $BUILD/run.o"
+CFILES="$BUILD/features.c $BUILD/crash.c $BUILD/git.c $BUILD/geometry.c $BUILD/window.c $BUILD/view.c $BUILD/windows.c $BUILD/run.c"
+OFILES="$BUILD/features.o $BUILD/crash.o $BUILD/git.o $BUILD/geometry.o $BUILD/window.o $BUILD/view.o $BUILD/windows.o $BUILD/run.o"
 
 if [ ! -d $BUILD ]; then
     mkdir $BUILD
@@ -28,6 +28,8 @@ if [ ! -d $SETUP ]; then
 fi
 
 windres --input $ABS/setup.rc --output $BUILD/setup.res --output-format=coff
+gsc -c -o $BUILD $ABS/features
+gsc -c -o $BUILD $ABS/crash
 gsc -c -o $BUILD $ABS/git
 gsc -c -o $BUILD $ABS/geometry
 gsc -c -o $BUILD $ABS/window

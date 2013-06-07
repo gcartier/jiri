@@ -39,6 +39,8 @@
 (c-type git_reset_t int)
 (c-type git_error "git_error")
 (c-type git_error* (pointer git_error))
+(c-type git_cred "git_cred")
+(c-type git_cred* (pointer git_cred))
 (c-type git_object "git_object")
 (c-type git_object* (pointer git_object))
 (c-type git_oid "git_oid")
@@ -133,6 +135,36 @@ end-of-c-code
     git_remote* remote;
     git_check_error(git_remote_create(&remote, ___arg1, ___arg2, ___arg3));
     ___result_voidstar = remote;
+end-of-c-code
+))
+
+(define git-remote-check-cert
+  (c-lambda (git_remote* int) void
+    #<<end-of-c-code
+    git_remote_check_cert(___arg1, ___arg2);
+end-of-c-code
+))
+
+(c-define (cred-acquire-procedure proc) (scheme-object) git_cred* "cred_acquire_procedure" ""
+  (proc))
+
+(c-declare #<<end-of-c-declare
+    int cred_acquire_cb(git_cred **out, const char * url, const char * username_from_url, unsigned int allowed_types, void * payload)
+    {
+        return git_cred_userpass_plaintext_new(out, "dawnofspacebeta", "gazoum123");
+        //*out = cred_acquire_procedure(___EXT(___data_rc)(payload));
+        //return 0;
+    }
+end-of-c-declare
+)
+
+(define git-remote-set-cred-acquire-cb
+  (c-lambda (git_remote* scheme-object) void
+    #<<end-of-c-code
+    git_remote_set_cred_acquire_cb(___arg1, &cred_acquire_cb, NULL);
+    //void* p = ___EXT(___alloc_rc)(0);
+    //___EXT(___set_data_rc)(p, ___arg2);
+    //git_remote_set_cred_acquire_cb(___arg1, &cred_acquire_cb, p);
 end-of-c-code
 ))
 

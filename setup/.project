@@ -23,4 +23,6 @@
     (<Project-File>             source: {File :context "windows.scm"})
     (<Project-File>             source: {File :context "geometry.scm"})
     (<Project-File>             source: {File :context "view.scm"})
-    (<Project-File>             source: {File :context "window.scm"}))))
+    (<Project-File>             source: {File :context "window.scm"})
+    (<Project-File>             source: {File :context "crash.scm"})
+    (<Project-File>             source: {File :context "features.scm"}))))

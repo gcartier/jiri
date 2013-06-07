@@ -7,6 +7,7 @@
 
 
 (define-type window
+  handle
   draw
   key-down
   mouse-down)
