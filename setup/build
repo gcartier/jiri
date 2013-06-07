@@ -5,7 +5,9 @@ ABS="$(cd "$REL"; pwd)"
 
 JIRI="$ABS/.."
 JAZZ="$JIRI/jazz"
-LIBGIT2="$JAZZ/foreign/libgit2"
+FOREIGN="$JAZZ/foreign"
+LIBGIT2="$FOREIGN/libgit2"
+OPENSSL="$FOREIGN/openssl"
 GAMBIT="$JAZZ_GAMBITDIR"
 
 BUILD="build"
@@ -40,3 +42,5 @@ gsc -link -o $BUILD $CFILES
 gsc -cc-options "-I$LIBGIT2/include" -obj $CFILES $BUILD/run_.c
 gcc -L$GAMBIT/lib -L$LIBGIT2/lib $OFILES $BUILD/run_.o $BUILD/setup.res -mwindows -lgit2 -lgambc -lws2_32 -lgdi32 -o $INSTALL/Install
 cp $LIBGIT2/lib/libgit2.dll $INSTALL
+cp $OPENSSL/lib/libeay32.dll $INSTALL
+cp $OPENSSL/lib/ssleay32.dll $INSTALL

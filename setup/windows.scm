@@ -108,31 +108,31 @@
 ;;;
 
 
-(c-external (DefWindowProc      HWND UINT WPARAM LPARAM) LRESULT "DefWindowProcW")
-(c-external (ShowWindow         HWND INT) BOOL)
-(c-external (UpdateWindow       HWND) BOOL)
-(c-external (DestroyWindow      HWND) BOOL)
-(c-external (PostQuitMessage    INT) VOID)
-(c-external (BeginPaint         HWND PAINTSTRUCT*) HDC)
-(c-external (EndPaint           HWND PAINTSTRUCT*) BOOL)
-(c-external (CreateCompatibleDC HDC) HDC)
-(c-external (DeleteDC           HDC) BOOL)
-(c-external (LoadBitmap         HINSTANCE LPCWSTR) HANDLE "LoadBitmapW")
-(c-external (GetBitmap          HGDIOBJ INT BITMAP*) INT "GetObjectW")
-(c-external (SelectObject       HDC HANDLE) HANDLE)
-(c-external (DeleteObject       HGDIOBJ) BOOL)
-(c-external (BitBlt             HDC INT INT INT INT HDC INT INT DWORD) BOOL)
-(c-external (FillRect           HDC RECT* HBRUSH) INT)
-(c-external (DrawText           HDC LPCWSTR INT RECT* UINT) INT "DrawTextW")
-(c-external (CreateSolidBrush   COLORREF) HBRUSH)
-(c-external (CreateFont         INT INT INT INT INT DWORD DWORD DWORD DWORD DWORD DWORD DWORD DWORD LPCWSTR) HFONT "CreateFontW")
-(c-external (SetBkMode          HDC INT) INT)
-(c-external (SetTextColor       HDC COLORREF) COLORREF)
-(c-external (RGB                INT INT INT) INT)
-(c-external (GetRValue          INT) INT)
-(c-external (GetGValue          INT) INT)
-(c-external (GetBValue          INT) INT)
-(c-external (MessageBox         HWND LPCWSTR LPCWSTR INT) INT "MessageBoxW")
+(c-external (DefWindowProc            HWND UINT WPARAM LPARAM) LRESULT "DefWindowProcW")
+(c-external (ShowWindow               HWND INT) BOOL)
+(c-external (UpdateWindow             HWND) BOOL)
+(c-external (DestroyWindow            HWND) BOOL)
+(c-external (PostQuitMessage          INT) VOID)
+(c-external (BeginPaint               HWND PAINTSTRUCT*) HDC)
+(c-external (EndPaint                 HWND PAINTSTRUCT*) BOOL)
+(c-external (CreateCompatibleDC       HDC) HDC)
+(c-external (DeleteDC                 HDC) BOOL)
+(c-external (LoadBitmap               HINSTANCE LPCWSTR) HANDLE "LoadBitmapW")
+(c-external (GetBitmap                HGDIOBJ INT BITMAP*) INT "GetObjectW")
+(c-external (SelectObject             HDC HANDLE) HANDLE)
+(c-external (DeleteObject             HGDIOBJ) BOOL)
+(c-external (BitBlt                   HDC INT INT INT INT HDC INT INT DWORD) BOOL)
+(c-external (FillRect                 HDC RECT* HBRUSH) INT)
+(c-external (DrawText                 HDC LPCWSTR INT RECT* UINT) INT "DrawTextW")
+(c-external (CreateSolidBrush         COLORREF) HBRUSH)
+(c-external (CreateFont               INT INT INT INT INT DWORD DWORD DWORD DWORD DWORD DWORD DWORD DWORD LPCWSTR) HFONT "CreateFontW")
+(c-external (SetBkMode                HDC INT) INT)
+(c-external (SetTextColor             HDC COLORREF) COLORREF)
+(c-external (RGB                      INT INT INT) INT)
+(c-external (GetRValue                INT) INT)
+(c-external (GetGValue                INT) INT)
+(c-external (GetBValue                INT) INT)
+(c-external (MessageBox               HWND LPCWSTR LPCWSTR INT) INT "MessageBoxW")
 
 
 (define make-RECT
@@ -300,7 +300,7 @@ end-of-c-code
 
 
 (c-declare #<<end-of-c-code
-const char g_szClassName[] = "JiriWindowClass";
+const LPCWSTR g_szClassName = L"JiriWindowClass";
 end-of-c-code
 )
 
@@ -321,7 +321,7 @@ end-of-c-code
     int width = ___arg2;
     int height = ___arg3;
     
-    WNDCLASSEX wc;
+    WNDCLASSEXW wc;
     HWND hwnd;
     
     // Register the Window Class
@@ -338,17 +338,17 @@ end-of-c-code
     wc.lpszClassName = g_szClassName;
     wc.hIconSm       = LoadImage(hInstance, "app", IMAGE_ICON, 16, 16, LR_SHARED);
 
-    RegisterClassEx(&wc);
+    RegisterClassExW(&wc);
 
     // Create the Window
     int screenX = GetSystemMetrics(SM_CXSCREEN);
     int screenY = GetSystemMetrics(SM_CYSCREEN);
     int xCtr = (screenX / 2) - (width / 2);
-    int yCtr = (screenY/ 2) - (height / 2);
-    hwnd = CreateWindowEx(
+    int yCtr = (screenY / 2) - (height / 2);
+    hwnd = CreateWindowExW(
         0,
         g_szClassName,
-        "Dawn of Space",
+        L"Dawn of Space",
         WS_POPUP,
         xCtr, yCtr, width, height,
         NULL, NULL, hInstance, NULL);
