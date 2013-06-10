@@ -112,6 +112,36 @@
 
 
 ;;;
+;;;; Percentage
+;;;
+
+
+(define percentage-view
+  (new-label (make-rect 50 450 150 470)
+             "0%"))
+
+
+;;;
+;;;; Downloaded
+;;;
+
+
+(define downloaded-view
+  (new-label (make-rect 200 450 300 470)
+             "Downloaded: 72MB"))
+
+
+;;;
+;;;; Remaining
+;;;
+
+
+(define remaining-view
+  (new-label (make-rect 400 450 500 470)
+             "Remaining: 272"))
+
+
+;;;
 ;;;; Download
 ;;;
 
@@ -145,9 +175,13 @@
 
 (define (setup)
   (remove-view install-view)
+  (add-view percentage-view)
+  (add-view downloaded-view)
+  (add-view remaining-view)
   (add-view download-view)
   (add-view play-view)
   (update-window)
+  #;
   (download))
 
 

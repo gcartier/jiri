@@ -190,7 +190,7 @@
     (SelectObject hdc font)
     (let ((rect (view-rect view))
           (title (label-title view)))
-      (DrawText hdc title -1 (rect->RECT rect) (bitwise-ior DT_CENTER DT_NOCLIP)))))
+      (DrawText hdc title -1 (rect->RECT rect) DT_NOCLIP))))
 
 
 (define (new-label rect title)
