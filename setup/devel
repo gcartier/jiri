@@ -24,8 +24,8 @@ case "$1" in
 		;;
 esac
 
-CFILES="$BUILD/features.c $BUILD/crash.c $BUILD/git.c $BUILD/base.c $BUILD/windows.c $BUILD/devel.c $BUILD/main.c"
-OFILES="$BUILD/features.o $BUILD/crash.o $BUILD/git.o $BUILD/base.o $BUILD/windows.o $BUILD/devel.o $BUILD/main.o"
+CFILES="$BUILD/features.c $BUILD/crash.c $BUILD/git.c $BUILD/windows.c $BUILD/devel.c $BUILD/main.c"
+OFILES="$BUILD/features.o $BUILD/crash.o $BUILD/git.o $BUILD/windows.o $BUILD/devel.o $BUILD/main.o"
 
 if [ ! -d $DEVEL ]; then
     mkdir $DEVEL
@@ -41,7 +41,6 @@ windres --input $ABS/setup.rc --output $BUILD/setup.res --output-format=coff
 gsc -c -o $BUILD $ABS/features
 gsc -c -o $BUILD $ABS/crash
 gsc -c -o $BUILD $ABS/git
-gsc -c -o $BUILD $ABS/base
 gsc -c -o $BUILD $ABS/windows
 gsc -c -o $BUILD $ABS/devel
 gsc -c -o $BUILD $ABS/main

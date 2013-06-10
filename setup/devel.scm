@@ -11,6 +11,7 @@
     (load src)))
 
 
+(load-source "base")
 (load-source "geometry")
 (load-source "color")
 (load-source "font")
