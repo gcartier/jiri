@@ -2,7 +2,7 @@
 ;;;  JazzScheme
 ;;;==============
 ;;;
-;;;; Run
+;;;; Install
 ;;;
 
 
@@ -154,12 +154,3 @@
     (ShowWindow hwnd SW_SHOWNORMAL)
     (UpdateWindow hwnd)
     (MessageLoop)))
-
-
-;;;
-;;;; Main
-;;;
-
-
-(prepare)
-(run)

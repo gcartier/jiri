@@ -10,9 +10,10 @@ LIBGIT2="$FOREIGN/libgit2"
 OPENSSL="$FOREIGN/openssl"
 GAMBIT="$GAMBITDIR"
 
-BUILD="build"
-INSTALL="install"
-SETUP="setup"
+ROOT="release"
+BUILD="$ROOT/build"
+INSTALL="$ROOT/install"
+SETUP="$ROOT/setup"
 
 MODE="windows"
 case "$1" in
@@ -24,9 +25,12 @@ case "$1" in
 		;;
 esac
 
-CFILES="$BUILD/features.c $BUILD/crash.c $BUILD/git.c $BUILD/base.c $BUILD/windows.c $BUILD/geometry.c $BUILD/color.c $BUILD/font.c $BUILD/window.c $BUILD/view.c $BUILD/run.c"
-OFILES="$BUILD/features.o $BUILD/crash.o $BUILD/git.o $BUILD/base.o $BUILD/windows.o $BUILD/geometry.o $BUILD/color.o $BUILD/font.o $BUILD/window.o $BUILD/view.o $BUILD/run.o"
+CFILES="$BUILD/features.c $BUILD/crash.c $BUILD/git.c $BUILD/base.c $BUILD/windows.c $BUILD/geometry.c $BUILD/color.c $BUILD/font.c $BUILD/window.c $BUILD/view.c $BUILD/setup.c $BUILD/main.c"
+OFILES="$BUILD/features.o $BUILD/crash.o $BUILD/git.o $BUILD/base.o $BUILD/windows.o $BUILD/geometry.o $BUILD/color.o $BUILD/font.o $BUILD/window.o $BUILD/view.o $BUILD/setup.o $BUILD/main.o"
 
+if [ ! -d $ROOT ]; then
+    mkdir $ROOT
+fi
 if [ ! -d $BUILD ]; then
     mkdir $BUILD
 fi
@@ -48,10 +52,11 @@ gsc -c -o $BUILD $ABS/color
 gsc -c -o $BUILD $ABS/font
 gsc -c -o $BUILD $ABS/window
 gsc -c -o $BUILD $ABS/view
-gsc -c -o $BUILD $ABS/run
+gsc -c -o $BUILD $ABS/setup
+gsc -c -o $BUILD $ABS/main
 gsc -link -o $BUILD $CFILES
-gsc -cc-options "-I$LIBGIT2/include" -obj $CFILES $BUILD/run_.c
-gcc -L$GAMBIT/lib -L$LIBGIT2/lib $OFILES $BUILD/run_.o $BUILD/setup.res -m$MODE -lgit2 -lgambc -lws2_32 -lgdi32 -o $INSTALL/Install
+gsc -cc-options "-I$LIBGIT2/include" -obj $CFILES $BUILD/main_.c
+gcc -L$GAMBIT/lib -L$LIBGIT2/lib $OFILES $BUILD/main_.o $BUILD/setup.res -m$MODE -lgit2 -lgambc -lws2_32 -lgdi32 -o $INSTALL/Install
 cp $LIBGIT2/lib/libgit2.dll $INSTALL
 cp $OPENSSL/lib/libeay32.dll $INSTALL
 cp $OPENSSL/lib/ssleay32.dll $INSTALL

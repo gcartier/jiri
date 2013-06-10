@@ -19,10 +19,16 @@
                     'Build)))
 
 
+(define (jiri-load filename)
+  (let ((root {Directory Application}))
+    (let ((src (new-file~ root "setup" (add-extension filename "scm")))
+          (bin (new-file~ root ".." "test" (add-extension filename "o1"))))
+      #f)))
+
+
 (definition (run-jiri)
   (initialize-aliases)
   (setup-aliases)
-  (debug (parse~ {Directory Application}))
   (start-repl))
 
 

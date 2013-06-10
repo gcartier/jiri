@@ -1,0 +1,53 @@
+#!/bin/sh
+
+REL="$(dirname "$0")"
+ABS="$(cd "$REL"; pwd)"
+
+JIRI="$ABS/.."
+JAZZ="$JIRI/jazz"
+FOREIGN="$JAZZ/foreign"
+LIBGIT2="$FOREIGN/libgit2"
+OPENSSL="$FOREIGN/openssl"
+GAMBIT="$GAMBITDIR"
+
+DEVEL="devel"
+BUILD="$DEVEL/build"
+INSTALL="$DEVEL/install"
+
+MODE="windows"
+case "$1" in
+	"-console" )
+		MODE="console"
+		;;
+	"-windows" )
+		MODE="windows"
+		;;
+esac
+
+CFILES="$BUILD/features.c $BUILD/crash.c $BUILD/git.c $BUILD/base.c $BUILD/windows.c $BUILD/devel.c $BUILD/main.c"
+OFILES="$BUILD/features.o $BUILD/crash.o $BUILD/git.o $BUILD/base.o $BUILD/windows.o $BUILD/devel.o $BUILD/main.o"
+
+if [ ! -d $DEVEL ]; then
+    mkdir $DEVEL
+fi
+if [ ! -d $BUILD ]; then
+    mkdir $BUILD
+fi
+if [ ! -d $INSTALL ]; then
+    mkdir $INSTALL
+fi
+
+windres --input $ABS/setup.rc --output $BUILD/setup.res --output-format=coff
+gsc -c -o $BUILD $ABS/features
+gsc -c -o $BUILD $ABS/crash
+gsc -c -o $BUILD $ABS/git
+gsc -c -o $BUILD $ABS/base
+gsc -c -o $BUILD $ABS/windows
+gsc -c -o $BUILD $ABS/devel
+gsc -c -o $BUILD $ABS/main
+gsc -link -o $BUILD $CFILES
+gsc -cc-options "-I$LIBGIT2/include" -obj $CFILES $BUILD/main_.c
+gcc -L$GAMBIT/lib -L$LIBGIT2/lib $OFILES $BUILD/main_.o $BUILD/setup.res -m$MODE -lgit2 -lgambc -lws2_32 -lgdi32 -o $INSTALL/Install
+cp $LIBGIT2/lib/libgit2.dll $INSTALL
+cp $OPENSSL/lib/libeay32.dll $INSTALL
+cp $OPENSSL/lib/ssleay32.dll $INSTALL
