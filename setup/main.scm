@@ -6,5 +6,4 @@
 ;;;
 
 
-(prepare)
-(run)
+(main)

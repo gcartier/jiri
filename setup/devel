@@ -14,16 +14,6 @@ DEVEL="devel"
 BUILD="$DEVEL/build"
 INSTALL="$DEVEL/install"
 
-MODE="windows"
-case "$1" in
-	"-console" )
-		MODE="console"
-		;;
-	"-windows" )
-		MODE="windows"
-		;;
-esac
-
 CFILES="$BUILD/features.c $BUILD/crash.c $BUILD/git.c $BUILD/windows.c $BUILD/devel.c $BUILD/main.c"
 OFILES="$BUILD/features.o $BUILD/crash.o $BUILD/git.o $BUILD/windows.o $BUILD/devel.o $BUILD/main.o"
 
@@ -46,7 +36,8 @@ gsc -c -o $BUILD $ABS/devel
 gsc -c -o $BUILD $ABS/main
 gsc -link -o $BUILD $CFILES
 gsc -cc-options "-I$LIBGIT2/include" -obj $CFILES $BUILD/main_.c
-gcc -L$GAMBIT/lib -L$LIBGIT2/lib $OFILES $BUILD/main_.o $BUILD/setup.res -m$MODE -lgit2 -lgambc -lws2_32 -lgdi32 -o $INSTALL/Install
+gcc -L$GAMBIT/lib -L$LIBGIT2/lib $OFILES $BUILD/main_.o $BUILD/setup.res -mwindows -lgit2 -lgambc -lws2_32 -lgdi32 -o $INSTALL/Install
+gcc -L$GAMBIT/lib -L$LIBGIT2/lib $OFILES $BUILD/main_.o $BUILD/setup.res -mconsole -lgit2 -lgambc -lws2_32 -lgdi32 -o $INSTALL/InstallConsole
 cp $LIBGIT2/lib/libgit2.dll $INSTALL
 cp $OPENSSL/lib/libeay32.dll $INSTALL
 cp $OPENSSL/lib/ssleay32.dll $INSTALL

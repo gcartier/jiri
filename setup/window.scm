@@ -10,7 +10,9 @@
   handle
   draw
   key-down
-  mouse-down)
+  mouse-move
+  mouse-down
+  mouse-up)
 
 
 (define current-window

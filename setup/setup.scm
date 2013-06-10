@@ -6,9 +6,28 @@
 ;;;
 
 
+;; TODO
+;; - Need to implement with-cursor calling update-cursor
+
+
 ;;;
 ;;;; Window
 ;;;
+
+
+(define current-bitmap-handle
+  #f)
+
+(define current-bitmap
+  #f)
+
+
+(define (setup-bitmap)
+  (let ((hbm (LoadBitmap (current-instance) "BACKGROUND")))
+    (let ((bm (BITMAP-make)))
+      (GetBitmap hbm (BITMAP-sizeof) bm)
+      (set! current-bitmap-handle hbm)
+      (set! current-bitmap bm))))
 
 
 (define window
@@ -16,31 +35,58 @@
     (define (draw hdc)
       (let ((width (BITMAP-width current-bitmap))
             (height (BITMAP-height current-bitmap))
+            (hdcBitmap (CreateCompatibleDC hdc))
             (hdcMem (CreateCompatibleDC hdc)))
-        (let ((hbmOld (SelectObject hdcMem current-hbitmap)))
+        (let ((bmMem (CreateCompatibleBitmap hdc width height)))
+          (SelectObject hdcBitmap current-bitmap-handle)
+          (SelectObject hdcMem bmMem)
+          (BitBlt hdcMem 0 0 width height hdcBitmap 0 0 SRCCOPY)
+          (draw-views hdcMem)
           (BitBlt hdc 0 0 width height hdcMem 0 0 SRCCOPY)
-          (SelectObject hdcMem hbmOld)
-          (DeleteDC hdcMem)))
-      (draw-views hdc))
+          (DeleteObject bmMem)
+          (DeleteDC hdcBitmap)
+          (DeleteDC hdcMem))))
     
     (define (key-down wparam)
       (if (= wparam VK_ESCAPE)
           (exit)))
     
-    (define (mouse-down x y)
-      (continuation-capture
-        (lambda (return)
-          (for-each (lambda (view)
-                      (if (in-rect? (make-point x y) (view-rect view))
-                          (let ((mouse-down (view-mouse-down view)))
-                            (if mouse-down
-                                (begin
-                                  (mouse-down view x y)
-                                  (continuation-return return))))))
-                    views)
-          (exit))))
+    (define (mouse-move x y)
+      (let ((view (find-view x y)))
+        (if view
+            (let ((mouse-move (view-mouse-move view)))
+              (if mouse-move
+                  (mouse-move view x y)))
+          (set-cursor IDC_ARROW))))
     
-    (make-window #f draw key-down mouse-down)))
+    (define (mouse-down x y)
+      (let ((view (find-view x y)))
+        (if view
+            (let ((mouse-down (view-mouse-down view)))
+              (if mouse-down
+                  (mouse-down view x y)))
+          (quit))))
+    
+    (define (mouse-up x y)
+      (let ((view (find-view x y)))
+        (if view
+            (let ((mouse-up (view-mouse-up view)))
+              (if mouse-up
+                  (mouse-up view x y)))
+          (quit))))
+    
+    (define (find-view x y)
+      (or captured-view
+          (let ((pt (make-point x y)))
+            (continuation-capture
+              (lambda (return)
+                (for-each (lambda (view)
+                            (if (in-rect? pt (view-rect view))
+                                (continuation-return return view)))
+                          views)
+                #f)))))
+    
+    (make-window #f draw key-down mouse-move mouse-down mouse-up)))
 
 
 ;;;
@@ -49,7 +95,7 @@
 
 
 (define title-view
-  (new-label (make-rect 130 18 330 168)
+  (new-title (make-rect 20 18 440 100)
              "Dawn of Space"))
 
 
@@ -71,7 +117,7 @@
 
 
 (define download-view
-  (new-progress (make-rect 50 470 690 490)))
+  (new-progress (make-rect 50 470 650 490) 0 (make-range 0 10)))
 
 
 ;;;
@@ -80,10 +126,12 @@
 
 
 (define play-view
-  (new-button (make-rect 720 450 800 490)
+  (new-button (make-rect 680 450 815 490)
               "Play"
               (lambda (view)
-                #f)))
+                (exit)
+                #;
+                (setup))))
 
 
 ;;;
@@ -91,22 +139,25 @@
 ;;;
 
 
+(define (quit)
+  (exit))
+
+
 (define (setup)
   (remove-view install-view)
   (add-view download-view)
   (add-view play-view)
-  (for-each (lambda (n)
-              (set-progress-pos download-view n)
-              (redraw-view download-view)
-              (thread-sleep! .1))
-            '(1 2 3 4 5 6 7 8 9 10))
-  #;
+  (update-window)
   (download))
 
 
 (define (download)
-  (let ((url "https://github.com/gcartier/space-media.git")
-        (dir "aaa/space-media"))
+  (set-cursor IDC_WAIT)
+  (let ((url "d:/space-media" #; "https://github.com/gcartier/space-media.git")
+        (dir "aaa"))
+    (let ((normalized-dir (string-append dir "/")))
+      (if (file-exists? normalized-dir)
+          (empty/delete-directory normalized-dir overwrite-readonly?: #t)))
     (let ((repo (git-repository-init dir 0)))
       (let ((remote (git-remote-create repo "origin" url)))
         (git-remote-check-cert remote 0)
@@ -115,9 +166,13 @@
                                           #f #;
                                           (git-cred-userpass-plaintext-new "dawnofspacebeta" "gazoum123")))
         (git-remote-connect remote GIT_DIRECTION_FETCH)
-        (git-remote-download remote
-                             (lambda (total_objects indexed_objects received_objects stats->received_bytes)
-                               (pp (list total_objects indexed_objects received_objects stats->received_bytes))))
+        (let ((first-call? #t))
+          (define (callback total-objects indexed-objects received-objects received-bytes)
+            (if (= received-objects 0)
+                (set-progress-range download-view (make-range 0 total-objects))
+              (set-progress-pos download-view received-objects)))
+          
+          (git-remote-download remote callback))
         (git-remote-disconnect remote)
         (git-remote-update-tips remote)
         (git-remote-free remote)
@@ -136,11 +191,7 @@
   (set-current-window window)
   (add-view title-view)
   (add-view install-view)
-  (let ((hbm (LoadBitmap (current-instance) "BACKGROUND")))
-    (let ((bm (BITMAP-make)))
-      (GetBitmap hbm (BITMAP-sizeof) bm)
-      (set! current-hbitmap hbm)
-      (set! current-bitmap bm))))
+  (setup-bitmap))
 
 
 ;;;
@@ -154,3 +205,22 @@
     (ShowWindow hwnd SW_SHOWNORMAL)
     (UpdateWindow hwnd)
     (MessageLoop)))
+
+
+;;;
+;;;; Main
+;;;
+
+
+(define (t)
+  (let ((dir "aaa/"))
+    (if (file-exists? dir)
+        (begin
+          (empty/delete-directory dir overwrite-readonly?: #t)
+          (wait-deleted-workaround dir)))))
+
+
+(define (main)
+  ;(##repl)
+  (prepare)
+  (run))

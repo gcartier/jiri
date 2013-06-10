@@ -16,6 +16,18 @@
   v)
 
 
+(define (point+ p1 p2)
+  (make-point
+    (+ (point-h p1) (point-h p2))
+    (+ (point-v p1) (point-v p2))))
+
+
+(define (point- p1 p2)
+  (make-point
+    (- (point-h p1) (point-h p2))
+    (- (point-v p1) (point-v p2))))
+
+
 ;;;
 ;;;; Rect
 ;;;

@@ -13,8 +13,11 @@
     ANTIALIASED_QUALITY FF_DONTCARE name))
 
 
-(define label-font
+(define title-font
   (make-font "Tahoma" 72))
+
+(define label-font
+  (make-font "Tahoma" 12))
 
 (define button-font
   (make-font "Tahoma" 24))

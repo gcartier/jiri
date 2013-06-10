@@ -17,6 +17,7 @@
 (c-type VOID         void)
 (c-type VOID*        (pointer VOID))
 (c-type BOOL         bool)
+(c-type WORD         unsigned-int16)
 (c-type INT          int)
 (c-type UINT         unsigned-int)
 (c-type UINT_PTR     UINT)
@@ -38,6 +39,8 @@
 (c-type HBRUSH       (pointer (struct "HBRUSH__") handle))
 (c-type HFONT        (pointer (struct "HFONT__") handle))
 (c-type HRGN         (pointer (struct "HRGN__") handle))
+(c-type HICON        (pointer (struct "HICON__") handle))
+(c-type HCURSOR      HICON)
 (c-type HGDIOBJ      (pointer VOID handle))
 (c-type COLORREF     DWORD)
 
@@ -49,6 +52,7 @@
 
 (c-structure PAINTSTRUCT)
 (c-structure BITMAP)
+(c-structure POINT)
 (c-structure RECT)
 
 
@@ -60,6 +64,10 @@
 (c-constant NULL  #f)
 (c-constant FALSE 0)
 (c-constant TRUE  1)
+
+(c-constant IDC_ARROW   32512)
+(c-constant IDC_WAIT    32514)
+(c-constant IDC_SIZEALL 32646)
 
 (c-enumerant SRCCOPY)
 
@@ -82,9 +90,13 @@
 (c-enumerant RDW_ERASENOW)
 (c-enumerant RDW_UPDATENOW)
 
+(c-enumerant WM_ERASEBKGND)
 (c-enumerant WM_PAINT)
 (c-enumerant WM_KEYDOWN)
+(c-enumerant WM_MOUSEMOVE)
 (c-enumerant WM_LBUTTONDOWN)
+(c-enumerant WM_LBUTTONUP)
+(c-enumerant WM_CAPTURECHANGED)
 (c-enumerant WM_CLOSE)
 (c-enumerant WM_DESTROY)
 
@@ -107,6 +119,8 @@
 (c-enumerant IDYES)
 (c-enumerant IDNO)
 
+(c-enumerant FILE_ATTRIBUTE_READONLY)
+
 
 ;;;
 ;;;; External
@@ -116,10 +130,15 @@
 (c-external (DefWindowProc            HWND UINT WPARAM LPARAM) LRESULT "DefWindowProcW")
 (c-external (ShowWindow               HWND INT) BOOL)
 (c-external (UpdateWindow             HWND) BOOL)
+(c-external (RedrawWindow             HWND RECT* HRGN UINT) BOOL)
+(c-external (InvalidateRect           HWND RECT* BOOL) BOOL)
 (c-external (DestroyWindow            HWND) BOOL)
+(c-external (GetWindowRect            HWND RECT*) BOOL)
+(c-external (MoveWindow               HWND INT INT INT INT BOOL) BOOL)
 (c-external (PostQuitMessage          INT) VOID)
 (c-external (BeginPaint               HWND PAINTSTRUCT*) HDC)
 (c-external (EndPaint                 HWND PAINTSTRUCT*) BOOL)
+(c-external (CreateCompatibleBitmap   HDC INT INT) HBITMAP)
 (c-external (CreateCompatibleDC       HDC) HDC)
 (c-external (DeleteDC                 HDC) BOOL)
 (c-external (LoadBitmap               HINSTANCE LPCWSTR) HANDLE "LoadBitmapW")
@@ -133,13 +152,40 @@
 (c-external (CreateFont               INT INT INT INT INT DWORD DWORD DWORD DWORD DWORD DWORD DWORD DWORD LPCWSTR) HFONT "CreateFontW")
 (c-external (SetBkMode                HDC INT) INT)
 (c-external (SetTextColor             HDC COLORREF) COLORREF)
-(c-external (InvalidateRect           HWND RECT* BOOL) BOOL)
-(c-external (RedrawWindow             HWND RECT* HRGN UINT) BOOL)
+(c-external (SetCursor                HCURSOR) HCURSOR)
+(c-external (GetCursorPos             POINT*) BOOL)
+(c-external (SetCapture               HWND) HWND)
+(c-external (ReleaseCapture           ) BOOL)
 (c-external (RGB                      INT INT INT) INT)
 (c-external (GetRValue                INT) INT)
 (c-external (GetGValue                INT) INT)
 (c-external (GetBValue                INT) INT)
 (c-external (MessageBox               HWND LPCWSTR LPCWSTR INT) INT "MessageBoxW")
+(c-external (GetFileAttributes        CWSTR) DWORD "GetFileAttributesW")
+(c-external (SetFileAttributes        CWSTR DWORD) BOOL "SetFileAttributesW")
+
+
+(define make-POINT
+  (c-lambda (int int int int) POINT*
+    #<<end-of-c-code
+    POINT* point = malloc(sizeof(POINT));
+    point->x = ___arg1;
+    point->y = ___arg2;
+    ___result_voidstar = point;
+end-of-c-code
+))
+
+(define POINT-free
+  (c-lambda (POINT*) void
+    "free(___arg1);"))
+
+(define POINT-x
+  (c-lambda (POINT*) int
+    "___result = ___arg1->x;"))
+
+(define POINT-y
+  (c-lambda (POINT*) int
+    "___result = ___arg1->y;"))
 
 
 (define make-RECT
@@ -150,6 +196,66 @@
     ___result_voidstar = rect;
 end-of-c-code
 ))
+
+(define RECT-free
+  (c-lambda (RECT*) void
+    "free(___arg1);"))
+
+(define RECT-left
+  (c-lambda (RECT*) int
+    "___result = ___arg1->left;"))
+
+(define RECT-top
+  (c-lambda (RECT*) int
+    "___result = ___arg1->top;"))
+
+(define RECT-right
+  (c-lambda (RECT*) int
+    "___result = ___arg1->right;"))
+
+(define RECT-bottom
+  (c-lambda (RECT*) int
+    "___result = ___arg1->bottom;"))
+
+
+(define LoadCursorInt
+  (c-lambda (WORD) HCURSOR
+    "___result_voidstar = LoadImage(NULL, MAKEINTRESOURCE(___arg1), IMAGE_CURSOR, 0, 0, LR_SHARED);"))
+
+
+(define (set-cursor cursor)
+  (SetCursor (LoadCursorInt cursor)))
+
+
+(define (cursor-position)
+  (let ((point (POINT-make)))
+    (GetCursorPos point)
+    (let ((pos (make-point (POINT-x point) (POINT-y point))))
+      (POINT-free point)
+      pos)))
+
+
+(define (get-window-position window)
+  (let ((handle (window-handle window))
+        (rect (RECT-make)))
+    (GetWindowRect handle rect)
+    (let ((pos (make-point (RECT-left rect) (RECT-top rect))))
+      (RECT-free rect)
+      pos)))
+
+
+(define (get-window-size window)
+  (let ((handle (window-handle window))
+        (rect (RECT-make)))
+    (GetWindowRect handle rect)
+    (let ((size (make-point (- (RECT-right rect) (RECT-left rect)) (- (RECT-bottom rect) (RECT-top rect)))))
+      (RECT-free rect)
+      size)))
+
+
+(define (move-window window pos size)
+  (let ((handle (window-handle window)))
+    (MoveWindow handle (point-h pos) (point-v pos) (point-h size) (point-v size) #f)))
 
 
 (define (signed-loword dword)
@@ -186,9 +292,13 @@ end-of-c-code
   (define get-lparam-x signed-loword)
   (define get-lparam-y signed-hiword)
   
-  (cond ((= msg WM_PAINT) (process-paint hwnd))
+  (cond ((= msg WM_ERASEBKGND) processed)
+        ((= msg WM_PAINT) (process-paint hwnd))
         ((= msg WM_KEYDOWN) (process-key-down wparam))
+        ((= msg WM_MOUSEMOVE) (process-mouse-move (get-lparam-x lparam) (get-lparam-y lparam)))
         ((= msg WM_LBUTTONDOWN) (process-mouse-down (get-lparam-x lparam) (get-lparam-y lparam)))
+        ((= msg WM_LBUTTONUP) (process-mouse-up (get-lparam-x lparam) (get-lparam-y lparam)))
+        ((= msg WM_CAPTURECHANGED) (process-capture-changed lparam))
         ((= msg WM_CLOSE) (process-close hwnd))
         ((= msg WM_DESTROY) (process-destroy))
         (else unprocessed)))
@@ -201,7 +311,8 @@ end-of-c-code
         (if draw
             (draw hdc)))
       (EndPaint hdc ps))
-    (PAINTSTRUCT-free ps)))
+    (PAINTSTRUCT-free ps))
+  processed)
 
 
 (define (process-key-down wparam)
@@ -210,10 +321,33 @@ end-of-c-code
         (key-down wparam))))
 
 
+(define (process-mouse-move x y)
+  (let ((mouse-move (window-mouse-move current-window)))
+    (if mouse-move
+        (mouse-move x y))))
+
+
 (define (process-mouse-down x y)
   (let ((mouse-down (window-mouse-down current-window)))
     (if mouse-down
         (mouse-down x y))))
+
+
+(define (process-mouse-up x y)
+  (let ((mouse-up (window-mouse-up current-window)))
+    (if mouse-up
+        (mouse-up x y))))
+
+
+(define lose-capture-callback
+  #f)
+
+
+(define (process-capture-changed hwnd)
+  (if lose-capture-callback
+      (let ((callback lose-capture-callback))
+        (set! lose-capture-callback #f)
+        (callback))))
 
 
 (define (process-close hwnd)
@@ -229,13 +363,6 @@ end-of-c-code
     "___result_voidstar = ___EXT(___get_program_startup_info)()->hInstance;"))
 
 
-(define current-hbitmap
-  #f)
-
-(define current-bitmap
-  #f)
-
-
 (define BITMAP-width
   (c-lambda (BITMAP*) int
     "___result = ___arg1->bmWidth;"))
@@ -243,39 +370,6 @@ end-of-c-code
 (define BITMAP-height
   (c-lambda (BITMAP*) int
     "___result = ___arg1->bmHeight;"))
-
-
-(define (DrawGradient hdc left top right bottom from to vertical?)
-  (let ((fStep (if vertical?
-                   (/ (- bottom top) 256.)
-                 (/ (- right left) 256.)))
-        (rStep (/ (- (GetRValue to) (GetRValue from)) 256.))
-        (gStep (/ (- (GetGValue to) (GetGValue from)) 256.))
-        (bStep (/ (- (GetBValue to) (GetBValue from)) 256.)))
-    (let loop ((i 0))
-      (let ((rectFill (if vertical?
-                          (make-RECT left
-                                     (+ top (fxround (* i fStep)))
-                                     right
-                                     (+ top (fxround (* (+ i 1) fStep))))
-                        (make-RECT (+ left (fxround (* i fStep)))
-                                   top
-                                   (+ left (fxround (* (+ i 1) fStep)))
-                                   bottom))))
-        (let ((r (+ (GetRValue from) (fxround (* i rStep))))
-              (g (+ (GetGValue from) (fxround (* i gStep))))
-              (b (+ (GetBValue from) (fxround (* i bStep)))))
-          (let ((brush (CreateSolidBrush (RGB r g b))))
-            (FillRect hdc rectFill brush)
-            (DeleteObject brush))))
-      (if (< i 256)
-          (loop (+ i 1))))))
-
-
-(define (fxround r)
-  (if (##fixnum? r)
-      r
-    (##flonum->fixnum (##round r))))
 
 
 (define eol-encoding
@@ -339,8 +433,8 @@ end-of-c-code
     wc.cbWndExtra    = 0;
     wc.hInstance     = hInstance;
     wc.hIcon         = LoadImage(hInstance, "app", IMAGE_ICON, 32, 32, LR_SHARED);
-    wc.hCursor       = LoadCursor(NULL, IDC_ARROW);
-    wc.hbrBackground = (HBRUSH)(COLOR_WINDOW+1);
+    wc.hCursor       = NULL;
+    wc.hbrBackground = NULL;
     wc.lpszMenuName  = NULL;
     wc.lpszClassName = g_szClassName;
     wc.hIconSm       = LoadImage(hInstance, "app", IMAGE_ICON, 16, 16, LR_SHARED);
