@@ -7,57 +7,40 @@
 
 
 ;;;
-;;;; Draw
-;;;
-
-
-(define (draw hdc)
-  (let ((width (BITMAP-width current-bitmap))
-        (height (BITMAP-height current-bitmap))
-        (hdcMem (CreateCompatibleDC hdc)))
-    (let ((hbmOld (SelectObject hdcMem current-hbitmap)))
-      (BitBlt hdc 0 0 width height hdcMem 0 0 SRCCOPY)
-      (SelectObject hdcMem hbmOld)
-      (DeleteDC hdcMem)))
-  (draw-views hdc))
-
-
-;;;
-;;;; Keyboard
-;;;
-
-
-(define (key-down wparam)
-  (if (= wparam VK_ESCAPE)
-      (exit)))
-
-
-;;;
-;;;; Mouse
-;;;
-
-
-(define (mouse-down x y)
-  (continuation-capture
-    (lambda (return)
-      (for-each (lambda (view)
-                  (if (in-rect? (make-point x y) (view-rect view))
-                      (let ((mouse-down (view-mouse-down view)))
-                        (if mouse-down
-                            (begin
-                              (mouse-down view x y)
-                              (continuation-return return))))))
-                views)
-      (exit))))
-
-
-;;;
 ;;;; Window
 ;;;
 
 
 (define window
-  (make-window #f draw key-down mouse-down))
+  (let ()
+    (define (draw hdc)
+      (let ((width (BITMAP-width current-bitmap))
+            (height (BITMAP-height current-bitmap))
+            (hdcMem (CreateCompatibleDC hdc)))
+        (let ((hbmOld (SelectObject hdcMem current-hbitmap)))
+          (BitBlt hdc 0 0 width height hdcMem 0 0 SRCCOPY)
+          (SelectObject hdcMem hbmOld)
+          (DeleteDC hdcMem)))
+      (draw-views hdc))
+    
+    (define (key-down wparam)
+      (if (= wparam VK_ESCAPE)
+          (exit)))
+    
+    (define (mouse-down x y)
+      (continuation-capture
+        (lambda (return)
+          (for-each (lambda (view)
+                      (if (in-rect? (make-point x y) (view-rect view))
+                          (let ((mouse-down (view-mouse-down view)))
+                            (if mouse-down
+                                (begin
+                                  (mouse-down view x y)
+                                  (continuation-return return))))))
+                    views)
+          (exit))))
+    
+    (make-window #f draw key-down mouse-down)))
 
 
 ;;;
@@ -66,21 +49,8 @@
 
 
 (define title-view
-  (let ()
-    (define (draw view hdc)
-      (SetBkMode hdc TRANSPARENT)
-      (SetTextColor hdc (RGB 255 255 255))
-      (let ((font (CreateFont
-                    72 0 0 0 FW_DONTCARE FALSE FALSE FALSE
-                    DEFAULT_CHARSET OUT_DEFAULT_PRECIS CLIP_DEFAULT_PRECIS
-                    ANTIALIASED_QUALITY FF_DONTCARE "Tahoma")))
-        (SelectObject hdc font)
-        (let ((rect (view-rect view)))
-          (DrawText hdc "Dawn of Space" -1 (rect->RECT rect) (bitwise-ior DT_CENTER DT_NOCLIP)))))
-    
-    (make-view (make-rect 130 18 330 168)
-               draw
-               #f)))
+  (new-label (make-rect 130 18 330 168)
+             "Dawn of Space"))
 
 
 ;;;
@@ -89,32 +59,31 @@
 
 
 (define install-view
-  (let ()
-    (define (draw view hdc)
-      (SetBkMode hdc TRANSPARENT)
-      (SetTextColor hdc (RGB 255 255 255))
-      (let ((font (CreateFont
-                    24 0 0 0 FW_DONTCARE FALSE FALSE FALSE
-                    DEFAULT_CHARSET OUT_DEFAULT_PRECIS CLIP_DEFAULT_PRECIS
-                    ANTIALIASED_QUALITY FF_DONTCARE "Tahoma")))
-        (SelectObject hdc font)
-        (let ((rect (view-rect view)))
-          (let ((left (rect-left rect))
-                (top (rect-top rect))
-                (right (rect-right rect))
-                (bottom (rect-bottom rect)))
-            (DrawGradient hdc left top right bottom (RGB 150 0 0) (RGB 220 0 0) #f)
-            (let ((textRect (make-rect left (+ top 7) right (+ bottom 7))))
-              (DrawText hdc "Install Dawn of Space" -1 (rect->RECT textRect) (bitwise-ior DT_CENTER DT_NOCLIP)))))))
-    
-    (define (mouse-down view x y)
-      (with-handle-exception
-        (lambda ()
-          (setup))))
-    
-    (make-view (make-rect 50 450 390 490)
-               draw
-               mouse-down)))
+  (new-button (make-rect 50 450 390 490)
+              "Install Dawn of Space"
+              (lambda (view)
+                (setup))))
+
+
+;;;
+;;;; Download
+;;;
+
+
+(define download-view
+  (new-progress (make-rect 50 470 690 490)))
+
+
+;;;
+;;;; Play
+;;;
+
+
+(define play-view
+  (new-button (make-rect 720 450 800 490)
+              "Play"
+              (lambda (view)
+                #f)))
 
 
 ;;;
@@ -122,11 +91,20 @@
 ;;;
 
 
-(define (debug n)
-  (system-message (number->string n)))
-
-
 (define (setup)
+  (remove-view install-view)
+  (add-view download-view)
+  (add-view play-view)
+  (for-each (lambda (n)
+              (set-progress-pos download-view n)
+              (redraw-view download-view)
+              (thread-sleep! .1))
+            '(1 2 3 4 5 6 7 8 9 10))
+  #;
+  (download))
+
+
+(define (download)
   (let ((url "https://github.com/gcartier/space-media.git")
         (dir "aaa/space-media"))
     (let ((repo (git-repository-init dir 0)))
@@ -147,28 +125,6 @@
           (let ((commit (git-object-lookup repo (git-reference->id repo upstream) GIT_OBJ_COMMIT)))
             (git-reset repo commit GIT_RESET_HARD))))
       (git-repository-free repo))))
-
-
-;;;
-;;;; Exception
-;;;
-
-
-(define (with-handle-exception thunk)
-  (define (debug-exception exc console)
-    (call-with-output-file (list path: "exception.txt" eol-encoding: eol-encoding)
-      (lambda (output)
-        (display-exception exc output)
-        (continuation-capture
-          (lambda (cont)
-            (display-continuation-backtrace cont output #t #t 1000 1000))))))
-  
-  (with-exception-handler
-    (lambda (exc)
-      (system-message "An unexpected problem occurred")
-      (debug-exception exc console)
-      (exit 1))
-    thunk))
 
 
 ;;;

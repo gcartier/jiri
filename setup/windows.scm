@@ -37,6 +37,7 @@
 (c-type HBITMAP      (pointer (struct "HBITMAP__") handle))
 (c-type HBRUSH       (pointer (struct "HBRUSH__") handle))
 (c-type HFONT        (pointer (struct "HFONT__") handle))
+(c-type HRGN         (pointer (struct "HRGN__") handle))
 (c-type HGDIOBJ      (pointer VOID handle))
 (c-type COLORREF     DWORD)
 
@@ -76,6 +77,10 @@
 (c-enumerant DT_NOCLIP)
 
 (c-enumerant SW_SHOWNORMAL)
+
+(c-enumerant RDW_INVALIDATE)
+(c-enumerant RDW_ERASENOW)
+(c-enumerant RDW_UPDATENOW)
 
 (c-enumerant WM_PAINT)
 (c-enumerant WM_KEYDOWN)
@@ -128,6 +133,8 @@
 (c-external (CreateFont               INT INT INT INT INT DWORD DWORD DWORD DWORD DWORD DWORD DWORD DWORD LPCWSTR) HFONT "CreateFontW")
 (c-external (SetBkMode                HDC INT) INT)
 (c-external (SetTextColor             HDC COLORREF) COLORREF)
+(c-external (InvalidateRect           HWND RECT* BOOL) BOOL)
+(c-external (RedrawWindow             HWND RECT* HRGN UINT) BOOL)
 (c-external (RGB                      INT INT INT) INT)
 (c-external (GetRValue                INT) INT)
 (c-external (GetGValue                INT) INT)
@@ -249,12 +256,12 @@ end-of-c-code
       (let ((rectFill (if vertical?
                           (make-RECT left
                                      (+ top (fxround (* i fStep)))
-                                     (+ right 1)
+                                     right
                                      (+ top (fxround (* (+ i 1) fStep))))
                         (make-RECT (+ left (fxround (* i fStep)))
                                    top
                                    (+ left (fxround (* (+ i 1) fStep)))
-                                   (+ bottom 1)))))
+                                   bottom))))
         (let ((r (+ (GetRValue from) (fxround (* i rStep))))
               (g (+ (GetGValue from) (fxround (* i gStep))))
               (b (+ (GetBValue from) (fxround (* i bStep)))))

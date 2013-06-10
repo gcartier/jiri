@@ -9,6 +9,23 @@
 (module jiri.run jazz
 
 
+(import (jazz.io))
+
+
+(define (setup-aliases)
+  (register-alias 'Application
+                  (if (is-alias? 'Jiri)
+                      'Jiri
+                    'Build)))
+
+
+(definition (run-jiri)
+  (initialize-aliases)
+  (setup-aliases)
+  (debug (parse~ {Directory Application}))
+  (start-repl))
+
+
 (register-product-run 'jiri
   (lambda (descriptor)
-    (load-unit 'jiri.install))))
+    (run-jiri))))
