@@ -47,6 +47,10 @@
     (##flonum->fixnum (##round r))))
 
 
+(define (percentage part total)
+  (* (/ (exact->inexact part) (exact->inexact total)) 100))
+
+
 ;;;
 ;;;; List
 ;;;

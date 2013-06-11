@@ -113,7 +113,7 @@
 
 
 (define close-view
-  (new-close (make-rect 825 15 835 25)))
+  (new-close (make-rect 823 13 837 27)))
 
 
 ;;;
@@ -122,7 +122,7 @@
 
 
 (define minimize-view
-  (new-minimize (make-rect 798 15 808 25)))
+  (new-minimize (make-rect 796 13 810 27)))
 
 
 ;;;
@@ -143,7 +143,7 @@
 
 
 (define percentage-view
-  (new-label (make-rect 50 450 150 470)
+  (new-label (make-rect 50 450 190 470)
              "0%"))
 
 
@@ -153,8 +153,8 @@
 
 
 (define downloaded-view
-  (new-label (make-rect 200 450 300 470)
-             "Downloaded: 72MB"))
+  (new-label (make-rect 200 450 390 470)
+             "Downloaded:"))
 
 
 ;;;
@@ -163,8 +163,8 @@
 
 
 (define remaining-view
-  (new-label (make-rect 400 450 500 470)
-             "Files remaining: 272"))
+  (new-label (make-rect 400 450 590 470)
+             "Files remaining:"))
 
 
 ;;;
@@ -195,7 +195,7 @@
 
 
 (define status-view
-  (new-label (make-rect 10 530 850 540)
+  (new-label (make-rect 10 530 840 540)
              ""))
 
 
@@ -237,6 +237,9 @@
         (git-remote-connect remote GIT_DIRECTION_FETCH)
         (let ((first-call? #t))
           (define (callback total-objects indexed-objects received-objects received-bytes)
+            (set-label-title percentage-view (string-append (number->string (percentage received-objects total-objects)) "%"))
+            (set-label-title downloaded-view (string-append "Downloaded: " (number->string received-bytes)))
+            (set-label-title remaining-view (string-append "Files remaining: " (number->string (- total-objects received-objects))))
             (if (= received-objects 0)
                 (set-progress-range download-view (make-range 0 total-objects))
               (set-progress-pos download-view received-objects)))

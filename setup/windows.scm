@@ -78,6 +78,7 @@
 
 (c-enumerant PS_SOLID)
 
+(c-enumerant FW_BOLD)
 (c-enumerant FW_DONTCARE)
 (c-enumerant DEFAULT_CHARSET)
 (c-enumerant OUT_DEFAULT_PRECIS)

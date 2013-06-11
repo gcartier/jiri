@@ -21,10 +21,6 @@
   active?)
 
 
-(define debug-views?
-  #f)
-
-
 (define views
   '())
 
@@ -63,13 +59,6 @@
             views))
 
 
-(define (debug-background view hdc)
-  (when debug-views?
-    (let ((brush (CreateSolidBrush (RGB 100 100 100))))
-      (FillRect hdc (rect->RECT (view-rect view)) brush)
-      (DeleteObject brush))))
-
-
 (define (set-view-active? view active?)
   (view-active?-set! view active?)
   (invalidate-view view)
@@ -90,6 +79,17 @@
   (let ((mouse-move (view-mouse-move view)))
     (when mouse-move
       (mouse-move view x y))))
+
+
+(define debug-views?
+  #f)
+
+
+(define (debug-background view hdc)
+  (when debug-views?
+    (let ((brush (CreateSolidBrush (RGB 100 100 100))))
+      (FillRect hdc (rect->RECT (view-rect view)) brush)
+      (DeleteObject brush))))
 
 
 ;;;
@@ -125,7 +125,7 @@
 
 
 (define (release-captured-view)
-  (when captured-view!
+  (when captured-view
     (set! captured-view #f)
     (ReleaseCapture)))
 
@@ -271,7 +271,7 @@
 (define (button-draw view hdc)
   (let ((active? (view-active? view)))
     (SetBkMode hdc TRANSPARENT)
-    (SetTextColor hdc (if active? (if (eq? view mouse-view) (RGB 0 0 255) white-color) (RGB 160 160 160)))
+    (SetTextColor hdc (if active? white-color (RGB 160 160 160)))
     (let ((font button-font))
       (SelectObject hdc font)
       (let ((rect (view-rect view)))
@@ -279,7 +279,11 @@
               (top (rect-top rect))
               (right (rect-right rect))
               (bottom (rect-bottom rect)))
-          (DrawGradient hdc left top right bottom (if active? (RGB 150 0 0) white-color) (if active? (RGB 220 0 0) white-color) #f)
+          (if (eq? view mouse-view)
+              (let ((brush (CreateSolidBrush (RGB 230 0 0))))
+                (FillRect hdc (rect->RECT rect) brush)
+                (DeleteObject brush))
+            (DrawGradient hdc left top right bottom (if active? (RGB 150 0 0) white-color) (if active? (RGB 220 0 0) white-color) #f))
           (let ((textRect (make-rect left (+ top 7) right (+ bottom 7)))
                 (title (button-title view)))
             (DrawText hdc title -1 (rect->RECT textRect) (bitwise-ior DT_CENTER DT_NOCLIP))))))))
@@ -332,13 +336,14 @@
 
 
 (define (close-draw view hdc)
+  (debug-background view hdc)
   (let ((rect (view-rect view))
         (gray (CreatePen PS_SOLID 4 (RGB 150 150 150)))
-        (white (CreatePen PS_SOLID 2 (RGB 255 255 255))))
-    (let ((left (rect-left rect))
-          (top (rect-top rect))
-          (right (rect-right rect))
-          (bottom (rect-bottom rect)))
+        (white (CreatePen PS_SOLID 2 (if (eq? view mouse-view) (RGB 200 0 0) (RGB 255 255 255)))))
+    (let ((left (+ (rect-left rect) 2))
+          (top (+ (rect-top rect) 2))
+          (right (- (rect-right rect) 2))
+          (bottom (- (rect-bottom rect) 2)))
       (define (draw-x pen)
         (SelectObject hdc pen)
         (MoveToEx hdc left top #f)
@@ -378,13 +383,14 @@
 
 
 (define (minimize-draw view hdc)
+  (debug-background view hdc)
   (let ((rect (view-rect view))
         (gray (CreatePen PS_SOLID 4 (RGB 150 150 150)))
-        (white (CreatePen PS_SOLID 2 (RGB 255 255 255))))
-    (let ((left (rect-left rect))
-          (top (rect-top rect))
-          (right (rect-right rect))
-          (bottom (rect-bottom rect)))
+        (white (CreatePen PS_SOLID 2 (if (eq? view mouse-view) (RGB 200 0 0) (RGB 255 255 255)))))
+    (let ((left (+ (rect-left rect) 2))
+          (top (+ (rect-top rect) 2))
+          (right (- (rect-right rect) 2))
+          (bottom (- (rect-bottom rect) 2)))
       (define (draw-line pen)
         (SelectObject hdc pen)
         (MoveToEx hdc left bottom #f)
