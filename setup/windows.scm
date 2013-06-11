@@ -10,6 +10,9 @@
 (include "foreign.scm")
 
 
+(c-declare "#include <Shlobj.h>")
+
+
 ;;;
 ;;;; Types
 ;;;
@@ -449,26 +452,26 @@ end-of-c-code
             (else #f)))))
 
 
-;(define choose-directory
-;  (c-lambda (HINSTANCE int int) HWND
-;    #<<end-of-c-code
-;    BROWSEINFO   bi = { 0 };
-;	LPITEMIDLIST pidl;
-;	TCHAR        szDisplay[MAX_PATH];
-;	BOOL         retval;
-;
-;	CoInitialize();
-;
-;	bi.hwndOwner      = hwnd;
-;	bi.pszDisplayName = szDisplay;
-;	bi.lpszTitle      = TEXT("Please select installation folder");
-;	bi.ulFlags        = BIF_RETURNONLYFSDIRS | BIF_NEWDIALOGSTYLE;
-;	bi.lpfn           = BrowseCallbackProc;
-;	bi.lParam         = (LPARAM) szCurrent;
-;
-;	pidl = SHBrowseForFolder(&bi);
-;end-of-c-code
-;))
+(define choose-directory
+  (c-lambda (HWND) wchar_t-string
+    #<<end-of-c-code
+    BROWSEINFOW  bi = {0};
+    LPITEMIDLIST pidl;
+    wchar_t      szDisplay[MAX_PATH];
+    wchar_t      szDir[MAX_PATH];
+
+    bi.hwndOwner      = ___arg1;
+    bi.pszDisplayName = szDisplay;
+    bi.lpszTitle      = L"Please select installation folder";
+    bi.ulFlags        = BIF_RETURNONLYFSDIRS | BIF_NEWDIALOGSTYLE;
+
+    pidl = SHBrowseForFolderW(&bi);
+    
+    SHGetPathFromIDListW(pidl, szDir);
+    
+    ___result = szDir;
+end-of-c-code
+))
 
 
 (c-declare #<<end-of-c-code

@@ -8,10 +8,8 @@
 
 ;; TODO
 ;; - Be robust if unable to delete install dir
-;; - Choose installation directory
 ;; - Enter closed-beta password (accept license!?)
 ;; - Update installer
-;; - Launch app
 
 
 (include "syntax.scm")
@@ -212,7 +210,7 @@
   (new-button (make-rect 680 450 815 490)
               "Play"
               (lambda (view)
-                (open-process (string-append "aaa/" jiri-application))
+                (open-process (string-append app-dir "/" jiri-application))
                 (quit))
               active?: #f))
 
@@ -222,27 +220,33 @@
 ;;;
 
 
+(define app-dir
+  #f)
+
+
 (define (quit)
   (exit))
 
 
 (define (setup)
-  (remove-view install-view)
-  (add-view percentage-view)
-  (add-view downloaded-view)
-  (add-view remaining-view)
-  (add-view status-view)
-  (add-view download-view)
-  (add-view play-view)
-  (update-window)
-  (download))
+  (let ((install-dir (pathname-standardize (choose-directory (window-handle current-window)))))
+    (when (not (equal? install-dir ""))
+      (remove-view install-view)
+      (add-view percentage-view)
+      (add-view downloaded-view)
+      (add-view remaining-view)
+      (add-view status-view)
+      (add-view download-view)
+      (add-view play-view)
+      (update-window)
+      (download install-dir))))
 
 
-(define (download)
+(define (download install-dir)
   (set-default-cursor IDC_WAIT)
   (set-label-title status-view "Downloading application")
   (let ((url jiri-remote-url)
-        (dir "aaa"))
+        (dir (string-append install-dir "/" jiri-title)))
     (let ((normalized-dir (string-append dir "/")))
       (when (file-exists? normalized-dir)
         (empty/delete-directory normalized-dir overwrite-readonly?: #t)))
@@ -278,6 +282,7 @@
                  (let ((commit (git-object-lookup repo (git-reference->id repo upstream) GIT_OBJ_COMMIT)))
                    (git-reset repo commit GIT_RESET_HARD)))
                (git-repository-free repo)
+               (set! app-dir dir)
                (set-label-title status-view "Done")
                (set-view-active? play-view #t)
                (set-default-cursor IDC_ARROW)))))

@@ -220,9 +220,9 @@ end-of-c-code
     
     HWND remoteHwnd = NULL;
     
-	unsigned int total_objects = 0;
-	unsigned int received_objects = 0;
-	size_t received_bytes = 0;
+    unsigned int total_objects = 0;
+    unsigned int received_objects = 0;
+    size_t received_bytes = 0;
     
     int remote_download_callback(const git_transfer_progress *stats, void *payload)
     {

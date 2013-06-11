@@ -17,12 +17,12 @@ SETUP="$ROOT/setup"
 
 MODE="windows"
 case "$1" in
-	"-console" )
-		MODE="console"
-		;;
-	"-windows" )
-		MODE="windows"
-		;;
+    "-console" )
+        MODE="console"
+        ;;
+    "-windows" )
+        MODE="windows"
+        ;;
 esac
 
 CFILES="$BUILD/settings.c $BUILD/features.c $BUILD/crash.c $BUILD/git.c $BUILD/windows.c $BUILD/base.c $BUILD/geometry.c $BUILD/color.c $BUILD/font.c $BUILD/window.c $BUILD/draw.c $BUILD/view.c $BUILD/setup.c $BUILD/main.c"
