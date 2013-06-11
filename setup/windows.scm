@@ -10,6 +10,7 @@
 (include "foreign.scm")
 
 
+(c-declare "#define _WIN32_IE 0x0400")
 (c-declare "#include <Shlobj.h>")
 
 
@@ -134,6 +135,8 @@
 (c-enumerant INFINITE)
 
 (c-enumerant FILE_ATTRIBUTE_READONLY)
+
+(c-enumerant CSIDL_PROGRAM_FILESX86)
 
 
 ;;;
@@ -452,8 +455,40 @@ end-of-c-code
             (else #f)))))
 
 
+(define get-special-folder
+  (c-lambda (int) wchar_t-string
+    #<<end-of-c-code
+    wchar_t szDir[MAX_PATH];
+    SHGetSpecialFolderPathW(0, szDir, ___arg1, FALSE);
+    ___result = szDir;
+end-of-c-code
+))
+
+
+(c-declare #<<end-of-c-code
+static int CALLBACK BrowseCallbackProc(HWND hwnd,UINT uMsg, LPARAM lParam, LPARAM lpData)
+{
+	// If the BFFM_INITIALIZED message is received
+	// set the path to the start path.
+	switch (uMsg)
+	{
+		case BFFM_INITIALIZED:
+		{
+			if (lpData != 0)
+			{
+				SendMessage(hwnd, BFFM_SETSELECTION, TRUE, lpData);
+			}
+		}
+	}
+
+	return 0; // The function should always return 0.
+}
+end-of-c-code
+)
+
+
 (define choose-directory
-  (c-lambda (HWND) wchar_t-string
+  (c-lambda (HWND wchar_t-string char-string) wchar_t-string
     #<<end-of-c-code
     BROWSEINFOW  bi = {0};
     LPITEMIDLIST pidl;
@@ -462,8 +497,10 @@ end-of-c-code
 
     bi.hwndOwner      = ___arg1;
     bi.pszDisplayName = szDisplay;
-    bi.lpszTitle      = L"Please select installation folder";
+    bi.lpszTitle      = ___arg2;
     bi.ulFlags        = BIF_RETURNONLYFSDIRS | BIF_NEWDIALOGSTYLE;
+    bi.lpfn           = BrowseCallbackProc;
+    bi.lParam         = (LPARAM) ___arg3;
 
     pidl = SHBrowseForFolderW(&bi);
     

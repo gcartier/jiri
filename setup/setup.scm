@@ -210,7 +210,7 @@
   (new-button (make-rect 680 450 815 490)
               "Play"
               (lambda (view)
-                (open-process (string-append app-dir "/" jiri-application))
+                (open-process (string-append install-dir "/" jiri-application))
                 (quit))
               active?: #f))
 
@@ -220,7 +220,7 @@
 ;;;
 
 
-(define app-dir
+(define install-dir
   #f)
 
 
@@ -229,8 +229,8 @@
 
 
 (define (setup)
-  (let ((install-dir (pathname-standardize (choose-directory (window-handle current-window)))))
-    (when (not (equal? install-dir ""))
+  (let ((root-dir (pathname-standardize (choose-directory (window-handle current-window) "Please select the installation folder" (get-special-folder CSIDL_PROGRAM_FILESX86)))))
+    (when (not (equal? root-dir ""))
       (remove-view install-view)
       (add-view percentage-view)
       (add-view downloaded-view)
@@ -239,14 +239,14 @@
       (add-view download-view)
       (add-view play-view)
       (update-window)
-      (download install-dir))))
+      (download root-dir))))
 
 
-(define (download install-dir)
+(define (download root-dir)
   (set-default-cursor IDC_WAIT)
   (set-label-title status-view "Downloading application")
   (let ((url jiri-remote-url)
-        (dir (string-append install-dir "/" jiri-title)))
+        (dir (string-append root-dir "/" jiri-title)))
     (let ((normalized-dir (string-append dir "/")))
       (when (file-exists? normalized-dir)
         (empty/delete-directory normalized-dir overwrite-readonly?: #t)))
@@ -282,7 +282,7 @@
                  (let ((commit (git-object-lookup repo (git-reference->id repo upstream) GIT_OBJ_COMMIT)))
                    (git-reset repo commit GIT_RESET_HARD)))
                (git-repository-free repo)
-               (set! app-dir dir)
+               (set! install-dir dir)
                (set-label-title status-view "Done")
                (set-view-active? play-view #t)
                (set-default-cursor IDC_ARROW)))))
