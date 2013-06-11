@@ -11,6 +11,7 @@
     (load src)))
 
 
+(load "settings.scm")
 (load-source "base")
 (load-source "geometry")
 (load-source "color")

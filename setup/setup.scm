@@ -120,7 +120,7 @@
 
 (define title-view
   (new-title (make-rect 20 18 440 100)
-             "Dawn of Space"))
+             jiri-title))
 
 
 ;;;
@@ -148,7 +148,7 @@
 
 (define install-view
   (new-button (make-rect 50 450 390 490)
-              "Install Dawn of Space"
+              (string-append "Install " jiri-title)
               (lambda (view)
                 (setup))))
 
@@ -212,7 +212,8 @@
   (new-button (make-rect 680 450 815 490)
               "Play"
               (lambda (view)
-                (exit))
+                (open-process (string-append "aaa/" jiri-application))
+                (quit))
               active?: #f))
 
 
@@ -239,8 +240,8 @@
 
 (define (download)
   (set-default-cursor IDC_WAIT)
-  (set-label-title status-view "Preparing")
-  (let ((url #; "http://github.com/feeley/gambit.git" "d:/space-media" #; "https://github.com/gcartier/space-media.git")
+  (set-label-title status-view "Downloading application")
+  (let ((url jiri-remote-url)
         (dir "aaa"))
     (let ((normalized-dir (string-append dir "/")))
       (when (file-exists? normalized-dir)
@@ -250,9 +251,8 @@
         (git-remote-check-cert remote 0)
         (git-remote-set-cred-acquire-cb remote
                                         (lambda ()
-                                          (git-cred-userpass-plaintext-new "dawnofspacebeta" "gazoum123")))
+                                          (git-cred-userpass-plaintext-new jiri-username jiri-password)))
         (git-remote-connect remote GIT_DIRECTION_FETCH)
-        (set-label-title status-view "Downloading application")
         (set-user-callback
           (lambda (wparam lparam)
             (case lparam
@@ -305,7 +305,7 @@
 
 
 (define (run)
-  (let ((hwnd (SetupWindow (current-instance) (BITMAP-width current-bitmap) (BITMAP-height current-bitmap))))
+  (let ((hwnd (SetupWindow (current-instance) jiri-title (BITMAP-width current-bitmap) (BITMAP-height current-bitmap))))
     (window-handle-set! current-window hwnd)
     (ShowWindow hwnd SW_SHOWNORMAL)
     (UpdateWindow hwnd)
@@ -315,13 +315,6 @@
 ;;;
 ;;;; Main
 ;;;
-
-
-(define (t)
-  (let ((dir "aaa/"))
-    (when (file-exists? dir)
-      (empty/delete-directory dir overwrite-readonly?: #t)
-      (wait-deleted-workaround dir))))
 
 
 (define (main)

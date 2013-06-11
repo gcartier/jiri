@@ -449,6 +449,28 @@ end-of-c-code
             (else #f)))))
 
 
+;(define choose-directory
+;  (c-lambda (HINSTANCE int int) HWND
+;    #<<end-of-c-code
+;    BROWSEINFO   bi = { 0 };
+;	LPITEMIDLIST pidl;
+;	TCHAR        szDisplay[MAX_PATH];
+;	BOOL         retval;
+;
+;	CoInitialize();
+;
+;	bi.hwndOwner      = hwnd;
+;	bi.pszDisplayName = szDisplay;
+;	bi.lpszTitle      = TEXT("Please select installation folder");
+;	bi.ulFlags        = BIF_RETURNONLYFSDIRS | BIF_NEWDIALOGSTYLE;
+;	bi.lpfn           = BrowseCallbackProc;
+;	bi.lParam         = (LPARAM) szCurrent;
+;
+;	pidl = SHBrowseForFolder(&bi);
+;end-of-c-code
+;))
+
+
 (c-declare #<<end-of-c-code
 const LPCWSTR g_szClassName = L"JiriWindowClass";
 end-of-c-code
@@ -465,11 +487,12 @@ end-of-c-code
 
 
 (define SetupWindow
-  (c-lambda (HINSTANCE int int) HWND
+  (c-lambda (HINSTANCE LPCWSTR int int) HWND
     #<<end-of-c-code
     HINSTANCE hInstance = ___arg1;
-    int width = ___arg2;
-    int height = ___arg3;
+    LPCWSTR title = ___arg2;
+    int width = ___arg3;
+    int height = ___arg4;
     
     WNDCLASSEXW wc;
     HWND hwnd;
@@ -498,7 +521,7 @@ end-of-c-code
     hwnd = CreateWindowExW(
         0,
         g_szClassName,
-        L"Dawn of Space",
+        title,
         WS_POPUP,
         xCtr, yCtr, width, height,
         NULL, NULL, hInstance, NULL);
