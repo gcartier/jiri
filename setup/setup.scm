@@ -10,6 +10,9 @@
 ;; - Need to implement with-cursor calling update-cursor
 
 
+(include "syntax.scm")
+
+
 ;;;
 ;;;; Window
 ;;;
@@ -48,30 +51,28 @@
           (DeleteDC hdcMem))))
     
     (define (key-down wparam)
-      (if (= wparam VK_ESCAPE)
-          (exit)))
+      (when (= wparam VK_ESCAPE)
+        (exit)))
     
     (define (mouse-move x y)
       (let ((view (find-view x y)))
-        (if (and view (view-active? view))
-            (let ((mouse-move (view-mouse-move view)))
-              (if mouse-move
-                  (mouse-move view x y)))
+        (if view
+            (call-mouse-move view x y)
           (set-cursor IDC_ARROW))))
     
     (define (mouse-down x y)
       (let ((view (find-view x y)))
-        (if (and view (view-active? view))
-            (let ((mouse-down (view-mouse-down view)))
-              (if mouse-down
-                  (mouse-down view x y))))))
+        (when (and view (view-active? view))
+          (let ((mouse-down (view-mouse-down view)))
+            (when mouse-down
+              (mouse-down view x y))))))
     
     (define (mouse-up x y)
       (let ((view (find-view x y)))
-        (if (and view (view-active? view))
-            (let ((mouse-up (view-mouse-up view)))
-              (if mouse-up
-                  (mouse-up view x y))))))
+        (when (and view (view-active? view))
+          (let ((mouse-up (view-mouse-up view)))
+            (when mouse-up
+              (mouse-up view x y))))))
     
     (define (find-view x y)
       (or captured-view
@@ -79,12 +80,21 @@
             (continuation-capture
               (lambda (return)
                 (for-each (lambda (view)
-                            (if (in-rect? pt (view-rect view))
-                                (continuation-return return view)))
+                            (when (in-rect? pt (view-rect view))
+                              (continuation-return return view)))
                           views)
                 #f)))))
     
     (make-window #f draw key-down mouse-move mouse-down mouse-up)))
+
+
+;;;
+;;;; Root
+;;;
+
+
+(define root-view
+  (new-root (make-rect 0 0 850 550)))
 
 
 ;;;
@@ -180,6 +190,16 @@
 
 
 ;;;
+;;;; Status
+;;;
+
+
+(define status-view
+  (new-label (make-rect 10 530 850 540)
+             ""))
+
+
+;;;
 ;;;; Setup
 ;;;
 
@@ -205,8 +225,8 @@
   (let ((url "d:/space-media" #; "https://github.com/gcartier/space-media.git")
         (dir "aaa"))
     (let ((normalized-dir (string-append dir "/")))
-      (if (file-exists? normalized-dir)
-          (empty/delete-directory normalized-dir overwrite-readonly?: #t)))
+      (when (file-exists? normalized-dir)
+        (empty/delete-directory normalized-dir overwrite-readonly?: #t)))
     (let ((repo (git-repository-init dir 0)))
       (let ((remote (git-remote-create repo "origin" url)))
         (git-remote-check-cert remote 0)
@@ -238,10 +258,12 @@
 
 (define (prepare)
   (set-current-window window)
+  (add-view root-view)
   (add-view title-view)
   (add-view close-view)
   (add-view minimize-view)
   (add-view install-view)
+  (add-view status-view)
   (setup-bitmap))
 
 
@@ -265,10 +287,9 @@
 
 (define (t)
   (let ((dir "aaa/"))
-    (if (file-exists? dir)
-        (begin
-          (empty/delete-directory dir overwrite-readonly?: #t)
-          (wait-deleted-workaround dir)))))
+    (when (file-exists? dir)
+      (empty/delete-directory dir overwrite-readonly?: #t)
+      (wait-deleted-workaround dir))))
 
 
 (define (main)

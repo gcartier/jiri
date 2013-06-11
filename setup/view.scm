@@ -6,11 +6,16 @@
 ;;;
 
 
+(include "syntax.scm")
+
+
 (define-type view
   extender: define-type-of-view
   rect
   draw
   mouse-move
+  mouse-enter
+  mouse-leave
   mouse-down
   mouse-up
   active?)
@@ -53,15 +58,54 @@
 (define (draw-views hdc)
   (for-each (lambda (view)
               (let ((draw (view-draw view)))
-                (if draw
-                    (draw view hdc))))
+                (when draw
+                  (draw view hdc))))
             views))
+
+
+(define (debug-background view hdc)
+  (when debug-views?
+    (let ((brush (CreateSolidBrush (RGB 100 100 100))))
+      (FillRect hdc (rect->RECT (view-rect view)) brush)
+      (DeleteObject brush))))
 
 
 (define (set-view-active? view active?)
   (view-active?-set! view active?)
   (invalidate-view view)
   (update-view view))
+
+
+(define (call-mouse-move view x y)
+  (when (neq? view mouse-view)
+    (let ((actual mouse-view))
+      (set-mouse-view view)
+      (when actual
+        (let ((mouse-leave (view-mouse-leave actual)))
+          (when mouse-leave
+            (mouse-leave actual x y))))
+      (let ((mouse-enter (view-mouse-enter view)))
+        (when mouse-enter
+          (mouse-enter view x y)))))
+  (let ((mouse-move (view-mouse-move view)))
+    (when mouse-move
+      (mouse-move view x y))))
+
+
+;;;
+;;;; Mouse
+;;;
+
+
+(define mouse-view
+  #f)
+
+
+(define (get-mouse-view)
+  mouse-view)
+
+(define (set-mouse-view view)
+  (set! mouse-view view))
 
 
 ;;;
@@ -81,10 +125,32 @@
 
 
 (define (release-captured-view)
-  (if captured-view
-      (begin
-        (set! captured-view #f)
-        (ReleaseCapture))))
+  (when captured-view!
+    (set! captured-view #f)
+    (ReleaseCapture)))
+
+
+;;;
+;;;; Root
+;;;
+
+
+(define-type-of-view root)
+
+
+(define (root-mouse-move view x y)
+  (set-cursor IDC_ARROW))
+
+
+(define (new-root rect)
+  (make-root rect
+             #f
+             root-mouse-move
+             #f
+             #f
+             #f
+             #f
+             #t))
 
 
 ;;;
@@ -101,27 +167,24 @@
 
 
 (define (title-draw view hdc)
+  (debug-background view hdc)
   (SetBkMode hdc TRANSPARENT)
   (SetTextColor hdc white-color)
   (let ((font title-font))
     (SelectObject hdc font)
     (let ((rect (view-rect view))
           (title (title-title view)))
-      (if debug-views?
-          (let ((brush (CreateSolidBrush (RGB 100 100 100))))
-            (FillRect hdc (rect->RECT rect) brush)
-            (DeleteObject brush)))
       (DrawText hdc title -1 (rect->RECT rect) (bitwise-ior DT_CENTER DT_NOCLIP)))))
 
 
 (define (title-mouse-move view x y)
   (set-cursor IDC_SIZEALL)
-  (if (title-moving? view)
-      (let ((current (cursor-position)))
-        (let ((delta (point- current (title-cursor-pos view))))
-          (let ((pos (point+ (title-window-pos view) delta))
-                (size (title-window-size view)))
-            (move-window current-window pos size))))))
+  (when (title-moving? view)
+    (let ((current (cursor-position)))
+      (let ((delta (point- current (title-cursor-pos view))))
+        (let ((pos (point+ (title-window-pos view) delta))
+              (size (title-window-size view)))
+          (move-window current-window pos size))))))
 
 
 (define (title-mouse-down view x y)
@@ -141,7 +204,19 @@
 
 
 (define (new-title rect title)
-  (make-title rect title-draw title-mouse-move title-mouse-down title-mouse-up #t title #f #f #f #f))
+  (make-title rect
+              title-draw
+              title-mouse-move
+              #f
+              #f
+              title-mouse-down
+              title-mouse-up
+              #t
+              title
+              #f
+              #f
+              #f
+              #f))
 
 
 ;;;
@@ -154,6 +229,7 @@
 
 
 (define (label-draw view hdc)
+  (debug-background view hdc)
   (SetBkMode hdc TRANSPARENT)
   (SetTextColor hdc white-color)
   (let ((font label-font))
@@ -163,8 +239,22 @@
       (DrawText hdc title -1 (rect->RECT rect) DT_NOCLIP))))
 
 
+(define (set-label-title view title)
+  (label-title-set! view title)
+  (invalidate-view view)
+  (update-view view))
+
+
 (define (new-label rect title)
-  (make-label rect label-draw #f #f #f #t title))
+  (make-label rect
+              label-draw
+              #f
+              #f
+              #f
+              #f
+              #f
+              #t
+              title))
 
 
 ;;;
@@ -181,7 +271,7 @@
 (define (button-draw view hdc)
   (let ((active? (view-active? view)))
     (SetBkMode hdc TRANSPARENT)
-    (SetTextColor hdc (if active? white-color (RGB 160 160 160)))
+    (SetTextColor hdc (if active? (if (eq? view mouse-view) (RGB 0 0 255) white-color) (RGB 160 160 160)))
     (let ((font button-font))
       (SelectObject hdc font)
       (let ((rect (view-rect view)))
@@ -195,13 +285,42 @@
             (DrawText hdc title -1 (rect->RECT textRect) (bitwise-ior DT_CENTER DT_NOCLIP))))))))
 
 
+(define (button-mouse-enter view x y)
+  (invalidate-view view)
+  (update-view view))
+
+
+(define (button-mouse-leave view x y)
+  (invalidate-view view)
+  (update-view view))
+
+
 (define (button-mouse-down view x y)
+  #f)
+
+
+(define (button-mouse-up view x y)
   (let ((action (button-action view)))
     (action view)))
 
 
+(define (set-button-title view title)
+  (button-title-set! view title)
+  (invalidate-view view)
+  (update-view view))
+
+
 (define (new-button rect title action #!key (active? #t))
-  (make-button rect button-draw #f button-mouse-down #f active? title action))
+  (make-button rect
+               button-draw
+               #f
+               button-mouse-enter
+               button-mouse-leave
+               button-mouse-down
+               button-mouse-up
+               active?
+               title
+               action))
 
 
 ;;;
@@ -238,11 +357,20 @@
 
 
 (define (new-close rect)
-  (make-close rect close-draw #f button-mouse-down #f #t #f close-action))
+  (make-close rect
+              close-draw
+              #f
+              button-mouse-enter
+              button-mouse-leave
+              button-mouse-down
+              button-mouse-up
+              #t
+              #f
+              close-action))
 
 
 ;;;
-;;;; Close
+;;;; Minimize
 ;;;
 
 
@@ -273,7 +401,16 @@
 
 
 (define (new-minimize rect)
-  (make-close rect minimize-draw #f button-mouse-down #f #t #f minimize-action))
+  (make-minimize rect
+                 minimize-draw
+                 #f
+                 button-mouse-enter
+                 button-mouse-leave
+                 button-mouse-down
+                 button-mouse-up
+                 #t
+                 #f
+                 minimize-action))
 
 
 ;;;
@@ -308,6 +445,7 @@
   (invalidate-view view)
   (update-view view))
 
+
 (define (set-progress-range view range)
   (progress-range-set! view range)
   (invalidate-view view)
@@ -317,6 +455,8 @@
 (define (new-progress rect pos range)
   (make-progress rect
                  progress-draw
+                 #f
+                 #f
                  #f
                  #f
                  #f

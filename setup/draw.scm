@@ -6,6 +6,9 @@
 ;;;
 
 
+(include "syntax.scm")
+
+
 ;;;
 ;;;; Gradient
 ;;;
@@ -34,5 +37,5 @@
           (let ((brush (CreateSolidBrush (RGB r g b))))
             (FillRect hdc rectFill brush)
             (DeleteObject brush))))
-      (if (< i 256)
-          (loop (+ i 1))))))
+      (when (< i 256)
+        (loop (+ i 1))))))

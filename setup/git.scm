@@ -7,6 +7,7 @@
 
 
 (include "syntax.scm")
+(include "foreign.scm")
 
 
 (c-declare "#include <git2.h>")
@@ -59,12 +60,12 @@
 
 
 (c-define (git-check-error code) (int) void "git_check_error" ""
-  (if (not (= code 0))
-      (error "Libgit2 error:"
-             (let ((err (giterr-last)))
-               (if err
-                   (git-error-message err)
-                 code)))))
+  (when (not (= code 0))
+    (error "Libgit2 error:"
+           (let ((err (giterr-last)))
+             (if err
+                 (git-error-message err)
+               code)))))
 
 (define giterr-last
   (c-lambda () git_error*

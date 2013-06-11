@@ -7,6 +7,7 @@
 
 
 (include "syntax.scm")
+(include "foreign.scm")
 
 
 ;;;
@@ -315,8 +316,8 @@ end-of-c-code
   (let ((ps (PAINTSTRUCT-make)))
     (let ((hdc (BeginPaint hwnd ps)))
       (let ((draw (window-draw current-window)))
-        (if draw
-            (draw hdc)))
+        (when draw
+          (draw hdc)))
       (EndPaint hdc ps))
     (PAINTSTRUCT-free ps))
   processed)
@@ -324,26 +325,26 @@ end-of-c-code
 
 (define (process-key-down wparam)
   (let ((key-down (window-key-down current-window)))
-    (if key-down
-        (key-down wparam))))
+    (when key-down
+      (key-down wparam))))
 
 
 (define (process-mouse-move x y)
   (let ((mouse-move (window-mouse-move current-window)))
-    (if mouse-move
-        (mouse-move x y))))
+    (when mouse-move
+      (mouse-move x y))))
 
 
 (define (process-mouse-down x y)
   (let ((mouse-down (window-mouse-down current-window)))
-    (if mouse-down
-        (mouse-down x y))))
+    (when mouse-down
+      (mouse-down x y))))
 
 
 (define (process-mouse-up x y)
   (let ((mouse-up (window-mouse-up current-window)))
-    (if mouse-up
-        (mouse-up x y))))
+    (when mouse-up
+      (mouse-up x y))))
 
 
 (define lose-capture-callback
@@ -351,10 +352,10 @@ end-of-c-code
 
 
 (define (process-capture-changed hwnd)
-  (if lose-capture-callback
-      (let ((callback lose-capture-callback))
-        (set! lose-capture-callback #f)
-        (callback))))
+  (when lose-capture-callback
+    (let ((callback lose-capture-callback))
+      (set! lose-capture-callback #f)
+      (callback))))
 
 
 (define (process-close hwnd)

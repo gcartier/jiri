@@ -6,6 +6,9 @@
 ;;;
 
 
+(include "syntax.scm")
+
+
 ;;;
 ;;;; Boolean
 ;;;
@@ -15,8 +18,16 @@
   (not (null? expr)))
 
 
+(define (neq? x y)
+  (not (eq? x y)))
+
+
+(define (/= x y)
+  (not (= x y)))
+
+
 (define (mask-bit-set? num msk)
-  (not (= (bitwise-and num msk) 0)))
+  (/= (bitwise-and num msk) 0))
 
 
 (define (mask-bit-set num msk bit)
@@ -43,32 +54,30 @@
 
 (define (remove! target lst)
   (let loop ()
-    (if (and (not-null? lst) (eqv? target (car lst)))
-        (begin
-          (set! lst (cdr lst))
-          (loop))))
+    (when (and (not-null? lst) (eqv? target (car lst)))
+      (set! lst (cdr lst))
+      (loop)))
   (if (null? lst)
       '()
     (begin
       (let ((previous lst)
             (scan (cdr lst)))
         (let loop ()
-          (if (not-null? scan)
+          (when (not-null? scan)
+            (if (eqv? target (car scan))
+                (begin
+                  (set! scan (cdr scan))
+                  (set-cdr! previous scan))
               (begin
-                (if (eqv? target (car scan))
-                    (begin
-                      (set! scan (cdr scan))
-                      (set-cdr! previous scan))
-                  (begin
-                    (set! previous scan)
-                    (set! scan (cdr scan))))
-                (loop)))))
+                (set! previous scan)
+                (set! scan (cdr scan))))
+            (loop))))
       lst)))
 
 
 (define (collect-if predicate lst)
   (let iter ((scan lst))
-    (if (not (null? scan))
+    (if (not-null? scan)
         (let ((value (car scan)))
           (if (predicate value)
               (cons value (iter (cdr scan)))
@@ -104,8 +113,8 @@
                 (let ((filename (string-append dir name)))
                   (case (file-type filename)
                     ((regular)
-                     (if (and overwrite-readonly? (file-readonly? filename))
-                         (set-file-readonly? filename #f))
+                     (when (and overwrite-readonly? (file-readonly? filename))
+                       (set-file-readonly? filename #f))
                      (delete-file filename))
                     ((directory)
                      (empty/delete (string-append filename "/"))))))
@@ -120,11 +129,10 @@
   (thread-sleep! .5)
   (let ((max-tries 10))
     (let loop ((n 0))
-         (if (file-exists? directory)
-             (if (< n max-tries)
-                 (begin
-                   (thread-sleep! .1)
-                   (loop (+ n 1))))))))
+         (when (file-exists? directory)
+           (when (< n max-tries)
+             (thread-sleep! .1)
+             (loop (+ n 1)))))))
 
 
 ;;;
@@ -133,7 +141,15 @@
 
 
 (define (debug n)
-  (system-message (number->string n)))
+  (system-message (->string n)))
+
+
+(define (->string expr)
+  (if (string? expr)
+      expr
+    (let ((output (open-output-string)))
+      (display expr output)
+      (get-output-string output))))
 
 
 ;;;
