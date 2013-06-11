@@ -214,7 +214,6 @@
 
 (define (close-draw view hdc)
   (let ((rect (view-rect view))
-        (brush (CreateSolidBrush white-color))
         (gray (CreatePen PS_SOLID 4 (RGB 150 150 150)))
         (white (CreatePen PS_SOLID 2 (RGB 255 255 255))))
     (let ((left (rect-left rect))
@@ -240,6 +239,41 @@
 
 (define (new-close rect)
   (make-close rect close-draw #f button-mouse-down #f #t #f close-action))
+
+
+;;;
+;;;; Close
+;;;
+
+
+(define-type-of-button minimize)
+
+
+(define (minimize-draw view hdc)
+  (let ((rect (view-rect view))
+        (gray (CreatePen PS_SOLID 4 (RGB 150 150 150)))
+        (white (CreatePen PS_SOLID 2 (RGB 255 255 255))))
+    (let ((left (rect-left rect))
+          (top (rect-top rect))
+          (right (rect-right rect))
+          (bottom (rect-bottom rect)))
+      (define (draw-line pen)
+        (SelectObject hdc pen)
+        (MoveToEx hdc left bottom #f)
+        (LineTo hdc right bottom))
+      
+      (draw-line gray)
+      (draw-line white))
+    (DeleteObject gray)
+    (DeleteObject white)))
+
+
+(define (minimize-action view)
+  (ShowWindow (window-handle current-window) SW_MINIMIZE))
+
+
+(define (new-minimize rect)
+  (make-close rect minimize-draw #f button-mouse-down #f #t #f minimize-action))
 
 
 ;;;

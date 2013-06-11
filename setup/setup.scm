@@ -107,6 +107,15 @@
 
 
 ;;;
+;;;; Minimize
+;;;
+
+
+(define minimize-view
+  (new-minimize (make-rect 798 15 808 25)))
+
+
+;;;
 ;;;; Install
 ;;;
 
@@ -231,6 +240,7 @@
   (set-current-window window)
   (add-view title-view)
   (add-view close-view)
+  (add-view minimize-view)
   (add-view install-view)
   (setup-bitmap))
 

@@ -88,6 +88,7 @@
 (c-enumerant DT_NOCLIP)
 
 (c-enumerant SW_SHOWNORMAL)
+(c-enumerant SW_MINIMIZE)
 
 (c-enumerant RDW_INVALIDATE)
 (c-enumerant RDW_ERASENOW)
