@@ -7,6 +7,7 @@
 
 
 ;; TODO
+;; - Be robust if unable to delete install dir
 ;; - Need to implement with-cursor calling update-cursor
 
 
@@ -218,14 +219,13 @@
   (add-view download-view)
   (add-view play-view)
   (update-window)
-  (download)
-  (set-view-active? play-view #t))
+  (download))
 
 
 (define (download)
   (set-cursor IDC_WAIT)
   (set-label-title status-view "Preparing")
-  (let ((url #; "http://github.com/feeley/gambit.git" #; "d:/space-media" "https://github.com/gcartier/space-media.git")
+  (let ((url #; "http://github.com/feeley/gambit.git" "d:/space-media" #; "https://github.com/gcartier/space-media.git")
         (dir "aaa"))
     (let ((normalized-dir (string-append dir "/")))
       (when (file-exists? normalized-dir)
@@ -235,29 +235,37 @@
         (git-remote-check-cert remote 0)
         (git-remote-set-cred-acquire-cb remote
                                         (lambda ()
-                                          #f #;
                                           (git-cred-userpass-plaintext-new "dawnofspacebeta" "gazoum123")))
         (git-remote-connect remote GIT_DIRECTION_FETCH)
         (set-label-title status-view "Downloading application")
-        (let ((first-call? #t))
-          (define (callback total-objects indexed-objects received-objects received-bytes)
-            (set-label-title percentage-view (string-append (number->string (fxround (percentage received-objects total-objects))) "%"))
-            (set-label-title downloaded-view (string-append "Downloaded: " (number->string (inexact->exact (##floor (/ (exact->inexact received-bytes) (* 1024. 1024.))))) "M"))
-            (set-label-title remaining-view (string-append "Files remaining: " (number->string (- total-objects received-objects))))
-            (if (= received-objects 0)
-                (set-progress-range download-view (make-range 0 total-objects))
-              (set-progress-pos download-view received-objects)))
-          
-          (git-remote-download remote callback))
-        (git-remote-disconnect remote)
-        (git-remote-update-tips remote)
-        (git-remote-free remote)
-        (set-label-title status-view "Installing application")
-        (let ((upstream (git-reference-lookup repo "refs/remotes/origin/master")))
-          (let ((commit (git-object-lookup repo (git-reference->id repo upstream) GIT_OBJ_COMMIT)))
-            (git-reset repo commit GIT_RESET_HARD))))
-      (git-repository-free repo)
-      (set-label-title status-view "Done"))))
+        (set-user-callback
+          (lambda (wparam lparam)
+            (case lparam
+              ((0)
+               (let ((total-objects (git-remote-download-total-objects))
+                     (received-objects (git-remote-download-received-objects))
+                     (received-bytes (git-remote-download-received-bytes)))
+                 (let ((percentage (fxround (percentage received-objects total-objects)))
+                       (downloaded (fxfloor (/ (exact->inexact received-bytes) (* 1024. 1024.))))
+                       (remaining (- total-objects received-objects)))
+                   (set-label-title percentage-view (string-append (number->string percentage) "%"))
+                   (set-label-title downloaded-view (string-append "Downloaded: " (number->string downloaded) "M"))
+                   (set-label-title remaining-view (string-append "Files remaining: " (number->string remaining))))
+                 (if (= received-objects 0)
+                     (set-progress-range download-view (make-range 0 total-objects))
+                   (set-progress-pos download-view received-objects))))
+              ((1)
+               (git-remote-disconnect remote)
+               (git-remote-update-tips remote)
+               (git-remote-free remote)
+               (set-label-title status-view "Installing application")
+               (let ((upstream (git-reference-lookup repo "refs/remotes/origin/master")))
+                 (let ((commit (git-object-lookup repo (git-reference->id repo upstream) GIT_OBJ_COMMIT)))
+                   (git-reset repo commit GIT_RESET_HARD)))
+               (git-repository-free repo)
+               (set-label-title status-view "Done")
+               (set-view-active? play-view #t)))))
+        (git-remote-download-threaded remote (window-handle current-window))))))
 
 
 ;;;

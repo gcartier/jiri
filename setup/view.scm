@@ -77,8 +77,9 @@
         (when mouse-enter
           (mouse-enter view x y)))))
   (let ((mouse-move (view-mouse-move view)))
-    (when mouse-move
-      (mouse-move view x y))))
+    (if mouse-move
+        (mouse-move view x y)
+      (set-cursor IDC_ARROW))))
 
 
 (define debug-views?
@@ -194,9 +195,9 @@
   (title-moving?-set! view #t)
   (SetCapture (window-handle current-window))
   (set-captured-view view)
-  (set! lose-capture-callback
-        (lambda ()
-          (title-moving?-set! view #f))))
+  (set-lose-capture-callback
+    (lambda ()
+      (title-moving?-set! view #f))))
 
 
 (define (title-mouse-up view x y)

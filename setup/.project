@@ -33,4 +33,5 @@
       (<Project-File>                source: {File :context "devel.scm"})
       (<Project-File>                source: {File :context "devel"})
       (<Project-File>                source: {File :context "release"})
-      (<Project-File>                source: {File :context "draw.scm"})))))
+      (<Project-File>                source: {File :context "draw.scm"})
+      (<Project-File>                source: {File :context "foreign.scm"})))))

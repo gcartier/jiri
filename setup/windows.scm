@@ -107,6 +107,7 @@
 (c-enumerant WM_CAPTURECHANGED)
 (c-enumerant WM_CLOSE)
 (c-enumerant WM_DESTROY)
+(c-enumerant WM_USER)
 
 (c-enumerant VK_ESCAPE)
 
@@ -127,6 +128,8 @@
 (c-enumerant IDYES)
 (c-enumerant IDNO)
 
+(c-enumerant INFINITE)
+
 (c-enumerant FILE_ATTRIBUTE_READONLY)
 
 
@@ -143,6 +146,7 @@
 (c-external (DestroyWindow            HWND) BOOL)
 (c-external (GetWindowRect            HWND RECT*) BOOL)
 (c-external (MoveWindow               HWND INT INT INT INT BOOL) BOOL)
+(c-external (PostMessage              HWND UINT WPARAM LPARAM) BOOL)
 (c-external (PostQuitMessage          INT) VOID)
 (c-external (BeginPaint               HWND PAINTSTRUCT*) HDC)
 (c-external (EndPaint                 HWND PAINTSTRUCT*) BOOL)
@@ -312,6 +316,7 @@ end-of-c-code
         ((= msg WM_CAPTURECHANGED) (process-capture-changed lparam))
         ((= msg WM_CLOSE) (process-close hwnd))
         ((= msg WM_DESTROY) (process-destroy))
+        ((= msg WM_USER) (process-user wparam lparam))
         (else unprocessed)))
 
 
@@ -353,6 +358,9 @@ end-of-c-code
 (define lose-capture-callback
   #f)
 
+(define (set-lose-capture-callback callback)
+  (set! lose-capture-callback callback))
+
 
 (define (process-capture-changed hwnd)
   (when lose-capture-callback
@@ -367,6 +375,18 @@ end-of-c-code
 
 (define (process-destroy)
   (PostQuitMessage 0))
+
+
+(define user-callback
+  #f)
+
+(define (set-user-callback callback)
+  (set! user-callback callback))
+
+
+(define (process-user wparam lparam)
+  (when user-callback
+    (user-callback wparam lparam)))
 
 
 (define current-instance

@@ -42,15 +42,15 @@
 
 
 (define (fxround r)
-  (if (##fixnum? r)
+  (if (fixnum? r)
       r
-    (##flonum->fixnum (##round r))))
+    (inexact->exact (round r))))
 
 
 (define (fxfloor r)
-  (if (##fixnum? r)
+  (if (fixnum? r)
       r
-    (inexact->exact (##floor r))))
+    (inexact->exact (floor r))))
 
 
 (define (fxfloor/ n d)
@@ -135,18 +135,17 @@
               (directory-files (list path: dir ignore-hidden: 'dot-and-dot-dot))))
   
   (empty/delete directory)
-  (wait-deleted-workaround directory))
+  (wait-deleted-windows-workaround directory))
 
 
-(define (wait-deleted-workaround directory)
-  #;
-  (thread-sleep! .5)
+(define (wait-deleted-windows-workaround directory)
   (let ((max-tries 10))
     (let loop ((n 0))
          (when (file-exists? directory)
            (when (< n max-tries)
              (thread-sleep! .1)
-             (loop (+ n 1)))))))
+             (loop (+ n 1))))))
+  (thread-sleep! .1))
 
 
 ;;;

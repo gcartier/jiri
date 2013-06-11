@@ -77,6 +77,21 @@
 
 
 ;;;
+;;;; Cred
+;;;
+
+
+(define git-cred-userpass-plaintext-new
+  (c-lambda (char-string char-string) git_cred*
+    #<<end-of-c-code
+    git_cred* cred;
+    git_check_error(git_cred_userpass_plaintext_new(&cred, ___arg1, ___arg2));
+    ___result_voidstar = cred;
+end-of-c-code
+))
+
+
+;;;
 ;;;; Object
 ;;;
 
@@ -152,9 +167,8 @@ end-of-c-code
 (c-declare #<<end-of-c-declare
     int cred_acquire_cb(git_cred **out, const char * url, const char * username_from_url, unsigned int allowed_types, void * payload)
     {
-        return git_cred_userpass_plaintext_new(out, "dawnofspacebeta", "gazoum123");
-        //*out = cred_acquire_procedure(___EXT(___data_rc)(payload));
-        //return 0;
+        *out = cred_acquire_procedure(___EXT(___data_rc)(payload));
+        return 0;
     }
 end-of-c-declare
 )
@@ -162,10 +176,9 @@ end-of-c-declare
 (define git-remote-set-cred-acquire-cb
   (c-lambda (git_remote* scheme-object) void
     #<<end-of-c-code
-    git_remote_set_cred_acquire_cb(___arg1, &cred_acquire_cb, NULL);
-    //void* p = ___EXT(___alloc_rc)(0);
-    //___EXT(___set_data_rc)(p, ___arg2);
-    //git_remote_set_cred_acquire_cb(___arg1, &cred_acquire_cb, p);
+    void* p = ___EXT(___alloc_rc)(0);
+    ___EXT(___set_data_rc)(p, ___arg2);
+    git_remote_set_cred_acquire_cb(___arg1, &cred_acquire_cb, p);
 end-of-c-code
 ))
 
@@ -177,7 +190,8 @@ end-of-c-code
 ))
 
 (c-define (remote-download-procedure proc total_objects indexed_objects received_objects received_bytes) (scheme-object unsigned-int unsigned-int unsigned-int unsigned-int) void "remote_download_procedure" ""
-  (proc total_objects indexed_objects received_objects received_bytes))
+  (when proc
+    (proc total_objects indexed_objects received_objects received_bytes)))
 
 (c-declare #<<end-of-c-code
     int remote_download_cb(const git_transfer_progress *stats, void *payload)
@@ -195,6 +209,75 @@ end-of-c-code
     ___EXT(___set_data_rc)(p, ___arg2);
     git_check_error(git_remote_download(___arg1, &remote_download_cb, p));
     ___EXT(___release_rc)(p);
+end-of-c-code
+))
+
+(c-type HANDLE (pointer void handle))
+(c-type HWND (pointer (struct "HWND__") handle))
+
+(c-declare #<<end-of-c-declare
+    HANDLE ghMutex = NULL;
+    
+    HWND remoteHwnd = NULL;
+    
+	unsigned int total_objects = 0;
+	unsigned int received_objects = 0;
+	size_t received_bytes = 0;
+    
+    int remote_download_callback(const git_transfer_progress *stats, void *payload)
+    {
+        WaitForSingleObject(ghMutex, INFINITE);
+        total_objects = stats->total_objects;
+        received_objects = stats->received_objects;
+        received_bytes = stats->received_bytes;
+        ReleaseMutex(ghMutex);
+        PostMessage(remoteHwnd, WM_USER, 0, 0);
+        return 0;
+    }
+
+    DWORD WINAPI remote_download_proc(LPVOID lpParam)
+    {
+        git_remote_download((git_remote*) lpParam, &remote_download_callback , NULL);
+        PostMessage(remoteHwnd, WM_USER, 0, 1);
+        return 0;
+    }
+end-of-c-declare
+)
+
+(define git-remote-download-total-objects
+  (c-lambda () int
+    #<<end-of-c-code
+    WaitForSingleObject(ghMutex, INFINITE);
+    ___result = total_objects;
+    ReleaseMutex(ghMutex);
+end-of-c-code
+))
+
+(define git-remote-download-received-objects
+  (c-lambda () int
+    #<<end-of-c-code
+    WaitForSingleObject(ghMutex, INFINITE);
+    ___result = received_objects;
+    ReleaseMutex(ghMutex);
+end-of-c-code
+))
+
+(define git-remote-download-received-bytes
+  (c-lambda () int
+    #<<end-of-c-code
+    WaitForSingleObject(ghMutex, INFINITE);
+    ___result = received_bytes;
+    ReleaseMutex(ghMutex);
+end-of-c-code
+))
+
+(define git-remote-download-threaded
+  (c-lambda (git_remote* HWND) HANDLE
+    #<<end-of-c-code
+    if (! ghMutex)
+        ghMutex = CreateMutex(NULL, FALSE, NULL);
+    remoteHwnd = ___arg2;
+    ___result = CreateThread(NULL, 0, &remote_download_proc, ___arg1, 0, NULL);
 end-of-c-code
 ))
 
