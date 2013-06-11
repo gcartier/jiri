@@ -238,8 +238,22 @@ end-of-c-code
     "___result_voidstar = LoadImage(NULL, MAKEINTRESOURCE(___arg1), IMAGE_CURSOR, 0, 0, LR_SHARED);"))
 
 
+(define default-cursor
+  IDC_ARROW)
+
+(define (set-default-cursor cursor)
+  (set! default-cursor cursor)
+  (update-cursor))
+
+
 (define (set-cursor cursor)
   (SetCursor (LoadCursorInt cursor)))
+
+
+(define (update-cursor)
+  (let ((proc (window-update-cursor current-window)))
+    (when proc
+      (proc current-window))))
 
 
 (define (cursor-position)
@@ -248,6 +262,10 @@ end-of-c-code
     (let ((pos (make-point (POINT-x point) (POINT-y point))))
       (POINT-free point)
       pos)))
+
+
+(define (window-cursor-position window)
+  (point- (cursor-position) (get-window-position window)))
 
 
 (define (get-window-position window)

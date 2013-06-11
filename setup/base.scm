@@ -190,4 +190,4 @@
     thunk))
 
 
-;(current-exception-handler jiri-exception-handler)
+(current-exception-handler jiri-exception-handler)

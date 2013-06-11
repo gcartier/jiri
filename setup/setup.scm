@@ -8,7 +8,10 @@
 
 ;; TODO
 ;; - Be robust if unable to delete install dir
-;; - Need to implement with-cursor calling update-cursor
+;; - Choose installation directory
+;; - Enter closed-beta password (accept license!?)
+;; - Update installer
+;; - Launch app
 
 
 (include "syntax.scm")
@@ -55,11 +58,23 @@
       (when (= wparam VK_ESCAPE)
         (exit)))
     
+    (define (update-cursor window)
+      (let ((pos (window-cursor-position window)))
+        (let ((x (point-h pos))
+              (y (point-v pos)))
+          (let ((view (find-view x y)))
+            (if view
+                (let ((update-cursor (view-update-cursor view)))
+                  (if update-cursor
+                      (update-cursor view x y)
+                    (set-cursor default-cursor)))
+              (set-cursor default-cursor))))))
+    
     (define (mouse-move x y)
       (let ((view (find-view x y)))
         (if view
             (call-mouse-move view x y)
-          (set-cursor IDC_ARROW))))
+          (set-cursor default-cursor))))
     
     (define (mouse-down x y)
       (let ((view (find-view x y)))
@@ -86,7 +101,7 @@
                           views)
                 #f)))))
     
-    (make-window #f draw key-down mouse-move mouse-down mouse-up)))
+    (make-window #f draw key-down update-cursor mouse-move mouse-down mouse-up)))
 
 
 ;;;
@@ -223,7 +238,7 @@
 
 
 (define (download)
-  (set-cursor IDC_WAIT)
+  (set-default-cursor IDC_WAIT)
   (set-label-title status-view "Preparing")
   (let ((url #; "http://github.com/feeley/gambit.git" "d:/space-media" #; "https://github.com/gcartier/space-media.git")
         (dir "aaa"))
@@ -264,7 +279,8 @@
                    (git-reset repo commit GIT_RESET_HARD)))
                (git-repository-free repo)
                (set-label-title status-view "Done")
-               (set-view-active? play-view #t)))))
+               (set-view-active? play-view #t)
+               (set-default-cursor IDC_ARROW)))))
         (git-remote-download-threaded remote (window-handle current-window))))))
 
 

@@ -13,6 +13,7 @@
   extender: define-type-of-view
   rect
   draw
+  update-cursor
   mouse-move
   mouse-enter
   mouse-leave
@@ -66,20 +67,26 @@
 
 
 (define (call-mouse-move view x y)
-  (when (neq? view mouse-view)
-    (let ((actual mouse-view))
-      (set-mouse-view view)
-      (when actual
-        (let ((mouse-leave (view-mouse-leave actual)))
-          (when mouse-leave
-            (mouse-leave actual x y))))
-      (let ((mouse-enter (view-mouse-enter view)))
-        (when mouse-enter
-          (mouse-enter view x y)))))
-  (let ((mouse-move (view-mouse-move view)))
-    (if mouse-move
-        (mouse-move view x y)
-      (set-cursor IDC_ARROW))))
+  (if (view-active? view)
+      (begin
+        (when (neq? view mouse-view)
+          (let ((actual mouse-view))
+            (set-mouse-view view)
+            (when actual
+              (let ((mouse-leave (view-mouse-leave actual)))
+                (when mouse-leave
+                  (mouse-leave actual x y))))
+            (let ((mouse-enter (view-mouse-enter view)))
+              (when mouse-enter
+                (mouse-enter view x y)))))
+        (let ((update-cursor (view-update-cursor view)))
+          (if update-cursor
+              (update-cursor view x y)
+            (set-cursor default-cursor)))
+        (let ((mouse-move (view-mouse-move view)))
+          (if mouse-move
+              (mouse-move view x y))))
+    (set-cursor default-cursor)))
 
 
 (define debug-views?
@@ -139,14 +146,15 @@
 (define-type-of-view root)
 
 
-(define (root-mouse-move view x y)
-  (set-cursor IDC_ARROW))
+(define (root-update-cursor view x y)
+  (set-cursor default-cursor))
 
 
 (define (new-root rect)
   (make-root rect
              #f
-             root-mouse-move
+             root-update-cursor
+             #f
              #f
              #f
              #f
@@ -178,8 +186,11 @@
       (DrawText hdc title -1 (rect->RECT rect) (bitwise-ior DT_CENTER DT_NOCLIP)))))
 
 
+(define (title-update-cursor view x y)
+  (set-cursor IDC_SIZEALL))
+
+
 (define (title-mouse-move view x y)
-  (set-cursor IDC_SIZEALL)
   (when (title-moving? view)
     (let ((current (cursor-position)))
       (let ((delta (point- current (title-cursor-pos view))))
@@ -207,6 +218,7 @@
 (define (new-title rect title)
   (make-title rect
               title-draw
+              title-update-cursor
               title-mouse-move
               #f
               #f
@@ -256,6 +268,7 @@
               #f
               #f
               #f
+              #f
               #t
               title
               align))
@@ -293,6 +306,10 @@
             (DrawText hdc title -1 (rect->RECT textRect) (bitwise-ior DT_CENTER DT_NOCLIP))))))))
 
 
+(define (button-update-cursor view x y)
+  (set-cursor IDC_ARROW))
+
+
 (define (button-mouse-enter view x y)
   (invalidate-view view)
   (update-view view))
@@ -321,6 +338,7 @@
 (define (new-button rect title action #!key (active? #t))
   (make-button rect
                button-draw
+               button-update-cursor
                #f
                button-mouse-enter
                button-mouse-leave
@@ -368,6 +386,7 @@
 (define (new-close rect)
   (make-close rect
               close-draw
+              button-update-cursor
               #f
               button-mouse-enter
               button-mouse-leave
@@ -413,6 +432,7 @@
 (define (new-minimize rect)
   (make-minimize rect
                  minimize-draw
+                 button-update-cursor
                  #f
                  button-mouse-enter
                  button-mouse-leave
@@ -465,6 +485,7 @@
 (define (new-progress rect pos range)
   (make-progress rect
                  progress-draw
+                 #f
                  #f
                  #f
                  #f
