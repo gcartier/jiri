@@ -25,8 +25,8 @@ case "$1" in
 		;;
 esac
 
-CFILES="$BUILD/features.c $BUILD/crash.c $BUILD/git.c $BUILD/windows.c $BUILD/base.c $BUILD/geometry.c $BUILD/color.c $BUILD/font.c $BUILD/window.c $BUILD/view.c $BUILD/setup.c $BUILD/main.c"
-OFILES="$BUILD/features.o $BUILD/crash.o $BUILD/git.o $BUILD/windows.o $BUILD/base.o $BUILD/geometry.o $BUILD/color.o $BUILD/font.o $BUILD/window.o $BUILD/view.o $BUILD/setup.o $BUILD/main.o"
+CFILES="$BUILD/features.c $BUILD/crash.c $BUILD/git.c $BUILD/windows.c $BUILD/base.c $BUILD/geometry.c $BUILD/color.c $BUILD/font.c $BUILD/window.c $BUILD/draw.c $BUILD/view.c $BUILD/setup.c $BUILD/main.c"
+OFILES="$BUILD/features.o $BUILD/crash.o $BUILD/git.o $BUILD/windows.o $BUILD/base.o $BUILD/geometry.o $BUILD/color.o $BUILD/font.o $BUILD/window.o $BUILD/draw.o $BUILD/view.o $BUILD/setup.o $BUILD/main.o"
 
 if [ ! -d $ROOT ]; then
     mkdir $ROOT
@@ -51,6 +51,7 @@ gsc -c -o $BUILD $ABS/geometry
 gsc -c -o $BUILD $ABS/color
 gsc -c -o $BUILD $ABS/font
 gsc -c -o $BUILD $ABS/window
+gsc -c -o $BUILD $ABS/draw
 gsc -c -o $BUILD $ABS/view
 gsc -c -o $BUILD $ABS/setup
 gsc -c -o $BUILD $ABS/main

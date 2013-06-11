@@ -6,50 +6,14 @@
 ;;;
 
 
-;;;
-;;;; Draw
-;;;
-
-
-(define (DrawGradient hdc left top right bottom from to vertical?)
-  (let ((fStep (if vertical?
-                   (/ (- bottom top 1) 256.)
-                 (/ (- right left 1) 256.)))
-        (rStep (/ (- (GetRValue to) (GetRValue from)) 256.))
-        (gStep (/ (- (GetGValue to) (GetGValue from)) 256.))
-        (bStep (/ (- (GetBValue to) (GetBValue from)) 256.)))
-    (let loop ((i 0))
-      (let ((rectFill (if vertical?
-                          (make-RECT left
-                                     (+ top (fxround (* i fStep)))
-                                     right
-                                     (+ top (fxround (* (+ i 1) fStep))))
-                        (make-RECT (+ left (fxround (* i fStep)))
-                                   top
-                                   (+ left (fxround (* (+ i 1) fStep)))
-                                   bottom))))
-        (let ((r (+ (GetRValue from) (fxround (* i rStep))))
-              (g (+ (GetGValue from) (fxround (* i gStep))))
-              (b (+ (GetBValue from) (fxround (* i bStep)))))
-          (let ((brush (CreateSolidBrush (RGB r g b))))
-            (FillRect hdc rectFill brush)
-            (DeleteObject brush))))
-      (if (< i 256)
-          (loop (+ i 1))))))
-
-
-;;;
-;;;; View
-;;;
-
-
 (define-type view
   extender: define-type-of-view
   rect
   draw
   mouse-move
   mouse-down
-  mouse-up)
+  mouse-up
+  active?)
 
 
 (define debug-views?
@@ -92,6 +56,12 @@
                 (if draw
                     (draw view hdc))))
             views))
+
+
+(define (set-view-active? view active?)
+  (view-active?-set! view active?)
+  (invalidate-view view)
+  (update-view view))
 
 
 ;;;
@@ -171,7 +141,7 @@
 
 
 (define (new-title rect title)
-  (make-title rect title-draw title-mouse-move title-mouse-down title-mouse-up title #f #f #f #f))
+  (make-title rect title-draw title-mouse-move title-mouse-down title-mouse-up #t title #f #f #f #f))
 
 
 ;;;
@@ -194,7 +164,7 @@
 
 
 (define (new-label rect title)
-  (make-label rect label-draw #f #f #f title))
+  (make-label rect label-draw #f #f #f #t title))
 
 
 ;;;
@@ -203,24 +173,26 @@
 
 
 (define-type-of-view button
+  extender: define-type-of-button
   title
   action)
 
 
 (define (button-draw view hdc)
-  (SetBkMode hdc TRANSPARENT)
-  (SetTextColor hdc white-color)
-  (let ((font button-font))
-    (SelectObject hdc font)
-    (let ((rect (view-rect view)))
-      (let ((left (rect-left rect))
-            (top (rect-top rect))
-            (right (rect-right rect))
-            (bottom (rect-bottom rect)))
-        (DrawGradient hdc left top right bottom (RGB 150 0 0) (RGB 220 0 0) #f)
-        (let ((textRect (make-rect left (+ top 7) right (+ bottom 7)))
-              (title (button-title view)))
-          (DrawText hdc title -1 (rect->RECT textRect) (bitwise-ior DT_CENTER DT_NOCLIP)))))))
+  (let ((active? (view-active? view)))
+    (SetBkMode hdc TRANSPARENT)
+    (SetTextColor hdc (if active? white-color (RGB 160 160 160)))
+    (let ((font button-font))
+      (SelectObject hdc font)
+      (let ((rect (view-rect view)))
+        (let ((left (rect-left rect))
+              (top (rect-top rect))
+              (right (rect-right rect))
+              (bottom (rect-bottom rect)))
+          (DrawGradient hdc left top right bottom (if active? (RGB 150 0 0) white-color) (if active? (RGB 220 0 0) white-color) #f)
+          (let ((textRect (make-rect left (+ top 7) right (+ bottom 7)))
+                (title (button-title view)))
+            (DrawText hdc title -1 (rect->RECT textRect) (bitwise-ior DT_CENTER DT_NOCLIP))))))))
 
 
 (define (button-mouse-down view x y)
@@ -228,8 +200,46 @@
     (action view)))
 
 
-(define (new-button rect title action)
-  (make-button rect button-draw #f button-mouse-down #f title action))
+(define (new-button rect title action #!key (active? #t))
+  (make-button rect button-draw #f button-mouse-down #f active? title action))
+
+
+;;;
+;;;; Close
+;;;
+
+
+(define-type-of-button close)
+
+
+(define (close-draw view hdc)
+  (let ((rect (view-rect view))
+        (brush (CreateSolidBrush white-color))
+        (gray (CreatePen PS_SOLID 4 (RGB 150 150 150)))
+        (white (CreatePen PS_SOLID 2 (RGB 255 255 255))))
+    (let ((left (rect-left rect))
+          (top (rect-top rect))
+          (right (rect-right rect))
+          (bottom (rect-bottom rect)))
+      (define (draw-x pen)
+        (SelectObject hdc pen)
+        (MoveToEx hdc left top #f)
+        (LineTo hdc right bottom)
+        (MoveToEx hdc right top #f)
+        (LineTo hdc left bottom))
+      
+      (draw-x gray)
+      (draw-x white))
+    (DeleteObject gray)
+    (DeleteObject white)))
+
+
+(define (close-action view)
+  (quit))
+
+
+(define (new-close rect)
+  (make-close rect close-draw #f button-mouse-down #f #t #f close-action))
 
 
 ;;;
@@ -276,5 +286,6 @@
                  #f
                  #f
                  #f
+                 #t
                  pos
                  range))

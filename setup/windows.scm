@@ -37,6 +37,7 @@
 (c-type HINSTANCE    (pointer (struct "HINSTANCE__") handle))
 (c-type HBITMAP      (pointer (struct "HBITMAP__") handle))
 (c-type HBRUSH       (pointer (struct "HBRUSH__") handle))
+(c-type HPEN         (pointer (struct "HPEN__") handle))
 (c-type HFONT        (pointer (struct "HFONT__") handle))
 (c-type HRGN         (pointer (struct "HRGN__") handle))
 (c-type HICON        (pointer (struct "HICON__") handle))
@@ -73,6 +74,8 @@
 
 (c-enumerant OPAQUE)
 (c-enumerant TRANSPARENT)
+
+(c-enumerant PS_SOLID)
 
 (c-enumerant FW_DONTCARE)
 (c-enumerant DEFAULT_CHARSET)
@@ -146,9 +149,12 @@
 (c-external (SelectObject             HDC HANDLE) HANDLE)
 (c-external (DeleteObject             HGDIOBJ) BOOL)
 (c-external (BitBlt                   HDC INT INT INT INT HDC INT INT DWORD) BOOL)
+(c-external (MoveToEx                 HDC INT INT POINT*) BOOL)
+(c-external (LineTo                   HDC INT INT) BOOL)
 (c-external (FillRect                 HDC RECT* HBRUSH) INT)
 (c-external (DrawText                 HDC LPCWSTR INT RECT* UINT) INT "DrawTextW")
 (c-external (CreateSolidBrush         COLORREF) HBRUSH)
+(c-external (CreatePen                INT INT COLORREF) HPEN)
 (c-external (CreateFont               INT INT INT INT INT DWORD DWORD DWORD DWORD DWORD DWORD DWORD DWORD LPCWSTR) HFONT "CreateFontW")
 (c-external (SetBkMode                HDC INT) INT)
 (c-external (SetTextColor             HDC COLORREF) COLORREF)

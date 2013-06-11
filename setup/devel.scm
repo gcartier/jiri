@@ -16,5 +16,6 @@
 (load-source "color")
 (load-source "font")
 (load-source "window")
+(load-source "draw")
 (load-source "view")
 (load-source "setup")

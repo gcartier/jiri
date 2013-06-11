@@ -53,7 +53,7 @@
     
     (define (mouse-move x y)
       (let ((view (find-view x y)))
-        (if view
+        (if (and view (view-active? view))
             (let ((mouse-move (view-mouse-move view)))
               (if mouse-move
                   (mouse-move view x y)))
@@ -61,19 +61,17 @@
     
     (define (mouse-down x y)
       (let ((view (find-view x y)))
-        (if view
+        (if (and view (view-active? view))
             (let ((mouse-down (view-mouse-down view)))
               (if mouse-down
-                  (mouse-down view x y)))
-          (quit))))
+                  (mouse-down view x y))))))
     
     (define (mouse-up x y)
       (let ((view (find-view x y)))
-        (if view
+        (if (and view (view-active? view))
             (let ((mouse-up (view-mouse-up view)))
               (if mouse-up
-                  (mouse-up view x y)))
-          (quit))))
+                  (mouse-up view x y))))))
     
     (define (find-view x y)
       (or captured-view
@@ -97,6 +95,15 @@
 (define title-view
   (new-title (make-rect 20 18 440 100)
              "Dawn of Space"))
+
+
+;;;
+;;;; Close
+;;;
+
+
+(define close-view
+  (new-close (make-rect 825 15 835 25)))
 
 
 ;;;
@@ -138,7 +145,7 @@
 
 (define remaining-view
   (new-label (make-rect 400 450 500 470)
-             "Remaining: 272"))
+             "Files remaining: 272"))
 
 
 ;;;
@@ -159,9 +166,8 @@
   (new-button (make-rect 680 450 815 490)
               "Play"
               (lambda (view)
-                (exit)
-                #;
-                (setup))))
+                (exit))
+              active?: #f))
 
 
 ;;;
@@ -181,8 +187,8 @@
   (add-view download-view)
   (add-view play-view)
   (update-window)
-  #;
-  (download))
+  (download)
+  (set-view-active? play-view #t))
 
 
 (define (download)
@@ -224,6 +230,7 @@
 (define (prepare)
   (set-current-window window)
   (add-view title-view)
+  (add-view close-view)
   (add-view install-view)
   (setup-bitmap))
 
