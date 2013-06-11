@@ -86,6 +86,8 @@
 (c-enumerant ANTIALIASED_QUALITY)
 (c-enumerant FF_DONTCARE)
 
+(c-enumerant DT_LEFT)
+(c-enumerant DT_RIGHT)
 (c-enumerant DT_CENTER)
 (c-enumerant DT_NOCLIP)
 

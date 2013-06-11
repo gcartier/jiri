@@ -225,7 +225,8 @@
 
 
 (define-type-of-view label
-  title)
+  title
+  align)
 
 
 (define (label-draw view hdc)
@@ -235,8 +236,9 @@
   (let ((font label-font))
     (SelectObject hdc font)
     (let ((rect (view-rect view))
-          (title (label-title view)))
-      (DrawText hdc title -1 (rect->RECT rect) DT_NOCLIP))))
+          (title (label-title view))
+          (align (label-align view)))
+      (DrawText hdc title -1 (rect->RECT rect) (bitwise-ior align DT_NOCLIP)))))
 
 
 (define (set-label-title view title)
@@ -245,7 +247,7 @@
   (update-view view))
 
 
-(define (new-label rect title)
+(define (new-label rect title #!optional (align DT_LEFT))
   (make-label rect
               label-draw
               #f
@@ -254,7 +256,8 @@
               #f
               #f
               #t
-              title))
+              title
+              align))
 
 
 ;;;

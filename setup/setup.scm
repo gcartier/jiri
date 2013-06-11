@@ -143,7 +143,7 @@
 
 
 (define percentage-view
-  (new-label (make-rect 50 450 190 470)
+  (new-label (make-rect 50 450 170 470)
              "0%"))
 
 
@@ -153,8 +153,8 @@
 
 
 (define downloaded-view
-  (new-label (make-rect 200 450 390 470)
-             "Downloaded:"))
+  (new-label (make-rect 180 450 350 470)
+             "Downloaded: "))
 
 
 ;;;
@@ -163,8 +163,19 @@
 
 
 (define remaining-view
-  (new-label (make-rect 400 450 590 470)
-             "Files remaining:"))
+  (new-label (make-rect 360 450 500 470)
+             "Files remaining: "))
+
+
+;;;
+;;;; Status
+;;;
+
+
+(define status-view
+  (new-label (make-rect 510 450 650 470)
+             ""
+             DT_RIGHT))
 
 
 ;;;
@@ -190,16 +201,6 @@
 
 
 ;;;
-;;;; Status
-;;;
-
-
-(define status-view
-  (new-label (make-rect 10 530 840 540)
-             ""))
-
-
-;;;
 ;;;; Setup
 ;;;
 
@@ -213,6 +214,7 @@
   (add-view percentage-view)
   (add-view downloaded-view)
   (add-view remaining-view)
+  (add-view status-view)
   (add-view download-view)
   (add-view play-view)
   (update-window)
@@ -222,7 +224,8 @@
 
 (define (download)
   (set-cursor IDC_WAIT)
-  (let ((url "d:/space-media" #; "https://github.com/gcartier/space-media.git")
+  (set-label-title status-view "Preparing")
+  (let ((url #; "http://github.com/feeley/gambit.git" #; "d:/space-media" "https://github.com/gcartier/space-media.git")
         (dir "aaa"))
     (let ((normalized-dir (string-append dir "/")))
       (when (file-exists? normalized-dir)
@@ -235,10 +238,11 @@
                                           #f #;
                                           (git-cred-userpass-plaintext-new "dawnofspacebeta" "gazoum123")))
         (git-remote-connect remote GIT_DIRECTION_FETCH)
+        (set-label-title status-view "Downloading application")
         (let ((first-call? #t))
           (define (callback total-objects indexed-objects received-objects received-bytes)
-            (set-label-title percentage-view (string-append (number->string (percentage received-objects total-objects)) "%"))
-            (set-label-title downloaded-view (string-append "Downloaded: " (number->string received-bytes)))
+            (set-label-title percentage-view (string-append (number->string (fxround (percentage received-objects total-objects))) "%"))
+            (set-label-title downloaded-view (string-append "Downloaded: " (number->string (inexact->exact (##floor (/ (exact->inexact received-bytes) (* 1024. 1024.))))) "M"))
             (set-label-title remaining-view (string-append "Files remaining: " (number->string (- total-objects received-objects))))
             (if (= received-objects 0)
                 (set-progress-range download-view (make-range 0 total-objects))
@@ -248,10 +252,12 @@
         (git-remote-disconnect remote)
         (git-remote-update-tips remote)
         (git-remote-free remote)
+        (set-label-title status-view "Installing application")
         (let ((upstream (git-reference-lookup repo "refs/remotes/origin/master")))
           (let ((commit (git-object-lookup repo (git-reference->id repo upstream) GIT_OBJ_COMMIT)))
             (git-reset repo commit GIT_RESET_HARD))))
-      (git-repository-free repo))))
+      (git-repository-free repo)
+      (set-label-title status-view "Done"))))
 
 
 ;;;
@@ -266,7 +272,6 @@
   (add-view close-view)
   (add-view minimize-view)
   (add-view install-view)
-  (add-view status-view)
   (setup-bitmap))
 
 

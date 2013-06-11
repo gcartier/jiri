@@ -47,6 +47,16 @@
     (##flonum->fixnum (##round r))))
 
 
+(define (fxfloor r)
+  (if (##fixnum? r)
+      r
+    (inexact->exact (##floor r))))
+
+
+(define (fxfloor/ n d)
+  (fxfloor (/ n d)))
+
+
 (define (percentage part total)
   (* (/ (exact->inexact part) (exact->inexact total)) 100))
 
@@ -181,4 +191,4 @@
     thunk))
 
 
-(current-exception-handler jiri-exception-handler)
+;(current-exception-handler jiri-exception-handler)
