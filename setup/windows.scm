@@ -511,6 +511,34 @@ end-of-c-code
 ))
 
 
+(define delete-directory
+  (c-lambda (wchar_t-string) int
+    #<<end-of-c-code
+    LPCWSTR lpszDir = ___arg1;
+    int len = wcslen(lpszDir);
+    wchar_t* pszFrom = (wchar_t*) malloc(sizeof(wchar_t) * (len+2));
+    wcscpy(pszFrom, lpszDir);
+    pszFrom[len] = 0;
+    pszFrom[len+1] = 0;
+    
+    SHFILEOPSTRUCTW fileop;
+    fileop.hwnd   = NULL;    // no status display
+    fileop.wFunc  = FO_DELETE;  // delete operation
+    fileop.pFrom  = pszFrom;  // source file name as double null terminated string
+    fileop.pTo    = NULL;    // no destination needed
+    fileop.fFlags = FOF_NOCONFIRMATION | FOF_SILENT;  // do not prompt the user
+    fileop.fAnyOperationsAborted = FALSE;
+    fileop.lpszProgressTitle     = NULL;
+    fileop.hNameMappings         = NULL;
+    
+    int ret = SHFileOperationW(&fileop);
+    free(pszFrom);
+    
+    ___result = ret;
+end-of-c-code
+))
+
+
 (c-declare #<<end-of-c-code
 const LPCWSTR g_szClassName = L"JiriWindowClass";
 end-of-c-code

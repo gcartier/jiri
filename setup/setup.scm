@@ -7,7 +7,6 @@
 
 
 ;; TODO
-;; - Be robust if unable to delete install dir
 ;; - Enter closed-beta password (accept license!?)
 ;; - Update installer
 
@@ -210,7 +209,7 @@
   (new-button (make-rect 680 450 815 490)
               "Play"
               (lambda (view)
-                (open-process (string-append install-dir "/" jiri-application))
+                (open-process (string-append current-app-dir "/" jiri-application))
                 (quit))
               active?: #f))
 
@@ -220,7 +219,13 @@
 ;;;
 
 
-(define install-dir
+(define current-app-dir
+  #f)
+
+(define current-install-dir
+  #f)
+
+(define current-runtime-dir
   #f)
 
 
@@ -231,62 +236,76 @@
 (define (setup)
   (let ((root-dir (pathname-standardize (choose-directory (window-handle current-window) "Please select the installation folder" (get-special-folder CSIDL_PROGRAM_FILESX86)))))
     (when (not (equal? root-dir ""))
-      (remove-view install-view)
-      (add-view percentage-view)
-      (add-view downloaded-view)
-      (add-view remaining-view)
-      (add-view status-view)
-      (add-view download-view)
-      (add-view play-view)
-      (update-window)
-      (download root-dir))))
+      (let ((app-dir (setup-app root-dir)))
+        (when app-dir
+          (remove-view install-view)
+          (add-view percentage-view)
+          (add-view downloaded-view)
+          (add-view remaining-view)
+          (add-view status-view)
+          (add-view download-view)
+          (add-view play-view)
+          (update-window)
+          (download app-dir))))))
 
 
-(define (download root-dir)
+(define (setup-app root-dir)
+  (let ((app-dir (normalize-directory (string-append root-dir "/" jiri-title))))
+    (if (not (file-exists? app-dir))
+        app-dir
+      (let ((code (system-message (string-append "Installation folder already exists: \"" app-dir "\".\n\nDo you want to replace?") type: 'confirmation)))
+        (when (eq? code 'yes)
+          (let ((code (delete-directory app-dir)))
+            (if (= code 0)
+                app-dir
+              (begin
+                (system-message (string-append "Unable to delete folder (" (number->string code) ")"))
+                #f))))))))
+
+
+(define (download app-dir)
   (set-default-cursor IDC_WAIT)
   (set-label-title status-view "Downloading application")
-  (let ((url jiri-remote-url)
-        (dir (string-append root-dir "/" jiri-title)))
-    (let ((normalized-dir (string-append dir "/")))
-      (when (file-exists? normalized-dir)
-        (empty/delete-directory normalized-dir overwrite-readonly?: #t)))
-    (let ((repo (git-repository-init dir 0)))
-      (let ((remote (git-remote-create repo "origin" url)))
-        (git-remote-check-cert remote 0)
-        (git-remote-set-cred-acquire-cb remote
-                                        (lambda ()
-                                          (git-cred-userpass-plaintext-new jiri-username jiri-password)))
-        (git-remote-connect remote GIT_DIRECTION_FETCH)
-        (set-user-callback
-          (lambda (wparam lparam)
-            (case lparam
-              ((0)
-               (let ((total-objects (git-remote-download-total-objects))
-                     (received-objects (git-remote-download-received-objects))
-                     (received-bytes (git-remote-download-received-bytes)))
-                 (let ((percentage (fxround (percentage received-objects total-objects)))
-                       (downloaded (fxfloor (/ (exact->inexact received-bytes) (* 1024. 1024.))))
-                       (remaining (- total-objects received-objects)))
-                   (set-label-title percentage-view (string-append (number->string percentage) "%"))
-                   (set-label-title downloaded-view (string-append "Downloaded: " (number->string downloaded) "M"))
-                   (set-label-title remaining-view (string-append "Files remaining: " (number->string remaining))))
-                 (if (= received-objects 0)
-                     (set-progress-range download-view (make-range 0 total-objects))
-                   (set-progress-pos download-view received-objects))))
-              ((1)
-               (git-remote-disconnect remote)
-               (git-remote-update-tips remote)
-               (git-remote-free remote)
-               (set-label-title status-view "Installing application")
-               (let ((upstream (git-reference-lookup repo "refs/remotes/origin/master")))
-                 (let ((commit (git-object-lookup repo (git-reference->id repo upstream) GIT_OBJ_COMMIT)))
-                   (git-reset repo commit GIT_RESET_HARD)))
-               (git-repository-free repo)
-               (set! install-dir dir)
-               (set-label-title status-view "Done")
-               (set-view-active? play-view #t)
-               (set-default-cursor IDC_ARROW)))))
-        (git-remote-download-threaded remote (window-handle current-window))))))
+  (let ((repo (git-repository-init app-dir 0)))
+    (let ((remote (git-remote-create repo "origin" jiri-remote-runtime)))
+      (git-remote-check-cert remote 0)
+      (git-remote-set-cred-acquire-cb remote
+                                      (lambda ()
+                                        (git-cred-userpass-plaintext-new jiri-username jiri-password)))
+      (git-remote-connect remote GIT_DIRECTION_FETCH)
+      (set-user-callback
+        (lambda (wparam lparam)
+          (case lparam
+            ((0)
+             (let ((total-objects (git-remote-download-total-objects))
+                   (received-objects (git-remote-download-received-objects))
+                   (received-bytes (git-remote-download-received-bytes)))
+               (let ((percentage (fxround (percentage received-objects total-objects)))
+                     (downloaded (fxfloor (/ (exact->inexact received-bytes) (* 1024. 1024.))))
+                     (remaining (- total-objects received-objects)))
+                 (set-label-title percentage-view (string-append (number->string percentage) "%"))
+                 (set-label-title downloaded-view (string-append "Downloaded: " (number->string downloaded) "M"))
+                 (set-label-title remaining-view (string-append "Files remaining: " (number->string remaining))))
+               (if (= received-objects 0)
+                   (set-progress-range download-view (make-range 0 total-objects))
+                 (set-progress-pos download-view received-objects))))
+            ((1)
+             (set-label-title status-view "111")
+             (git-remote-disconnect remote)
+             (set-label-title status-view "222")
+             (git-remote-update-tips remote)
+             (set-label-title status-view "333")
+             (git-remote-free remote)
+             (set-label-title status-view "Installing application")
+             (let ((upstream (git-reference-lookup repo "refs/remotes/origin/master")))
+               (let ((commit (git-object-lookup repo (git-reference->id repo upstream) GIT_OBJ_COMMIT)))
+                 (git-reset repo commit GIT_RESET_HARD)))
+             (git-repository-free repo)
+             (set! current-app-dir app-dir)
+             (set-label-title status-view "Done")
+             (set-view-active? play-view #t)
+             (set-default-cursor IDC_ARROW)))))
+      (git-remote-download-threaded remote (window-handle current-window)))))
 
 
 ;;;

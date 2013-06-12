@@ -104,6 +104,13 @@
 ;;;
 
 
+(define (string-ends-with? str target)
+  (let ((sl (string-length str))
+        (tl (string-length target)))
+    (and (>= sl tl)
+         (string=? (substring str (- sl tl) sl) target))))
+
+
 (define (string-replace str old new)
   (let ((cpy (string-copy str)))
     (let iter ((n (- (string-length cpy) 1)))
@@ -142,35 +149,10 @@
 ;;;
 
 
-(define (empty/delete-directory directory #!key (overwrite-readonly? #f))
-  (define (empty/delete dir)
-    (empty-directory dir)
-    (delete-directory dir))
-  
-  (define (empty-directory dir)
-    (for-each (lambda (name)
-                (let ((filename (string-append dir name)))
-                  (case (file-type filename)
-                    ((regular)
-                     (when (and overwrite-readonly? (file-readonly? filename))
-                       (set-file-readonly? filename #f))
-                     (delete-file filename))
-                    ((directory)
-                     (empty/delete (string-append filename "/"))))))
-              (directory-files (list path: dir ignore-hidden: 'dot-and-dot-dot))))
-  
-  (empty/delete directory)
-  (wait-deleted-windows-workaround directory))
-
-
-(define (wait-deleted-windows-workaround directory)
-  (let ((max-tries 10))
-    (let loop ((n 0))
-         (when (file-exists? directory)
-           (when (< n max-tries)
-             (thread-sleep! .1)
-             (loop (+ n 1))))))
-  (thread-sleep! .1))
+(define (normalize-directory directory)
+  (if (string-ends-with? directory "/")
+      directory
+    (string-append directory "/")))
 
 
 ;;;

@@ -6,8 +6,12 @@
 ;;;
 
 
+(define setup-source
+  (getenv "MS"))
+
+
 (define (load-source filename)
-  (let ((src (string-append "../devel/setup/" filename ".scm")))
+  (let ((src (string-append setup-source "/" filename ".scm")))
     (load src)))
 
 

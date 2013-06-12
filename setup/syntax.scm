@@ -9,4 +9,5 @@
 (define-macro (when test . body)
   `(if ,test
        (begin
-         ,@body)))
+         ,@body)
+     #f))
