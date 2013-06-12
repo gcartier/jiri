@@ -40,10 +40,6 @@
   (UpdateWindow (window-handle current-window)))
 
 
-(define (update-view view)
-  (update-window))
-
-
 (define (redraw-view view)
   (let ((handle (window-handle current-window))
         (rect (rect->RECT (view-rect view))))
@@ -68,8 +64,7 @@
 
 (define (set-view-active? view active?)
   (view-active?-set! view active?)
-  (invalidate-view view)
-  (update-view view))
+  (invalidate-view view))
 
 
 (define (call-mouse-move view x y)
@@ -266,8 +261,7 @@
 
 (define (set-label-title view title)
   (label-title-set! view title)
-  (invalidate-view view)
-  (update-view view))
+  (invalidate-view view))
 
 
 (define (new-label rect title #!optional (align DT_LEFT))
@@ -325,12 +319,12 @@
 
 (define (button-mouse-enter view x y)
   (invalidate-view view)
-  (update-view view))
+  (update-window))
 
 
 (define (button-mouse-leave view x y)
   (invalidate-view view)
-  (update-view view))
+  (update-window))
 
 
 (define (button-mouse-down view x y)
@@ -344,8 +338,7 @@
 
 (define (set-button-title view title)
   (button-title-set! view title)
-  (invalidate-view view)
-  (update-view view))
+  (invalidate-view view))
 
 
 (define (new-button rect title action #!key (active? #t))
@@ -487,14 +480,12 @@
 
 (define (set-progress-pos view pos)
   (progress-pos-set! view pos)
-  (invalidate-view view)
-  (update-view view))
+  (invalidate-view view))
 
 
 (define (set-progress-range view range)
   (progress-range-set! view range)
-  (invalidate-view view)
-  (update-view view))
+  (invalidate-view view))
 
 
 (define (new-progress rect pos range)
