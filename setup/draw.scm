@@ -36,6 +36,7 @@
               (b (+ (GetBValue from) (fxround (* i bStep)))))
           (let ((brush (CreateSolidBrush (RGB r g b))))
             (FillRect hdc rectFill brush)
+            (RECT-free rectFill)
             (DeleteObject brush))))
       (when (< i 256)
         (loop (+ i 1))))))

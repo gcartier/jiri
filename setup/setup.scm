@@ -8,6 +8,8 @@
 
 ;; TODO
 ;; - Enter closed-beta password (accept license!?)
+;; - Check all memory leak indicators
+;; - Need progress feedback on the checkout phase
 ;; - Update installer
 
 

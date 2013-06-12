@@ -186,6 +186,11 @@
 (c-external (SetFileAttributes        CWSTR DWORD) BOOL "SetFileAttributesW")
 
 
+;;;
+;;;; Geometry
+;;;
+
+
 (define make-POINT
   (c-lambda (int int int int) POINT*
     #<<end-of-c-code
@@ -239,6 +244,25 @@ end-of-c-code
     "___result = ___arg1->bottom;"))
 
 
+;;;
+;;;; Bitmap
+;;;
+
+
+(define BITMAP-width
+  (c-lambda (BITMAP*) int
+    "___result = ___arg1->bmWidth;"))
+
+(define BITMAP-height
+  (c-lambda (BITMAP*) int
+    "___result = ___arg1->bmHeight;"))
+
+
+;;;
+;;;; Cursor
+;;;
+
+
 (define LoadCursorInt
   (c-lambda (WORD) HCURSOR
     "___result_voidstar = LoadImage(NULL, MAKEINTRESOURCE(___arg1), IMAGE_CURSOR, 0, 0, LR_SHARED);"))
@@ -270,6 +294,11 @@ end-of-c-code
       pos)))
 
 
+;;;
+;;;; Window
+;;;
+
+
 (define (window-cursor-position window)
   (point- (cursor-position) (get-window-position window)))
 
@@ -295,6 +324,11 @@ end-of-c-code
 (define (move-window window pos size)
   (let ((handle (window-handle window)))
     (MoveWindow handle (point-h pos) (point-v pos) (point-h size) (point-v size) #f)))
+
+
+;;;
+;;;; Message
+;;;
 
 
 (define (signed-loword dword)
@@ -350,7 +384,7 @@ end-of-c-code
       (let ((draw (window-draw current-window)))
         (when draw
           (draw hdc)))
-      (EndPaint hdc ps))
+      (EndPaint hwnd ps))
     (PAINTSTRUCT-free ps))
   processed)
 
@@ -413,18 +447,9 @@ end-of-c-code
     (user-callback wparam lparam)))
 
 
-(define current-instance
-  (c-lambda () HINSTANCE
-    "___result_voidstar = ___EXT(___get_program_startup_info)()->hInstance;"))
-
-
-(define BITMAP-width
-  (c-lambda (BITMAP*) int
-    "___result = ___arg1->bmWidth;"))
-
-(define BITMAP-height
-  (c-lambda (BITMAP*) int
-    "___result = ___arg1->bmHeight;"))
+;;;
+;;;; Platform
+;;;
 
 
 (define eol-encoding
@@ -463,6 +488,11 @@ end-of-c-code
     ___result = szDir;
 end-of-c-code
 ))
+
+
+;;;
+;;;; Directory
+;;;
 
 
 (c-declare #<<end-of-c-code
@@ -537,6 +567,16 @@ end-of-c-code
     ___result = ret;
 end-of-c-code
 ))
+
+
+;;;
+;;;; Setup
+;;;
+
+
+(define current-instance
+  (c-lambda () HINSTANCE
+    "___result_voidstar = ___EXT(___get_program_startup_info)()->hInstance;"))
 
 
 (c-declare #<<end-of-c-code

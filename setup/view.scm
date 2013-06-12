@@ -45,11 +45,17 @@
 
 
 (define (redraw-view view)
-  (RedrawWindow (window-handle current-window) (rect->RECT (view-rect view)) NULL (bitwise-ior RDW_ERASENOW RDW_UPDATENOW RDW_INVALIDATE)))
+  (let ((handle (window-handle current-window))
+        (rect (rect->RECT (view-rect view))))
+    (RedrawWindow handle rect NULL (bitwise-ior RDW_ERASENOW RDW_UPDATENOW RDW_INVALIDATE))
+    (RECT-free rect)))
 
 
 (define (invalidate-view view)
-  (InvalidateRect (window-handle current-window) (rect->RECT (view-rect view)) #t))
+  (let ((handle (window-handle current-window))
+        (rect (rect->RECT (view-rect view))))
+    (InvalidateRect handle rect #t)
+    (RECT-free rect)))
 
 
 (define (draw-views hdc)
@@ -95,8 +101,10 @@
 
 (define (debug-background view hdc)
   (when debug-views?
-    (let ((brush (CreateSolidBrush (RGB 100 100 100))))
-      (FillRect hdc (rect->RECT (view-rect view)) brush)
+    (let ((rect (rect->RECT (view-rect view)))
+          (brush (CreateSolidBrush (RGB 100 100 100))))
+      (FillRect hdc rect brush)
+      (RECT-free rect)
       (DeleteObject brush))))
 
 
@@ -181,9 +189,10 @@
   (SetTextColor hdc white-color)
   (let ((font title-font))
     (SelectObject hdc font)
-    (let ((rect (view-rect view))
+    (let ((rect (rect->RECT (view-rect view)))
           (title (title-title view)))
-      (DrawText hdc title -1 (rect->RECT rect) (bitwise-ior DT_CENTER DT_NOCLIP)))))
+      (DrawText hdc title -1 rect (bitwise-ior DT_CENTER DT_NOCLIP))
+      (RECT-free rect))))
 
 
 (define (title-update-cursor view x y)
@@ -248,10 +257,11 @@
   (SetTextColor hdc white-color)
   (let ((font label-font))
     (SelectObject hdc font)
-    (let ((rect (view-rect view))
+    (let ((rect (rect->RECT (view-rect view)))
           (title (label-title view))
           (align (label-align view)))
-      (DrawText hdc title -1 (rect->RECT rect) (bitwise-ior align DT_NOCLIP)))))
+      (DrawText hdc title -1 rect (bitwise-ior align DT_NOCLIP))
+      (RECT-free rect))))
 
 
 (define (set-label-title view title)
@@ -297,13 +307,16 @@
               (right (rect-right rect))
               (bottom (rect-bottom rect)))
           (if (eq? view mouse-view)
-              (let ((brush (CreateSolidBrush (RGB 230 0 0))))
-                (FillRect hdc (rect->RECT rect) brush)
+              (let ((rect (rect->RECT rect))
+                    (brush (CreateSolidBrush (RGB 230 0 0))))
+                (FillRect hdc rect brush)
+                (RECT-free rect)
                 (DeleteObject brush))
             (DrawGradient hdc left top right bottom (if active? (RGB 150 0 0) white-color) (if active? (RGB 220 0 0) white-color) #f))
-          (let ((textRect (make-rect left (+ top 7) right (+ bottom 7)))
+          (let ((textRect (rect->RECT (make-rect left (+ top 7) right (+ bottom 7))))
                 (title (button-title view)))
-            (DrawText hdc title -1 (rect->RECT textRect) (bitwise-ior DT_CENTER DT_NOCLIP))))))))
+            (DrawText hdc title -1 textRect (bitwise-ior DT_CENTER DT_NOCLIP))
+            (RECT-free textRect)))))))
 
 
 (define (button-update-cursor view x y)
@@ -459,8 +472,10 @@
           (top (rect-top rect))
           (right (rect-right rect))
           (bottom (rect-bottom rect)))
-      (let ((brush (CreateSolidBrush white-color)))
-        (FillRect hdc (rect->RECT rect) brush)
+      (let ((rect (rect->RECT rect))
+            (brush (CreateSolidBrush white-color)))
+        (FillRect hdc rect brush)
+        (RECT-free rect)
         (DeleteObject brush))
       (let ((pos (progress-pos view))
             (range (progress-range view)))
