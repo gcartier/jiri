@@ -8,7 +8,6 @@
 
 ;; TODO
 ;; - Enter closed-beta password (accept license!?)
-;; - Check all memory leak indicators
 ;; - Need progress feedback on the checkout phase
 ;; - Update installer
 
@@ -158,7 +157,7 @@
 
 
 (define percentage-view
-  (new-label (make-rect 50 450 170 470)
+  (new-label (make-rect 50 450 165 470)
              "0%"))
 
 
@@ -168,7 +167,7 @@
 
 
 (define downloaded-view
-  (new-label (make-rect 180 450 350 470)
+  (new-label (make-rect 175 450 340 470)
              "Downloaded: "))
 
 
@@ -178,7 +177,7 @@
 
 
 (define remaining-view
-  (new-label (make-rect 360 450 500 470)
+  (new-label (make-rect 350 450 490 470)
              "Files remaining: "))
 
 
@@ -188,7 +187,7 @@
 
 
 (define status-view
-  (new-label (make-rect 510 450 650 470)
+  (new-label (make-rect 500 450 650 470)
              ""
              DT_RIGHT))
 
@@ -270,7 +269,7 @@
 
 (define (download app-dir)
   (set-default-cursor IDC_WAIT)
-  (set-label-title status-view "Downloading application")
+  (set-label-title status-view "Downloading application (1/2)")
   (update-window)
   (let ((repo (git-repository-init app-dir 0)))
     (let ((remote (git-remote-create repo "origin" jiri-remote-runtime)))
@@ -296,7 +295,7 @@
                    (set-progress-range download-view (make-range 0 total-objects))
                  (set-progress-pos download-view received-objects))))
             ((1)
-             (set-label-title status-view "Installing application")
+             (set-label-title status-view "Installing application (2/2)")
              (update-window)
              (git-remote-disconnect remote)
              (git-remote-update-tips remote)
