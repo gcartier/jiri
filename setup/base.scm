@@ -53,8 +53,10 @@
     (inexact->exact (floor r))))
 
 
-(define (fxfloor/ n d)
-  (fxfloor (/ n d)))
+(define (fxceiling r)
+  (if (fixnum? r)
+      r
+    (inexact->exact (ceiling r))))
 
 
 (define (percentage part total)

@@ -455,8 +455,9 @@
 
 
 (define-type-of-view progress
-  pos
-  range)
+  bounds
+  range
+  pos)
 
 
 (define (progress-draw view hdc)
@@ -470,12 +471,24 @@
         (FillRect hdc rect brush)
         (RECT-free rect)
         (DeleteObject brush))
-      (let ((pos (progress-pos view))
-            (range (progress-range view)))
+      (let ((bounds (progress-bounds view))
+            (range (progress-range view))
+            (pos (progress-pos view)))
         (let ((start (range-start range))
-              (end (range-end range)))
-          (let ((h (* (/ (rect-width rect) (fixnum->flonum (- end start))) (- pos start))))
-            (DrawGradient hdc left top (+ left h) bottom (RGB 150 0 0) (RGB 220 0 0) #f)))))))
+              (end (range-end range))
+              (width (rect-width rect)))
+          (let ((head (if (not bounds) 0 (fxfloor (* (range-start bounds) width))))
+                (tail (if (not bounds) width (fxceiling (* (range-end bounds) width))))
+                (where (/ (fixnum->flonum (- pos start)) (fixnum->flonum (- end start)))))
+            (let ((h (fxceiling (* (- tail head) where))))
+              (DrawGradient hdc left top (+ left head h) bottom (RGB 150 0 0) (RGB 220 0 0) #f))))))))
+
+
+(define (set-progress-info view bounds range)
+  (progress-bounds-set! view bounds)
+  (progress-range-set! view range)
+  (progress-pos-set! view (range-start range))
+  (invalidate-view view))
 
 
 (define (set-progress-pos view pos)
@@ -483,12 +496,7 @@
   (invalidate-view view))
 
 
-(define (set-progress-range view range)
-  (progress-range-set! view range)
-  (invalidate-view view))
-
-
-(define (new-progress rect pos range)
+(define (new-progress rect range pos)
   (make-progress rect
                  progress-draw
                  #f
@@ -498,5 +506,6 @@
                  #f
                  #f
                  #t
-                 pos
-                 range))
+                 #f
+                 range
+                 pos))

@@ -498,20 +498,20 @@ end-of-c-code
 (c-declare #<<end-of-c-code
 static int CALLBACK BrowseCallbackProc(HWND hwnd,UINT uMsg, LPARAM lParam, LPARAM lpData)
 {
-	// If the BFFM_INITIALIZED message is received
-	// set the path to the start path.
-	switch (uMsg)
-	{
-		case BFFM_INITIALIZED:
-		{
-			if (lpData != 0)
-			{
-				SendMessage(hwnd, BFFM_SETSELECTION, TRUE, lpData);
-			}
-		}
-	}
+    // If the BFFM_INITIALIZED message is received
+    // set the path to the start path.
+    switch (uMsg)
+    {
+        case BFFM_INITIALIZED:
+        {
+            if (lpData != 0)
+            {
+                SendMessage(hwnd, BFFM_SETSELECTION, TRUE, lpData);
+            }
+        }
+    }
 
-	return 0; // The function should always return 0.
+    return 0; // The function should always return 0.
 }
 end-of-c-code
 )

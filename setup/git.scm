@@ -40,8 +40,12 @@
 (c-type git_reset_t int)
 (c-type git_error "git_error")
 (c-type git_error* (pointer git_error))
+(c-type git_commit "git_commit")
+(c-type git_commit* (pointer git_commit))
 (c-type git_cred "git_cred")
 (c-type git_cred* (pointer git_cred))
+(c-type git_index "git_index")
+(c-type git_index* (pointer git_index))
 (c-type git_object "git_object")
 (c-type git_object* (pointer git_object))
 (c-type git_oid "git_oid")
@@ -52,6 +56,11 @@
 (c-type git_remote* (pointer git_remote))
 (c-type git_repository "git_repository")
 (c-type git_repository* (pointer git_repository))
+(c-type git_tree "git_tree")
+(c-type git_tree* (pointer git_tree))
+
+(c-type HANDLE (pointer void handle))
+(c-type HWND (pointer (struct "HWND__") handle))
 
 
 ;;;
@@ -77,6 +86,139 @@
 
 
 ;;;
+;;;; Thread
+;;;
+
+
+(c-declare #<<end-of-c-declare
+    HANDLE ghMutex = NULL;
+    HWND remoteHwnd = NULL;
+    
+    #define DOWNLOAD_PROGRESS 0
+    #define DOWNLOAD_DONE     1
+    #define CHECKOUT_PROGRESS 2
+    #define CHECKOUT_DONE     3
+end-of-c-declare
+)
+
+
+(c-enumerant DOWNLOAD_PROGRESS)
+(c-enumerant DOWNLOAD_DONE)
+(c-enumerant CHECKOUT_PROGRESS)
+(c-enumerant CHECKOUT_DONE)
+
+
+;;;
+;;;; Checkout
+;;;
+
+
+(define git-checkout-head
+  (c-lambda (git_repository*) void
+    #<<end-of-c-code
+    git_checkout_opts options = GIT_CHECKOUT_OPTS_INIT;
+    git_check_error(git_checkout_head(___arg1, &options));
+end-of-c-code
+))
+
+(define git-checkout-tree-force
+  (c-lambda (git_repository* git_tree*) void
+    #<<end-of-c-code
+    git_checkout_opts options = GIT_CHECKOUT_OPTS_INIT;
+    options.checkout_strategy = GIT_CHECKOUT_FORCE;
+    git_check_error(git_checkout_tree(___arg1, (git_object*) ___arg2, &options));
+end-of-c-code
+))
+
+(c-declare #<<end-of-c-declare
+    git_repository* checkout_repository = NULL;
+    git_tree* checkout_tree = NULL;
+    
+    char* checkout_path = NULL;
+    size_t checkout_completed_steps = 0;
+    size_t checkout_total_steps = 0;
+end-of-c-declare
+)
+
+(define git-checkout-path
+  (c-lambda () char-string
+    #<<end-of-c-code
+    WaitForSingleObject(ghMutex, INFINITE);
+    ___result = checkout_path;
+    ReleaseMutex(ghMutex);
+end-of-c-code
+))
+
+(define git-checkout-completed-steps
+  (c-lambda () int
+    #<<end-of-c-code
+    WaitForSingleObject(ghMutex, INFINITE);
+    ___result = checkout_completed_steps;
+    ReleaseMutex(ghMutex);
+end-of-c-code
+))
+
+(define git-checkout-total-steps
+  (c-lambda () int
+    #<<end-of-c-code
+    WaitForSingleObject(ghMutex, INFINITE);
+    ___result = checkout_total_steps;
+    ReleaseMutex(ghMutex);
+end-of-c-code
+))
+
+(c-declare #<<end-of-c-declare
+    void checkout_callback(const char *path, size_t completed_steps, size_t total_steps, void *payload)
+    {
+        WaitForSingleObject(ghMutex, INFINITE);
+        checkout_path = (char*) path;
+        checkout_completed_steps = completed_steps;
+        checkout_total_steps = total_steps;
+        ReleaseMutex(ghMutex);
+        PostMessage(remoteHwnd, WM_USER, CHECKOUT_PROGRESS, 0);
+    }
+
+    DWORD WINAPI checkout_proc(LPVOID lpParam)
+    {
+        git_checkout_opts options = GIT_CHECKOUT_OPTS_INIT;
+        options.checkout_strategy = GIT_CHECKOUT_FORCE;
+        options.progress_cb = checkout_callback;
+        int result = git_checkout_tree(checkout_repository, (git_object*) checkout_tree, &options);
+        PostMessage(remoteHwnd, WM_USER, CHECKOUT_DONE, result);
+        return 0;
+    }
+end-of-c-declare
+)
+
+(define git-checkout-tree-force-threaded
+  (c-lambda (git_repository* git_tree* HWND) HANDLE
+    #<<end-of-c-code
+    if (! ghMutex)
+        ghMutex = CreateMutex(NULL, FALSE, NULL);
+    remoteHwnd = ___arg3;
+    checkout_repository = ___arg1;
+    checkout_tree = ___arg2;
+    ___result = CreateThread(NULL, 0, &checkout_proc, 0, 0, NULL);
+end-of-c-code
+))
+
+
+;;;
+;;;; Commit
+;;;
+
+
+(define git-commit-tree
+  (c-lambda (git_object*) git_tree*
+    #<<end-of-c-code
+    git_tree* tree;
+    git_check_error(git_commit_tree(&tree, (git_commit*) ___arg1));
+    ___result_voidstar = tree;
+end-of-c-code
+))
+
+
+;;;
 ;;;; Cred
 ;;;
 
@@ -87,6 +229,30 @@
     git_cred* cred;
     git_check_error(git_cred_userpass_plaintext_new(&cred, ___arg1, ___arg2));
     ___result_voidstar = cred;
+end-of-c-code
+))
+
+
+;;;
+;;;; Index
+;;;
+
+
+(define git-index-free
+  (c-lambda (git_index*) void
+    "git_index_free(___arg1);"))
+
+(define git-index-read-tree
+  (c-lambda (git_index* git_tree*) void
+    #<<end-of-c-code
+    git_check_error(git_index_read_tree(___arg1, ___arg2));
+end-of-c-code
+))
+
+(define git-index-write
+  (c-lambda (git_index*) void
+    #<<end-of-c-code
+    git_check_error(git_index_write(___arg1));
 end-of-c-code
 ))
 
@@ -105,11 +271,47 @@ end-of-c-code
 end-of-c-code
 ))
 
+(define git-object-free
+  (c-lambda (git_object*) void
+    "git_object_free(___arg1);"))
+
+(define git-object-peel
+  (c-lambda (git_object* git_otype) git_object*
+    #<<end-of-c-code
+    git_object* obj;
+    git_check_error(git_object_peel(&obj, ___arg1, ___arg2));
+    ___result_voidstar = obj;
+end-of-c-code
+))
+
+(define git-object-id
+  (c-lambda (git_object*) git_oid*
+    #<<end-of-c-code
+    ___result_voidstar = (git_oid*) git_object_id(___arg1);
+end-of-c-code
+))
+
 
 ;;;
 ;;;; Reference
 ;;;
 
+
+(define git-reference-create
+  (c-lambda (git_repository* char-string git_oid* int) git_reference*
+    #<<end-of-c-code
+    git_reference* ref;
+    git_check_error(git_reference_create(&ref, ___arg1, ___arg2, ___arg3, ___arg4));
+    ___result_voidstar = ref;
+end-of-c-code
+))
+
+(define git-reference-free
+  (c-lambda (git_reference*) void
+    #<<end-of-c-code
+    git_reference_free(___arg1);
+end-of-c-code
+))
 
 (define git-reference-lookup
   (c-lambda (git_repository* char-string) git_reference*
@@ -138,6 +340,13 @@ end-of-c-code
 
 (define (git-reference->id repo ref)
   (git-reference-name->id repo (git-reference-name ref)))
+
+(define git-reference__update_terminal
+  (c-lambda (git_repository* char-string git_object*) void
+    #<<end-of-c-code
+    git_check_error(git_reference__update_terminal(___arg1, ___arg2, git_object_id(___arg3)));
+end-of-c-code
+))
 
 
 ;;;
@@ -212,35 +421,10 @@ end-of-c-code
 end-of-c-code
 ))
 
-(c-type HANDLE (pointer void handle))
-(c-type HWND (pointer (struct "HWND__") handle))
-
 (c-declare #<<end-of-c-declare
-    HANDLE ghMutex = NULL;
-    
-    HWND remoteHwnd = NULL;
-    
     unsigned int total_objects = 0;
     unsigned int received_objects = 0;
     size_t received_bytes = 0;
-    
-    int remote_download_callback(const git_transfer_progress *stats, void *payload)
-    {
-        WaitForSingleObject(ghMutex, INFINITE);
-        total_objects = stats->total_objects;
-        received_objects = stats->received_objects;
-        received_bytes = stats->received_bytes;
-        ReleaseMutex(ghMutex);
-        PostMessage(remoteHwnd, WM_USER, 0, 0);
-        return 0;
-    }
-
-    DWORD WINAPI remote_download_proc(LPVOID lpParam)
-    {
-        git_remote_download((git_remote*) lpParam, &remote_download_callback , NULL);
-        PostMessage(remoteHwnd, WM_USER, 0, 1);
-        return 0;
-    }
 end-of-c-declare
 )
 
@@ -270,6 +454,27 @@ end-of-c-code
     ReleaseMutex(ghMutex);
 end-of-c-code
 ))
+
+(c-declare #<<end-of-c-declare
+    int remote_download_callback(const git_transfer_progress *stats, void *payload)
+    {
+        WaitForSingleObject(ghMutex, INFINITE);
+        total_objects = stats->total_objects;
+        received_objects = stats->received_objects;
+        received_bytes = stats->received_bytes;
+        ReleaseMutex(ghMutex);
+        PostMessage(remoteHwnd, WM_USER, DOWNLOAD_PROGRESS, 0);
+        return 0;
+    }
+
+    DWORD WINAPI remote_download_proc(LPVOID lpParam)
+    {
+        int result = git_remote_download((git_remote*) lpParam, &remote_download_callback , NULL);
+        PostMessage(remoteHwnd, WM_USER, DOWNLOAD_DONE, result);
+        return 0;
+    }
+end-of-c-declare
+)
 
 (define git-remote-download-threaded
   (c-lambda (git_remote* HWND) HANDLE
@@ -315,6 +520,29 @@ end-of-c-code
   (c-lambda (git_repository*) void
     "git_repository_free"))
 
+(define git-repository-index
+  (c-lambda (git_repository*) git_index*
+    #<<end-of-c-code
+    git_index* index;
+    git_check_error(git_repository_index(&index, ___arg1));
+    ___result_voidstar = index;
+end-of-c-code
+))
+
+(define git-repository-merge-cleanup
+  (c-lambda (git_repository*) void
+    #<<end-of-c-code
+    git_check_error(git_repository_merge_cleanup(___arg1));
+end-of-c-code
+))
+
+(define git-repository-set-head
+  (c-lambda (git_repository* char-string) void
+    #<<end-of-c-code
+    git_check_error(git_repository_set_head(___arg1, ___arg2));
+end-of-c-code
+))
+
 
 ;;;
 ;;;; Reset
@@ -327,3 +555,13 @@ end-of-c-code
     git_check_error(git_reset(___arg1, ___arg2, ___arg3));
 end-of-c-code
 ))
+
+
+;;;
+;;;; Tree
+;;;
+
+
+(define git-tree-free
+  (c-lambda (git_tree*) void
+    "git_tree_free(___arg1);"))

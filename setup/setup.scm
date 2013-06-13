@@ -8,7 +8,6 @@
 
 ;; TODO
 ;; - Enter closed-beta password (accept license!?)
-;; - Need progress feedback on the checkout phase
 ;; - Update installer
 
 
@@ -178,7 +177,7 @@
 
 (define remaining-view
   (new-label (make-rect 350 450 490 470)
-             "Files remaining: "))
+             "Remaining: "))
 
 
 ;;;
@@ -193,12 +192,12 @@
 
 
 ;;;
-;;;; Download
+;;;; Progress
 ;;;
 
 
-(define download-view
-  (new-progress (make-rect 50 470 650 490) 0 (make-range 0 10)))
+(define progress-view
+  (new-progress (make-rect 50 470 650 490) (make-range 0 10) 0))
 
 
 ;;;
@@ -246,7 +245,7 @@
             (add-view downloaded-view)
             (add-view remaining-view)
             (add-view status-view)
-            (add-view download-view)
+            (add-view progress-view)
             (add-view play-view)
             (update-window)
             (download app-dir)))))))
@@ -278,37 +277,104 @@
                                       (lambda ()
                                         (git-cred-userpass-plaintext-new jiri-username jiri-password)))
       (git-remote-connect remote GIT_DIRECTION_FETCH)
-      (set-user-callback
-        (lambda (wparam lparam)
-          (case lparam
-            ((0)
-             (let ((total-objects (git-remote-download-total-objects))
-                   (received-objects (git-remote-download-received-objects))
-                   (received-bytes (git-remote-download-received-bytes)))
-               (let ((percentage (fxround (percentage received-objects total-objects)))
-                     (downloaded (fxfloor (/ (exact->inexact received-bytes) (* 1024. 1024.))))
-                     (remaining (- total-objects received-objects)))
-                 (set-label-title percentage-view (string-append (number->string percentage) "%"))
-                 (set-label-title downloaded-view (string-append "Downloaded: " (number->string downloaded) "M"))
-                 (set-label-title remaining-view (string-append "Files remaining: " (number->string remaining))))
-               (if (= received-objects 0)
-                   (set-progress-range download-view (make-range 0 total-objects))
-                 (set-progress-pos download-view received-objects))))
-            ((1)
-             (set-label-title status-view "Installing application (2/2)")
-             (update-window)
-             (git-remote-disconnect remote)
-             (git-remote-update-tips remote)
-             (git-remote-free remote)
-             (let ((upstream (git-reference-lookup repo "refs/remotes/origin/master")))
-               (let ((commit (git-object-lookup repo (git-reference->id repo upstream) GIT_OBJ_COMMIT)))
-                 (git-reset repo commit GIT_RESET_HARD)))
-             (git-repository-free repo)
-             (set! current-app-dir app-dir)
-             (set-label-title status-view "Done")
-             (set-view-active? play-view #t)
-             (set-default-cursor IDC_ARROW)))))
+      (set-download-progress
+        (lambda (lparam)
+          (let ((total-objects (git-remote-download-total-objects))
+                (received-objects (git-remote-download-received-objects))
+                (received-bytes (git-remote-download-received-bytes)))
+            (let ((percentage (fxround (* (percentage received-objects total-objects) .5)))
+                  (downloaded (fxfloor (/ (exact->inexact received-bytes) (* 1024. 1024.))))
+                  (remaining (- total-objects received-objects)))
+              (set-label-title percentage-view (string-append (number->string percentage) "%"))
+              (set-label-title downloaded-view (string-append "Downloaded: " (number->string downloaded) "M"))
+              (set-label-title remaining-view (string-append "Remaining: " (number->string remaining))))
+            (if (= received-objects 0)
+                (set-progress-info progress-view (make-range 0. .5) (make-range 0 total-objects))
+              (set-progress-pos progress-view received-objects)))))
+      (set-download-done
+        (lambda (lparam)
+          (git-check-error lparam)
+          (set-label-title status-view "Installing application (2/2)")
+          (update-window)
+          (git-remote-disconnect remote)
+          (git-remote-update-tips remote)
+          (git-remote-free remote)
+          (let ((upstream (git-reference-lookup repo "refs/remotes/origin/master")))
+            (let ((commit (git-object-lookup repo (git-reference->id repo upstream) GIT_OBJ_COMMIT)))
+              ;; (git-reset repo commit GIT_RESET_HARD)
+              ;; inlining of the previous command in order to add checkout progress callback
+              (let ((index (git-repository-index repo))
+                    (tree (git-commit-tree commit)))
+                (git-reference__update_terminal repo "HEAD" commit)
+                (set-checkout-progress
+                  (lambda (lparam)
+                    (let ((path (git-checkout-path))
+                          (completed-steps (git-checkout-completed-steps))
+                          (total-steps (git-checkout-total-steps)))
+                      (let ((percentage (fxround (+ 50. (* (percentage completed-steps total-steps) .5))))
+                            (remaining (- total-steps completed-steps)))
+                        (set-label-title percentage-view (string-append (number->string percentage) "%"))
+                        (set-label-title remaining-view (string-append "Remaining: " (number->string remaining))))
+                      (if (not path)
+                          (set-progress-info progress-view (make-range .5 1.) (make-range 0 total-steps))
+                        (set-progress-pos progress-view completed-steps)))))
+                (set-checkout-done
+                  (lambda (lparam)
+                    (git-check-error lparam)
+                    (git-index-read-tree index tree)
+                    (git-index-write index)
+                    (git-repository-merge-cleanup repo)
+                    (git-reference-free upstream)
+                    (git-object-free commit)
+                    (git-index-free index)
+                    (git-tree-free tree)
+                    (git-repository-free repo)
+                    (set! current-app-dir app-dir)
+                    (set-label-title status-view "Done")
+                    (set-view-active? play-view #t)
+                    (set-default-cursor IDC_ARROW)))
+                (git-checkout-tree-force-threaded repo tree (window-handle current-window)))))))
       (git-remote-download-threaded remote (window-handle current-window)))))
+
+
+;;;
+;;;; Callback
+;;;
+
+
+(define download-progress
+  #f)
+
+(define (set-download-progress proc)
+  (set! download-progress proc))
+
+
+(define download-done
+  #f)
+
+(define (set-download-done proc)
+  (set! download-done proc))
+
+
+(define checkout-progress
+  #f)
+
+(define (set-checkout-progress proc)
+  (set! checkout-progress proc))
+
+
+(define checkout-done
+  #f)
+
+(define (set-checkout-done proc)
+  (set! checkout-done proc))
+
+
+(define (user-callback wparam lparam)
+  (cond ((= wparam DOWNLOAD_PROGRESS) (download-progress lparam))
+        ((= wparam DOWNLOAD_DONE)     (download-done     lparam))
+        ((= wparam CHECKOUT_PROGRESS) (checkout-progress lparam))
+        ((= wparam CHECKOUT_DONE)     (checkout-done     lparam))))
 
 
 ;;;
