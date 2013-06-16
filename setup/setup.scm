@@ -7,14 +7,12 @@
 
 
 ;; TODO
-;; - Catch wrong password problems
 ;; - Add multiple background support
 ;;   - Change at 100% / nb of background!?
 ;; - Update installer and relaunch if more uptodate
 ;; - Implement 'in-game' installer behavior
 ;; - Add some cool minecraft worlds
 ;; - Create shortcut on desktop (others!?)
-;; - Augment world download percentage
 ;; - Handle all git errors!?
 
 
@@ -227,6 +225,10 @@
 ;;;
 
 
+(define current-root-dir
+  #f)
+
+
 (define closed-beta-password
   #f)
 
@@ -241,10 +243,6 @@
   0)
 
 
-(define current-root-dir
-  #f)
-
-
 (define (app-dir root-dir)
   (string-append root-dir jiri-app-dir))
 
@@ -256,47 +254,103 @@
 
 
 (define (setup)
-  (let ((password (setup-password)))
-    (when password
-      (let ((dir (pathname-standardize (choose-directory (window-handle current-window) "Please select the installation folder" (get-special-folder CSIDL_PROGRAM_FILESX86)))))
-        (when (not (equal? dir ""))
-          (let ((root-dir (setup-root dir)))
-            (when root-dir
-              (remove-view install-view)
-              (add-view percentage-view)
-              (add-view downloaded-view)
-              (add-view remaining-view)
-              (add-view status-view)
-              (add-view progress-view)
-              (add-view play-view)
-              (update-window)
-              (download password root-dir))))))))
-
-
-(define (setup-password)
-  (or closed-beta-password
-      (let ((password (dialog-box (window-handle current-window))))
+  (let ((root-dir (setup-root)))
+    (when root-dir
+      (let ((password (setup-password root-dir)))
         (when password
-          (set! closed-beta-password password)
-          password))))
+          (remove-view install-view)
+          (add-view percentage-view)
+          (add-view downloaded-view)
+          (add-view remaining-view)
+          (add-view status-view)
+          (add-view progress-view)
+          (add-view play-view)
+          (update-window)
+          (download password root-dir))))))
 
 
-(define (setup-root dir)
-  (let ((root-dir (normalize-directory (string-append dir "/" jiri-title))))
-    (if (not (file-exists? root-dir))
-        root-dir
-      (let ((code (system-message (string-append "Installation folder already exists: \"" root-dir "\".\n\nDo you want to replace?") type: 'confirmation)))
-        (when (eq? code 'yes)
-          (set-default-cursor IDC_WAIT)
-          (set! setup-in-progress? #t)
-          (let ((code (delete-directory root-dir)))
-            (if (= code 0)
-                root-dir
-              (begin
-                (set-default-cursor IDC_ARROW)
-                (set! setup-in-progress? #f)
-                (system-message (string-append "Unable to delete folder (" (number->string code) ")"))
-                #f))))))))
+(define (setup-root)
+  (define (determine-root-dir)
+    (let ((dir (pathname-standardize (choose-directory (window-handle current-window) "Please select the installation folder" (get-special-folder CSIDL_PROGRAM_FILESX86)))))
+      (when (not (equal? dir ""))
+        (normalize-directory (string-append dir "/" jiri-title)))))
+  
+  (let ((root-dir (or current-root-dir (determine-root-dir))))
+    (when root-dir
+      (if (not (file-exists? root-dir))
+          (begin
+            (set! current-root-dir root-dir)
+            root-dir)
+        (let ((code (if current-root-dir
+                        'yes
+                      (system-message (string-append "Installation folder already exists: \"" root-dir "\".\n\nDo you want to replace?") type: 'confirmation))))
+          (when (eq? code 'yes)
+            (set-default-cursor IDC_WAIT)
+            (set! setup-in-progress? #t)
+            (let ((code (delete-directory root-dir)))
+              (if (= code 0)
+                  (begin
+                    (set! current-root-dir root-dir)
+                    root-dir)
+                (begin
+                  (set-default-cursor IDC_ARROW)
+                  (set! setup-in-progress? #f)
+                  (system-message (string-append "Unable to delete folder (" (number->string code) ")"))
+                  #f)))))))))
+
+
+(define (setup-password root-dir)
+  (or closed-beta-password
+      (let ((max-tries 3))
+        (let loop ((try 1))
+          (if (> try max-tries)
+              #f
+            (let ((password (dialog-box (window-handle current-window))))
+              (cond ((not password)
+                     (set-default-cursor IDC_ARROW)
+                     (set! setup-in-progress? #f)
+                     #f)
+                    ((not (validate-password root-dir password))
+                     (loop (+ try 1)))
+                    (else
+                     (set! closed-beta-password password)
+                     password))))))))
+
+
+(define (validate-password root-dir password)
+  (let ((repo #f)
+        (remote #f)
+        (successful? #f)
+        (install-dir (install-dir root-dir)))
+    (dynamic-wind
+      (lambda ()
+        (set! repo (git-repository-init install-dir 0))
+        (set! remote (git-remote-create repo "origin" jiri-install-remote))
+        (git-setup-credentials remote jiri-username password))
+      (lambda ()
+        (with-exception-catcher
+          (lambda (exc)
+            (if (and (error-exception? exc)
+                     (let ((err (->string (car (error-exception-parameters exc)))))
+                       (string-ends-with? err "401")))
+                (begin
+                  (set-default-cursor IDC_ARROW)
+                  (set! setup-in-progress? #f)
+                  (system-message "Incorrect password")
+                  #f)
+              (raise exc)))
+          (lambda ()
+            (git-remote-connect remote GIT_DIRECTION_FETCH)
+            (set! successful? #t))))
+      (lambda ()
+        (when remote
+          (when successful?
+            (git-remote-disconnect remote))
+          (git-remote-free remote))
+        (when repo
+          (git-repository-free repo))
+        (when (file-exists? install-dir)
+          (delete-directory install-dir))))))
 
 
 (define (download password root-dir)
@@ -306,7 +360,6 @@
         (lambda ()
           (download-repository "world" jiri-world-remote password (world-dir root-dir) 5 6 .5 .85 1.
             (lambda ()
-              (set! current-root-dir root-dir)
               (set-label-title status-view "Setup done")
               (set-view-active? play-view #t)
               (set-default-cursor IDC_ARROW)
@@ -321,10 +374,7 @@
   (let ((repo (git-repository-init dir 0)))
     (let ((remote (git-remote-create repo "origin" url))
           (megabytes 0))
-      (git-remote-check-cert remote 0)
-      (git-remote-set-cred-acquire-cb remote
-                                      (lambda ()
-                                        (git-cred-userpass-plaintext-new jiri-username password)))
+      (git-setup-credentials remote jiri-username password)
       (git-remote-connect remote GIT_DIRECTION_FETCH)
       (set-download-progress
         (lambda (lparam)
@@ -435,6 +485,18 @@
         ((= wparam DOWNLOAD_DONE)     (download-done     lparam))
         ((= wparam CHECKOUT_PROGRESS) (checkout-progress lparam))
         ((= wparam CHECKOUT_DONE)     (checkout-done     lparam))))
+
+
+;;;
+;;;; Git
+;;;
+
+
+(define (git-setup-credentials remote username password)
+  (git-remote-check-cert remote 0)
+  (git-remote-set-cred-acquire-cb remote
+                                  (lambda ()
+                                    (git-cred-userpass-plaintext-new username password))))
 
 
 ;;;
