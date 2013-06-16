@@ -7,8 +7,12 @@
 
 
 ;; TODO
-;; - Enter closed-beta password (accept license!?)
-;; - Update installer
+;; - Enter closed-beta password (accept license!? and talk about private content)
+;; - Add multiple background support
+;;   - Change at 100% / nb of background!?
+;; - Update installer and relaunch if more uptodate
+;; - Implement 'in-game' installer behavior
+;; - Confirmation on close if downloading
 
 
 (include "syntax.scm")
@@ -209,7 +213,7 @@
   (new-button (make-rect 680 450 815 490)
               "Play"
               (lambda (view)
-                (open-process (string-append current-app-dir "/" jiri-application))
+                (open-process (string-append (app-dir current-root-dir) "/" jiri-application))
                 (quit))
               active?: #f))
 
@@ -219,25 +223,25 @@
 ;;;
 
 
-(define current-app-dir
-  #f)
-
-(define current-install-dir
-  #f)
-
-(define current-runtime-dir
+(define current-root-dir
   #f)
 
 
-(define (quit)
-  (exit))
+(define (app-dir root-dir)
+  (string-append root-dir jiri-app-dir))
+
+(define (install-dir root-dir)
+  (string-append root-dir jiri-install-dir))
+
+(define (world-dir root-dir)
+  (string-append root-dir jiri-world-dir))
 
 
 (define (setup)
-  (let ((root-dir (pathname-standardize (choose-directory (window-handle current-window) "Please select the installation folder" (get-special-folder CSIDL_PROGRAM_FILESX86)))))
-    (when (not (equal? root-dir ""))
-      (let ((app-dir (setup-app root-dir)))
-        (if (not app-dir)
+  (let ((dir (pathname-standardize (choose-directory (window-handle current-window) "Please select the installation folder" (get-special-folder CSIDL_PROGRAM_FILESX86)))))
+    (when (not (equal? dir ""))
+      (let ((root-dir (setup-root dir)))
+        (if (not root-dir)
             (set-default-cursor IDC_ARROW)
           (begin
             (remove-view install-view)
@@ -248,30 +252,43 @@
             (add-view progress-view)
             (add-view play-view)
             (update-window)
-            (download app-dir)))))))
+            (download root-dir)))))))
 
 
-(define (setup-app root-dir)
-  (let ((app-dir (normalize-directory (string-append root-dir "/" jiri-title))))
-    (if (not (file-exists? app-dir))
-        app-dir
-      (let ((code (system-message (string-append "Installation folder already exists: \"" app-dir "\".\n\nDo you want to replace?") type: 'confirmation)))
+(define (setup-root dir)
+  (let ((root-dir (normalize-directory (string-append dir "/" jiri-title))))
+    (if (not (file-exists? root-dir))
+        root-dir
+      (let ((code (system-message (string-append "Installation folder already exists: \"" root-dir "\".\n\nDo you want to replace?") type: 'confirmation)))
         (when (eq? code 'yes)
           (set-default-cursor IDC_WAIT)
-          (let ((code (delete-directory app-dir)))
+          (let ((code (delete-directory root-dir)))
             (if (= code 0)
-                app-dir
+                root-dir
               (begin
                 (system-message (string-append "Unable to delete folder (" (number->string code) ")"))
                 #f))))))))
 
 
-(define (download app-dir)
+(define (download root-dir)
+  (download-repository "install" jiri-install-remote (install-dir root-dir) 1 6 0. .05 .1
+    (lambda ()
+      (download-repository "application" jiri-app-remote (app-dir root-dir) 3 6 .1 .3 .5
+        (lambda ()
+          (download-repository "world" jiri-world-remote (world-dir root-dir) 5 6 .5 .75 1.
+            (lambda ()
+              (set! current-root-dir root-dir)
+              (set-label-title status-view "Done")
+              (set-view-active? play-view #t)
+              (set-default-cursor IDC_ARROW))))))))
+
+
+(define (download-repository title url dir step of head mid tail cont)
   (set-default-cursor IDC_WAIT)
-  (set-label-title status-view "Downloading application (1/2)")
+  (set-label-title status-view (string-append "Downloading " title " (" (number->string step) "/" (number->string of) ")"))
   (update-window)
-  (let ((repo (git-repository-init app-dir 0)))
-    (let ((remote (git-remote-create repo "origin" jiri-remote-runtime)))
+  (let ((repo (git-repository-init dir 0)))
+    (let ((remote (git-remote-create repo "origin" url)))
       (git-remote-check-cert remote 0)
       (git-remote-set-cred-acquire-cb remote
                                       (lambda ()
@@ -289,12 +306,12 @@
               (set-label-title downloaded-view (string-append "Downloaded: " (number->string downloaded) "M"))
               (set-label-title remaining-view (string-append "Remaining: " (number->string remaining))))
             (if (= received-objects 0)
-                (set-progress-info progress-view (make-range 0. .5) (make-range 0 total-objects))
+                (set-progress-info progress-view (make-range head mid) (make-range 0 total-objects))
               (set-progress-pos progress-view received-objects)))))
       (set-download-done
         (lambda (lparam)
           (git-check-error lparam)
-          (set-label-title status-view "Installing application (2/2)")
+          (set-label-title status-view (string-append "Installing " title " (" (number->string (+ step 1)) "/" (number->string of) ")"))
           (update-window)
           (git-remote-disconnect remote)
           (git-remote-update-tips remote)
@@ -316,7 +333,7 @@
                         (set-label-title percentage-view (string-append (number->string percentage) "%"))
                         (set-label-title remaining-view (string-append "Remaining: " (number->string remaining))))
                       (if (not path)
-                          (set-progress-info progress-view (make-range .5 1.) (make-range 0 total-steps))
+                          (set-progress-info progress-view (make-range mid tail) (make-range 0 total-steps))
                         (set-progress-pos progress-view completed-steps)))))
                 (set-checkout-done
                   (lambda (lparam)
@@ -329,12 +346,13 @@
                     (git-index-free index)
                     (git-tree-free tree)
                     (git-repository-free repo)
-                    (set! current-app-dir app-dir)
-                    (set-label-title status-view "Done")
-                    (set-view-active? play-view #t)
-                    (set-default-cursor IDC_ARROW)))
+                    (cont)))
                 (git-checkout-tree-force-threaded repo tree (window-handle current-window)))))))
       (git-remote-download-threaded remote (window-handle current-window)))))
+
+
+(define (quit)
+  (exit))
 
 
 ;;;
