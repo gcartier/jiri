@@ -175,23 +175,24 @@
 
 
 ;;;
-;;;; Remaining
-;;;
-
-
-(define remaining-view
-  (new-label (make-rect 350 450 490 470)
-             "Remaining: "))
-
-
-;;;
 ;;;; Status
 ;;;
 
 
 (define status-view
-  (new-label (make-rect 500 450 650 470)
+  (new-label (make-rect 350 450 490 470)
              ""
+             DT_RIGHT))
+
+
+;;;
+;;;; Remaining
+;;;
+
+
+(define remaining-view
+  (new-label (make-rect 500 450 650 470)
+             "Remaining: "
              DT_RIGHT))
 
 
@@ -225,6 +226,12 @@
 
 (define setup-in-progress?
   #f)
+
+(define setup-percentage
+  0.)
+
+(define setup-downloaded
+  0)
 
 
 (define current-root-dir
@@ -280,10 +287,10 @@
     (lambda ()
       (download-repository "application" jiri-app-remote (app-dir root-dir) 3 6 .1 .3 .5
         (lambda ()
-          (download-repository "world" jiri-world-remote (world-dir root-dir) 5 6 .5 .75 1.
+          (download-repository "world" jiri-world-remote (world-dir root-dir) 5 6 .5 .85 1.
             (lambda ()
               (set! current-root-dir root-dir)
-              (set-label-title status-view "Done")
+              (set-label-title status-view "Setup done")
               (set-view-active? play-view #t)
               (set-default-cursor IDC_ARROW)
               (set! setup-in-progress? #f))))))))
@@ -295,7 +302,8 @@
   (set-label-title status-view (string-append "Downloading " title " (" (number->string step) "/" (number->string of) ")"))
   (update-window)
   (let ((repo (git-repository-init dir 0)))
-    (let ((remote (git-remote-create repo "origin" url)))
+    (let ((remote (git-remote-create repo "origin" url))
+          (megabytes 0))
       (git-remote-check-cert remote 0)
       (git-remote-set-cred-acquire-cb remote
                                       (lambda ()
@@ -306,18 +314,22 @@
           (let ((total-objects (git-remote-download-total-objects))
                 (received-objects (git-remote-download-received-objects))
                 (received-bytes (git-remote-download-received-bytes)))
-            (let ((percentage (fxround (* (percentage received-objects total-objects) .5)))
+            (let ((percentage (* (percentage received-objects total-objects) (- mid head)))
                   (downloaded (fxfloor (/ (exact->inexact received-bytes) (* 1024. 1024.))))
                   (remaining (- total-objects received-objects)))
-              (set-label-title percentage-view (string-append (number->string percentage) "%"))
-              (set-label-title downloaded-view (string-append "Downloaded: " (number->string downloaded) "M"))
-              (set-label-title remaining-view (string-append "Remaining: " (number->string remaining))))
+              (let ((effective-percentage (fxround (+ setup-percentage percentage))))
+                (set-label-title percentage-view (string-append (number->string effective-percentage) "%"))
+                (set-label-title downloaded-view (string-append "Downloaded: " (number->string (+ setup-downloaded downloaded)) "M"))
+                (set-label-title remaining-view (string-append "Remaining: " (number->string remaining)))
+                (set! megabytes downloaded)))
             (if (= received-objects 0)
                 (set-progress-info progress-view (make-range head mid) (make-range 0 total-objects))
               (set-progress-pos progress-view received-objects)))))
       (set-download-done
         (lambda (lparam)
           (git-check-error lparam)
+          (set! setup-percentage (* mid 100.))
+          (set! setup-downloaded (+ setup-downloaded megabytes))
           (set-label-title status-view (string-append "Installing " title " (" (number->string (+ step 1)) "/" (number->string of) ")"))
           (update-window)
           (git-remote-disconnect remote)
@@ -335,16 +347,18 @@
                     (let ((path (git-checkout-path))
                           (completed-steps (git-checkout-completed-steps))
                           (total-steps (git-checkout-total-steps)))
-                      (let ((percentage (fxround (+ 50. (* (percentage completed-steps total-steps) .5))))
+                      (let ((percentage (* (percentage completed-steps total-steps) (- tail mid)))
                             (remaining (- total-steps completed-steps)))
-                        (set-label-title percentage-view (string-append (number->string percentage) "%"))
-                        (set-label-title remaining-view (string-append "Remaining: " (number->string remaining))))
+                        (let ((effective-percentage (fxround (+ setup-percentage percentage))))
+                          (set-label-title percentage-view (string-append (number->string effective-percentage) "%"))
+                          (set-label-title remaining-view (string-append "Remaining: " (number->string remaining)))))
                       (if (not path)
                           (set-progress-info progress-view (make-range mid tail) (make-range 0 total-steps))
                         (set-progress-pos progress-view completed-steps)))))
                 (set-checkout-done
                   (lambda (lparam)
                     (git-check-error lparam)
+                    (set! setup-percentage (* tail 100.))
                     (git-index-read-tree index tree)
                     (git-index-write index)
                     (git-repository-merge-cleanup repo)
@@ -361,7 +375,7 @@
 (define (quit)
   (if (not setup-in-progress?)
       (exit)
-    (let ((code (system-message (string-append "Setup is in progress.\n\nDo you want to abort?") type: 'confirmation)))
+    (let ((code (system-message (string-append "Setup in progress.\n\nDo you want to abort?") type: 'confirmation)))
       (when (eq? code 'yes)
         (exit)))))
 
