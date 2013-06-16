@@ -223,6 +223,10 @@
 ;;;
 
 
+(define setup-in-progress?
+  #f)
+
+
 (define current-root-dir
   #f)
 
@@ -241,18 +245,16 @@
   (let ((dir (pathname-standardize (choose-directory (window-handle current-window) "Please select the installation folder" (get-special-folder CSIDL_PROGRAM_FILESX86)))))
     (when (not (equal? dir ""))
       (let ((root-dir (setup-root dir)))
-        (if (not root-dir)
-            (set-default-cursor IDC_ARROW)
-          (begin
-            (remove-view install-view)
-            (add-view percentage-view)
-            (add-view downloaded-view)
-            (add-view remaining-view)
-            (add-view status-view)
-            (add-view progress-view)
-            (add-view play-view)
-            (update-window)
-            (download root-dir)))))))
+        (when root-dir
+          (remove-view install-view)
+          (add-view percentage-view)
+          (add-view downloaded-view)
+          (add-view remaining-view)
+          (add-view status-view)
+          (add-view progress-view)
+          (add-view play-view)
+          (update-window)
+          (download root-dir))))))
 
 
 (define (setup-root dir)
@@ -262,10 +264,13 @@
       (let ((code (system-message (string-append "Installation folder already exists: \"" root-dir "\".\n\nDo you want to replace?") type: 'confirmation)))
         (when (eq? code 'yes)
           (set-default-cursor IDC_WAIT)
+          (set! setup-in-progress? #t)
           (let ((code (delete-directory root-dir)))
             (if (= code 0)
                 root-dir
               (begin
+                (set-default-cursor IDC_ARROW)
+                (set! setup-in-progress? #f)
                 (system-message (string-append "Unable to delete folder (" (number->string code) ")"))
                 #f))))))))
 
@@ -280,11 +285,13 @@
               (set! current-root-dir root-dir)
               (set-label-title status-view "Done")
               (set-view-active? play-view #t)
-              (set-default-cursor IDC_ARROW))))))))
+              (set-default-cursor IDC_ARROW)
+              (set! setup-in-progress? #f))))))))
 
 
 (define (download-repository title url dir step of head mid tail cont)
   (set-default-cursor IDC_WAIT)
+  (set! setup-in-progress? #t)
   (set-label-title status-view (string-append "Downloading " title " (" (number->string step) "/" (number->string of) ")"))
   (update-window)
   (let ((repo (git-repository-init dir 0)))
@@ -352,7 +359,11 @@
 
 
 (define (quit)
-  (exit))
+  (if (not setup-in-progress?)
+      (exit)
+    (let ((code (system-message (string-append "Setup is in progress.\n\nDo you want to abort?") type: 'confirmation)))
+      (when (eq? code 'yes)
+        (exit)))))
 
 
 ;;;
