@@ -570,6 +570,70 @@ end-of-c-code
 
 
 ;;;
+;;;; Dialog
+;;;
+
+
+(c-declare #<<end-of-c-code
+char szItemName[80];
+
+BOOL CALLBACK DlgProc(HWND hwndDlg, UINT Message, WPARAM wParam, LPARAM lParam)
+{
+    HWND hwndOwner;
+    RECT rc, rcDlg, rcOwner;
+    
+    switch(Message)
+    {
+        case WM_INITDIALOG:
+            hwndOwner = GetParent(hwndDlg);
+            GetWindowRect(hwndOwner, &rcOwner);
+            GetWindowRect(hwndDlg, &rcDlg);
+            CopyRect(&rc, &rcOwner);
+            OffsetRect(&rcDlg, -rcDlg.left, -rcDlg.top);
+            OffsetRect(&rc, -rc.left, -rc.top);
+            OffsetRect(&rc, -rcDlg.right, -rcDlg.bottom);
+            SetWindowPos(hwndDlg,
+                 HWND_TOP,
+                 rcOwner.left + (rc.right / 2),
+                 rcOwner.top + (rc.bottom / 2),
+                 0, 0,
+                 SWP_NOSIZE);
+            SetFocus(GetDlgItem(hwndDlg, 6));
+            return TRUE;
+        case WM_COMMAND:
+            switch(LOWORD(wParam))
+            {
+                case IDOK:
+                    GetDlgItemText(hwndDlg, 6, szItemName, 80);
+                    EndDialog(hwndDlg, IDOK);
+                break;
+                case IDCANCEL:
+                    EndDialog(hwndDlg, IDCANCEL);
+                break;
+            }
+            break;
+        default:
+            return FALSE;
+    }
+    return TRUE;
+}
+end-of-c-code
+)
+
+
+(define dialog-box
+  (c-lambda (HWND) char-string
+    #<<end-of-c-code
+    int code = DialogBox(GetModuleHandle(NULL), MAKEINTRESOURCE(50), ___arg1, DlgProc);
+    if (code == IDOK)
+        ___result = szItemName;
+    else
+        ___result = NULL;
+end-of-c-code
+))
+
+
+;;;
 ;;;; Setup
 ;;;
 

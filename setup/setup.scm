@@ -7,12 +7,15 @@
 
 
 ;; TODO
-;; - Enter closed-beta password (accept license!? and talk about private content)
+;; - Catch wrong password problems
 ;; - Add multiple background support
 ;;   - Change at 100% / nb of background!?
 ;; - Update installer and relaunch if more uptodate
 ;; - Implement 'in-game' installer behavior
-;; - Confirmation on close if downloading
+;; - Add some cool minecraft worlds
+;; - Create shortcut on desktop (others!?)
+;; - Augment world download percentage
+;; - Handle all git errors!?
 
 
 (include "syntax.scm")
@@ -224,6 +227,10 @@
 ;;;
 
 
+(define closed-beta-password
+  #f)
+
+
 (define setup-in-progress?
   #f)
 
@@ -249,19 +256,29 @@
 
 
 (define (setup)
-  (let ((dir (pathname-standardize (choose-directory (window-handle current-window) "Please select the installation folder" (get-special-folder CSIDL_PROGRAM_FILESX86)))))
-    (when (not (equal? dir ""))
-      (let ((root-dir (setup-root dir)))
-        (when root-dir
-          (remove-view install-view)
-          (add-view percentage-view)
-          (add-view downloaded-view)
-          (add-view remaining-view)
-          (add-view status-view)
-          (add-view progress-view)
-          (add-view play-view)
-          (update-window)
-          (download root-dir))))))
+  (let ((password (setup-password)))
+    (when password
+      (let ((dir (pathname-standardize (choose-directory (window-handle current-window) "Please select the installation folder" (get-special-folder CSIDL_PROGRAM_FILESX86)))))
+        (when (not (equal? dir ""))
+          (let ((root-dir (setup-root dir)))
+            (when root-dir
+              (remove-view install-view)
+              (add-view percentage-view)
+              (add-view downloaded-view)
+              (add-view remaining-view)
+              (add-view status-view)
+              (add-view progress-view)
+              (add-view play-view)
+              (update-window)
+              (download password root-dir))))))))
+
+
+(define (setup-password)
+  (or closed-beta-password
+      (let ((password (dialog-box (window-handle current-window))))
+        (when password
+          (set! closed-beta-password password)
+          password))))
 
 
 (define (setup-root dir)
@@ -282,12 +299,12 @@
                 #f))))))))
 
 
-(define (download root-dir)
-  (download-repository "install" jiri-install-remote (install-dir root-dir) 1 6 0. .05 .1
+(define (download password root-dir)
+  (download-repository "install" jiri-install-remote password (install-dir root-dir) 1 6 0. .05 .1
     (lambda ()
-      (download-repository "application" jiri-app-remote (app-dir root-dir) 3 6 .1 .3 .5
+      (download-repository "application" jiri-app-remote password (app-dir root-dir) 3 6 .1 .3 .5
         (lambda ()
-          (download-repository "world" jiri-world-remote (world-dir root-dir) 5 6 .5 .85 1.
+          (download-repository "world" jiri-world-remote password (world-dir root-dir) 5 6 .5 .85 1.
             (lambda ()
               (set! current-root-dir root-dir)
               (set-label-title status-view "Setup done")
@@ -296,7 +313,7 @@
               (set! setup-in-progress? #f))))))))
 
 
-(define (download-repository title url dir step of head mid tail cont)
+(define (download-repository title url password dir step of head mid tail cont)
   (set-default-cursor IDC_WAIT)
   (set! setup-in-progress? #t)
   (set-label-title status-view (string-append "Downloading " title " (" (number->string step) "/" (number->string of) ")"))
@@ -307,7 +324,7 @@
       (git-remote-check-cert remote 0)
       (git-remote-set-cred-acquire-cb remote
                                       (lambda ()
-                                        (git-cred-userpass-plaintext-new jiri-username jiri-password)))
+                                        (git-cred-userpass-plaintext-new jiri-username password)))
       (git-remote-connect remote GIT_DIRECTION_FETCH)
       (set-download-progress
         (lambda (lparam)
