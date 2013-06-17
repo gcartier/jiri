@@ -11,9 +11,12 @@
 ;;   - Change at 100% / nb of background!?
 ;; - Update installer and relaunch if more uptodate
 ;; - Implement 'in-game' installer behavior
-;; - Add some cool minecraft worlds
-;; - Create shortcut on desktop (others!?)
+;; - Create start menu folder!? (others!?)
 ;; - Handle all git errors!?
+;; - Maybe simplify to only "Installing" but probably the best
+;;   would be to ground "Downloading" and "Installing" into just
+;;   "Installing" and so have only 2 steps: Application & World
+;;   (not sure)
 
 
 (include "syntax.scm")
@@ -57,8 +60,13 @@
           (DeleteDC hdcMem))))
     
     (define (key-down wparam)
-      (when (= wparam VK_ESCAPE)
-        (exit)))
+      (cond ((= wparam VK_RETURN)
+             (when (not setup-in-progress?)
+               (if (not setup-done?)
+                   (setup)
+                 (play))))
+            ((= wparam VK_ESCAPE)
+             (quit))))
     
     (define (update-cursor window)
       (let ((pos (window-cursor-position window)))
@@ -215,8 +223,7 @@
   (new-button (make-rect 680 450 815 490)
               "Play"
               (lambda (view)
-                (open-process (string-append (app-dir current-root-dir) "/" jiri-application))
-                (quit))
+                (play))
               active?: #f))
 
 
@@ -236,6 +243,9 @@
 (define setup-in-progress?
   #f)
 
+(define setup-done?
+  #f)
+
 (define setup-percentage
   0.)
 
@@ -251,6 +261,12 @@
 
 (define (world-dir root-dir)
   (string-append root-dir jiri-world-dir))
+
+(define (app-exe)
+  (string-append (app-dir current-root-dir) "/" jiri-application))
+
+(define (install-exe)
+  (string-append (install-dir current-root-dir) "/" "Install"))
 
 
 (define (setup)
@@ -283,7 +299,7 @@
             root-dir)
         (let ((code (if current-root-dir
                         'yes
-                      (system-message (string-append "Installation folder already exists: \"" root-dir "\".\n\nDo you want to replace?") type: 'confirmation))))
+                      (system-message (string-append "Installation folder already exists: " root-dir "\n\nDo you want to replace?") type: 'confirmation))))
           (when (eq? code 'yes)
             (set-default-cursor IDC_WAIT)
             (set! setup-in-progress? #t)
@@ -295,7 +311,7 @@
                 (begin
                   (set-default-cursor IDC_ARROW)
                   (set! setup-in-progress? #f)
-                  (system-message (string-append "Unable to delete folder (" (number->string code) ")"))
+                  (system-message (string-append "Unable to delete folder (0x" (number->string code 16) ")"))
                   #f)))))))))
 
 
@@ -360,10 +376,12 @@
         (lambda ()
           (download-repository "world" jiri-world-remote password (world-dir root-dir) 5 6 .5 .85 1.
             (lambda ()
+              (setup-shortcut)
               (set-label-title status-view "Setup done")
               (set-view-active? play-view #t)
               (set-default-cursor IDC_ARROW)
-              (set! setup-in-progress? #f))))))))
+              (set! setup-in-progress? #f)
+              (set! setup-done? #t))))))))
 
 
 (define (download-repository title url password dir step of head mid tail cont)
@@ -439,6 +457,19 @@
       (git-remote-download-threaded remote (window-handle current-window)))))
 
 
+(define (setup-shortcut)
+  (let ((install (install-exe))
+        (desktop (get-special-folder CSIDL_DESKTOPDIRECTORY)))
+    (let ((hr (create-shortcut install (string-append desktop "/" jiri-title ".lnk") jiri-title)))
+      (when (< hr 0)
+        (error "Unable to create desktop shortcut (0x" (number->string hr 16) ")")))))
+
+
+(define (play)
+  (open-process (app-exe))
+  (quit))
+
+
 (define (quit)
   (if (not setup-in-progress?)
       (exit)
@@ -505,6 +536,7 @@
 
 
 (define (prepare)
+  (initialize-windows)
   (set-current-window window)
   (add-view root-view)
   (add-view title-view)

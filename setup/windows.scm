@@ -10,7 +10,10 @@
 (include "foreign.scm")
 
 
+(c-declare "#define UNICODE")
 (c-declare "#define _WIN32_IE 0x0400")
+(c-declare "#include <Ole2.h>")
+(c-declare "#include <ObjIdl.h>")
 (c-declare "#include <Shlobj.h>")
 
 
@@ -49,6 +52,7 @@
 (c-type HCURSOR      HICON)
 (c-type HGDIOBJ      (pointer VOID handle))
 (c-type COLORREF     DWORD)
+(c-type HRESULT      unsigned-long)
 
 
 ;;;
@@ -113,6 +117,7 @@
 (c-enumerant WM_DESTROY)
 (c-enumerant WM_USER)
 
+(c-enumerant VK_RETURN)
 (c-enumerant VK_ESCAPE)
 
 (c-enumerant MB_ICONWARNING)
@@ -136,6 +141,7 @@
 
 (c-enumerant FILE_ATTRIBUTE_READONLY)
 
+(c-enumerant CSIDL_DESKTOPDIRECTORY)
 (c-enumerant CSIDL_PROGRAM_FILESX86)
 
 
@@ -184,6 +190,29 @@
 (c-external (MessageBox               HWND LPCWSTR LPCWSTR INT) INT "MessageBoxW")
 (c-external (GetFileAttributes        CWSTR) DWORD "GetFileAttributesW")
 (c-external (SetFileAttributes        CWSTR DWORD) BOOL "SetFileAttributesW")
+(c-external (OleInitialize            VOID*) HRESULT)
+(c-external (OleUninitialize          ) VOID)
+
+
+;;;
+;;;; Initialize
+;;;
+
+
+(define windows-initialized?
+  #f)
+
+
+(define (initialize-windows)
+  (when (not windows-initialized?)
+    (OleInitialize NULL)
+    (set! windows-initialized? #t)))
+
+
+(define (uninitialize-windows)
+  (when windows-initialized?
+    (OleUninitialize)
+    (set! windows-initialized? #f)))
 
 
 ;;;
@@ -518,7 +547,7 @@ end-of-c-code
 
 
 (define choose-directory
-  (c-lambda (HWND wchar_t-string char-string) wchar_t-string
+  (c-lambda (HWND wchar_t-string wchar_t-string) wchar_t-string
     #<<end-of-c-code
     BROWSEINFOW  bi = {0};
     LPITEMIDLIST pidl;
@@ -565,6 +594,41 @@ end-of-c-code
     free(pszFrom);
     
     ___result = ret;
+end-of-c-code
+))
+
+
+;;;
+;;;; Shortcut
+;;;
+
+
+(define create-shortcut
+  (c-lambda (wchar_t-string wchar_t-string wchar_t-string) int
+    #<<end-of-c-code
+    HRESULT hres;
+    IShellLink* psl;
+    
+    hres = CoCreateInstance(&CLSID_ShellLink, NULL, CLSCTX_INPROC_SERVER, &IID_IShellLink, (void **) &psl);
+    if (SUCCEEDED(hres))
+    {
+        IPersistFile* ppf;
+
+        hres = psl->lpVtbl->QueryInterface(psl, &IID_IPersistFile, (void **) &ppf);
+        if (SUCCEEDED(hres))
+        {
+            hres = psl->lpVtbl->SetPath(psl, ___arg1);
+            psl->lpVtbl->SetDescription(psl, ___arg3);
+            if (SUCCEEDED(hres))
+            {
+                hres=ppf->lpVtbl->Save(ppf, ___arg2, TRUE);
+            }
+            ppf->lpVtbl->Release(ppf);
+        }
+        psl->lpVtbl->Release(psl);
+    }
+    
+    ___result = hres;
 end-of-c-code
 ))
 
