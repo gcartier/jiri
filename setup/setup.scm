@@ -7,8 +7,6 @@
 
 
 ;; TODO
-;; - Add multiple background support
-;;   - Change at 100% / nb of background!?
 ;; - Update installer and relaunch if more uptodate
 ;; - Implement 'in-game' installer behavior
 ;; - Create start menu folder!? (others!?)
@@ -17,6 +15,8 @@
 ;;   would be to ground "Downloading" and "Installing" into just
 ;;   "Installing" and so have only 2 steps: Application & World
 ;;   (not sure)
+;; - Add multiple background support
+;;   - Change at 100% / nb of background!?
 
 
 (include "syntax.scm")

@@ -58,7 +58,7 @@ gsc -c -o $BUILD $ABS/setup
 gsc -c -o $BUILD $ABS/main
 gsc -link -o $BUILD $CFILES
 gsc -cc-options "-I$LIBGIT2/include" -obj $CFILES $BUILD/main_.c
-gcc -L$GAMBIT/lib -L$LIBGIT2/lib $OFILES $BUILD/main_.o $BUILD/setup.res -m$MODE -lgit2 -lgambc -lws2_32 -lgdi32 -o $INSTALL/Install
+gcc -L$GAMBIT/lib -L$LIBGIT2/lib $OFILES $BUILD/main_.o $BUILD/setup.res -m$MODE -lgit2 -lgambc -lws2_32 -lgdi32 -lole32 -luuid -o $INSTALL/Install
 cp $LIBGIT2/lib/libgit2.dll $INSTALL
 cp $OPENSSL/lib/libeay32.dll $INSTALL
 cp $OPENSSL/lib/ssleay32.dll $INSTALL
