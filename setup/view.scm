@@ -36,17 +36,6 @@
   (invalidate-view view))
 
 
-(define (update-window)
-  (UpdateWindow (window-handle current-window)))
-
-
-(define (redraw-view view)
-  (let ((handle (window-handle current-window))
-        (rect (rect->RECT (view-rect view))))
-    (RedrawWindow handle rect NULL (bitwise-ior RDW_ERASENOW RDW_UPDATENOW RDW_INVALIDATE))
-    (RECT-free rect)))
-
-
 (define (invalidate-view view)
   (let ((handle (window-handle current-window))
         (rect (rect->RECT (view-rect view))))
@@ -306,7 +295,7 @@
                 (FillRect hdc rect brush)
                 (RECT-free rect)
                 (DeleteObject brush))
-            (DrawGradient hdc left top right bottom (if active? (RGB 150 0 0) white-color) (if active? (RGB 220 0 0) white-color) #f))
+            (DrawGradient hdc left top right bottom (if active? (RGB 150 0 0) white-color) (if active? (RGB 220 0 0) white-color) 'horizontal))
           (let ((textRect (rect->RECT (make-rect left (+ top 7) right (+ bottom 7))))
                 (title (button-title view)))
             (DrawText hdc title -1 textRect (bitwise-ior DT_CENTER DT_NOCLIP))
@@ -318,13 +307,11 @@
 
 
 (define (button-mouse-enter view x y)
-  (invalidate-view view)
-  (update-window))
+  (invalidate-view view))
 
 
 (define (button-mouse-leave view x y)
-  (invalidate-view view)
-  (update-window))
+  (invalidate-view view))
 
 
 (define (button-mouse-down view x y)
@@ -481,7 +468,7 @@
                 (tail (if (not bounds) width (fxceiling (* (range-end bounds) width))))
                 (where (/ (fixnum->flonum (- pos start)) (fixnum->flonum (- end start)))))
             (let ((h (fxceiling (* (- tail head) where))))
-              (DrawGradient hdc left top (+ left head h) bottom (RGB 150 0 0) (RGB 220 0 0) #f))))))))
+              (DrawGradient hdc left top (+ left head h) bottom (RGB 150 0 0) (RGB 220 0 0) 'horizontal))))))))
 
 
 (define (set-progress-info view bounds range)

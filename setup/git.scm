@@ -363,6 +363,15 @@ end-of-c-code
 end-of-c-code
 ))
 
+(define git-remote-load
+  (c-lambda (git_repository* char-string) git_remote*
+    #<<end-of-c-code
+    git_remote* remote;
+    git_check_error(git_remote_load(&remote, ___arg1, ___arg2));
+    ___result_voidstar = remote;
+end-of-c-code
+))
+
 (define git-remote-check-cert
   (c-lambda (git_remote* int) void
     #<<end-of-c-code
@@ -512,6 +521,15 @@ end-of-c-code
     #<<end-of-c-code
     git_repository* repo;
     git_check_error(git_repository_init(&repo, ___arg1, ___arg2));
+    ___result_voidstar = repo;
+end-of-c-code
+))
+
+(define git-repository-open
+  (c-lambda (char-string) git_repository*
+    #<<end-of-c-code
+    git_repository* repo;
+    git_check_error(git_repository_open(&repo, ___arg1));
     ___result_voidstar = repo;
 end-of-c-code
 ))

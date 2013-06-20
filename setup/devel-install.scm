@@ -23,4 +23,7 @@
 (load-source "window")
 (load-source "draw")
 (load-source "view")
-(load-source "setup")
+(load-source "work")
+
+(set! devel-testing? #t)
+(load-source "install")

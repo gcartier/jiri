@@ -598,6 +598,16 @@ end-of-c-code
 ))
 
 
+(define executable-path
+  (c-lambda () wchar_t-string
+    #<<end-of-c-code
+    wchar_t buf[MAX_PATH];
+    GetModuleFileNameW(NULL, buf, MAX_PATH);
+    ___result = buf;
+end-of-c-code
+))
+
+
 ;;;
 ;;;; Shortcut
 ;;;

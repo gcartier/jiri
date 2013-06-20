@@ -1,0 +1,596 @@
+;;;==============
+;;;  JazzScheme
+;;;==============
+;;;
+;;;; Work
+;;;
+
+
+;; TODO
+;; - Create start menu folder!? (others!?)
+;; - Handle all git errors!?
+;; - Add multiple background support
+;;   - Change at 100% / nb of background!?
+;; - Improve password validation logic
+;; - Root escape on password dialog should quit!?
+;; - Seems double-click on Install fails
+;; - Need a robust way to handle exe / dll being in used until root quits
+;; - Maybe it should be -> alot cleaner for user and the removal / copy is alot safer
+;;   maybe also delete-directory will support a timeout!?
+;;   - Space
+;;   - install
+;;     - Install.exe
+;;     - libgit2.dll
+;;     - space-install-windows
+;;   or maybe even put everything in some 'current' folder!?
+;; - I think I prefer to stay away from git remote names, more like
+;;   - app
+;;     - space or release
+
+;; DEVEL
+;; - comment out (current-exception-handler jiri-exception-handler)
+;; - test/Dawn/Dawn -:dar
+
+;; SCENARIO
+;; - Setup : clone install, invoke Install with environment
+;; - Root direct : pull install, if newer invoke Install with environment else pull app/world
+;; - Install from setup : clone app/world
+;; - Install from root : pull app/world
+;; - Install direct : incorrect
+;; - App direct : incorrect but could be correct when version is validated with server
+
+;; SPACE
+;; - app
+;;   - space
+;;     - Space.exe
+;;     - lib
+;;   - space-debug
+;; - install
+;;   - Install.exe
+;;   - libgit2.dll
+;; - worlds
+;;   - space
+;; Space.exe
+;; libgit2.dll
+
+
+(include "syntax.scm")
+
+
+;;;
+;;;; Window
+;;;
+
+
+(define current-bitmap-handle
+  #f)
+
+(define current-bitmap
+  #f)
+
+
+(define (prepare-bitmap)
+  (let ((hbm (LoadBitmap (current-instance) "BACKGROUND")))
+    (let ((bm (BITMAP-make)))
+      (GetBitmap hbm (BITMAP-sizeof) bm)
+      (set! current-bitmap-handle hbm)
+      (set! current-bitmap bm))))
+
+
+(define window
+  (let ()
+    (define (draw hdc)
+      (let ((width (BITMAP-width current-bitmap))
+            (height (BITMAP-height current-bitmap))
+            (hdcBitmap (CreateCompatibleDC hdc))
+            (hdcMem (CreateCompatibleDC hdc)))
+        (let ((bmMem (CreateCompatibleBitmap hdc width height)))
+          (SelectObject hdcBitmap current-bitmap-handle)
+          (SelectObject hdcMem bmMem)
+          (BitBlt hdcMem 0 0 width height hdcBitmap 0 0 SRCCOPY)
+          (draw-views hdcMem)
+          (BitBlt hdc 0 0 width height hdcMem 0 0 SRCCOPY)
+          (DeleteObject bmMem)
+          (DeleteDC hdcBitmap)
+          (DeleteDC hdcMem))))
+    
+    (define (key-down wparam)
+      (cond ((= wparam VK_RETURN)
+             (when (and return-press (not work-in-progress?))
+               (return-press)))
+            ((= wparam VK_ESCAPE)
+             (quit))))
+    
+    (define (update-cursor window)
+      (let ((pos (window-cursor-position window)))
+        (let ((x (point-h pos))
+              (y (point-v pos)))
+          (let ((view (find-view x y)))
+            (if view
+                (let ((update-cursor (view-update-cursor view)))
+                  (if update-cursor
+                      (update-cursor view x y)
+                    (set-cursor default-cursor)))
+              (set-cursor default-cursor))))))
+    
+    (define (mouse-move x y)
+      (let ((view (find-view x y)))
+        (if view
+            (call-mouse-move view x y)
+          (set-cursor default-cursor))))
+    
+    (define (mouse-down x y)
+      (let ((view (find-view x y)))
+        (when (and view (view-active? view))
+          (let ((mouse-down (view-mouse-down view)))
+            (when mouse-down
+              (mouse-down view x y))))))
+    
+    (define (mouse-up x y)
+      (let ((view (find-view x y)))
+        (when (and view (view-active? view))
+          (let ((mouse-up (view-mouse-up view)))
+            (when mouse-up
+              (mouse-up view x y))))))
+    
+    (define (find-view x y)
+      (or captured-view
+          (let ((pt (make-point x y)))
+            (continuation-capture
+              (lambda (return)
+                (for-each (lambda (view)
+                            (when (in-rect? pt (view-rect view))
+                              (continuation-return return view)))
+                          views)
+                #f)))))
+    
+    (make-window #f draw key-down update-cursor mouse-move mouse-down mouse-up)))
+
+
+(define return-press
+  #f)
+
+
+;;;
+;;;; Root
+;;;
+
+
+(define root-view
+  (new-root (make-rect 0 0 850 550)))
+
+
+;;;
+;;;; Title
+;;;
+
+
+(define title-view
+  (new-title (make-rect 20 18 440 100)
+             jiri-title))
+
+
+;;;
+;;;; Minimize
+;;;
+
+
+(define minimize-view
+  (new-minimize (make-rect 796 13 810 27)))
+
+
+;;;
+;;;; Close
+;;;
+
+
+(define close-view
+  (new-close (make-rect 823 13 837 27)))
+
+
+;;;
+;;;; Percentage
+;;;
+
+
+(define percentage-view
+  (new-label (make-rect 50 450 165 470)
+             "0%"))
+
+
+;;;
+;;;; Downloaded
+;;;
+
+
+(define downloaded-view
+  (new-label (make-rect 175 450 340 470)
+             "Downloaded: "))
+
+
+;;;
+;;;; Status
+;;;
+
+
+(define status-view
+  (new-label (make-rect 350 450 490 470)
+             ""
+             DT_RIGHT))
+
+
+;;;
+;;;; Remaining
+;;;
+
+
+(define remaining-view
+  (new-label (make-rect 500 450 650 470)
+             "Remaining: "
+             DT_RIGHT))
+
+
+;;;
+;;;; Progress
+;;;
+
+
+(define progress-view
+  (new-progress (make-rect 50 470 650 490) (make-range 0 10) 0))
+
+
+;;;
+;;;; Play
+;;;
+
+
+(define play-view
+  (new-button (make-rect 680 450 815 490)
+              "Play"
+              (lambda (view)
+                (play))
+              active?: #f))
+
+
+;;;
+;;;; Work
+;;;
+
+
+(define current-root-dir
+  #f)
+
+(define closed-beta-password
+  #f)
+
+(define called-from
+  #f)
+
+(define devel-testing?
+  #f)
+
+
+(define work-in-progress?
+  #f)
+
+(define work-done?
+  #f)
+
+(define work-percentage
+  0.)
+
+(define work-downloaded
+  0)
+
+
+(define (app-dir)
+  (string-append current-root-dir (normalize-directory jiri-app-dir)))
+
+(define (install-dir)
+  (string-append current-root-dir (normalize-directory jiri-install-dir)))
+
+(define (world-dir)
+  (string-append current-root-dir (normalize-directory jiri-world-dir)))
+
+(define (root-exe)
+  (string-append current-root-dir jiri-application))
+
+(define (app-exe)
+  (string-append (app-dir) jiri-application))
+
+(define (install-exe)
+  (string-append (install-dir) "Install"))
+
+
+;;;
+;;;; Password
+;;;
+
+
+(define (setup-password #!optional (validate? #t))
+  (or closed-beta-password
+      (let ((max-tries 3))
+        (let loop ((try 1))
+          (if (> try max-tries)
+              #f
+            (let ((password (dialog-box (window-handle current-window))))
+              (cond ((not password)
+                     (set-default-cursor IDC_ARROW)
+                     (set! work-in-progress? #f)
+                     #f)
+                    ((and validate? (not (validate-password password)))
+                     (loop (+ try 1)))
+                    (else
+                     (set! closed-beta-password password)
+                     password))))))))
+
+
+(define (validate-password password)
+  (let ((repo #f)
+        (remote #f)
+        (successful? #f)
+        (dir (install-dir)))
+    (dynamic-wind
+      (lambda ()
+        (set! repo (git-repository-init dir 0))
+        (set! remote (git-remote-create repo "origin" jiri-install-remote))
+        (git-setup-credentials remote jiri-username password))
+      (lambda ()
+        (with-exception-catcher
+          (lambda (exc)
+            (if (and (error-exception? exc)
+                     (let ((err (->string (car (error-exception-parameters exc)))))
+                       (string-ends-with? err "401")))
+                (begin
+                  (set-default-cursor IDC_ARROW)
+                  (set! work-in-progress? #f)
+                  (system-message "Incorrect password")
+                  #f)
+              (raise exc)))
+          (lambda ()
+            (git-remote-connect remote GIT_DIRECTION_FETCH)
+            (set! successful? #t))))
+      (lambda ()
+        (when remote
+          (when successful?
+            (git-remote-disconnect remote))
+          (git-remote-free remote))
+        (when repo
+          (git-repository-free repo))
+        (when (file-exists? dir)
+          ;; danger
+          (delete-directory dir))))))
+
+
+;;;
+;;;; Pull
+;;;
+
+
+(define (clone/pull-repository title url password dir step of head mid tail cont)
+  (set-default-cursor IDC_WAIT)
+  (set! work-in-progress? #t)
+  (set-label-title status-view (downloading-title title step of))
+  (let ((existing? (file-exists? dir)))
+    (let ((repo (if existing?
+                    (git-repository-open dir)
+                  (git-repository-init dir 0))))
+      (let ((remote (if existing?
+                        (git-remote-load repo "origin")
+                      (git-remote-create repo "origin" url)))
+            (report-progress? (and head mid tail))
+            (megabytes 0))
+        (git-setup-credentials remote jiri-username password)
+        (git-remote-connect remote GIT_DIRECTION_FETCH)
+        (set-download-progress
+          (let ((inited? #f))
+            (lambda (lparam)
+              (when report-progress?
+                (let ((total-objects (git-remote-download-total-objects))
+                      (received-objects (git-remote-download-received-objects))
+                      (received-bytes (git-remote-download-received-bytes)))
+                  (let ((percentage (* (percentage received-objects total-objects) (- mid head)))
+                        (downloaded (fxfloor (/ (exact->inexact received-bytes) (* 1024. 1024.))))
+                        (remaining (- total-objects received-objects)))
+                    (let ((effective-percentage (fxround (+ work-percentage percentage))))
+                      (set-label-title percentage-view (string-append (number->string effective-percentage) "%"))
+                      (set-label-title downloaded-view (string-append "Downloaded: " (number->string (+ work-downloaded downloaded)) "M"))
+                      (set-label-title remaining-view (string-append "Remaining: " (number->string remaining)))
+                      (set! megabytes downloaded)))
+                  (when (not inited?)
+                    (set-progress-info progress-view (make-range head mid) (make-range 0 total-objects))
+                    (set! inited? #t))
+                  (set-progress-pos progress-view received-objects))))))
+        (set-download-done
+          (lambda (lparam)
+            (git-check-error lparam)
+            (when report-progress?
+              (set! work-percentage (* mid 100.))
+              (set! work-downloaded (+ work-downloaded megabytes))
+              (set-label-title status-view (installing-title title step of))
+              (set-progress-info progress-view (make-range head mid) (make-range 0 10))
+              (set-progress-pos progress-view 10))
+            (git-remote-disconnect remote)
+            (git-remote-update-tips remote)
+            (git-remote-free remote)
+            (let ((upstream (git-reference-lookup repo "refs/remotes/origin/master")))
+              (let ((commit (git-object-lookup repo (git-reference->id repo upstream) GIT_OBJ_COMMIT)))
+                ;; (git-reset repo commit GIT_RESET_HARD)
+                ;; inlining of the previous command in order to add checkout progress callback
+                (let ((index (git-repository-index repo))
+                      (tree (git-commit-tree commit))
+                      (new-content? #f))
+                  (git-reference__update_terminal repo "HEAD" commit)
+                  (set-checkout-progress
+                    (let ((inited? #f))
+                      (lambda (lparam)
+                        (let ((path (git-checkout-path))
+                              (completed-steps (git-checkout-completed-steps))
+                              (total-steps (git-checkout-total-steps)))
+                          (when (> total-steps 0)
+                            (set! new-content? #t)
+                            (when report-progress?
+                              (let ((percentage (* (percentage completed-steps total-steps) (- tail mid)))
+                                    (remaining (- total-steps completed-steps)))
+                                (let ((effective-percentage (fxround (+ work-percentage percentage))))
+                                  (set-label-title percentage-view (string-append (number->string effective-percentage) "%"))
+                                  (set-label-title remaining-view (string-append "Remaining: " (number->string remaining)))))
+                              (when (not inited?)
+                                (set-progress-info progress-view (make-range mid tail) (make-range 0 total-steps))
+                                (set! inited? #t))
+                              (set-progress-pos progress-view completed-steps)))))))
+                  (set-checkout-done
+                    (lambda (lparam)
+                      (git-check-error lparam)
+                      (when report-progress?
+                        (set! work-percentage (* tail 100.))
+                        (set-progress-info progress-view (make-range mid tail) (make-range 0 10))
+                        (set-progress-pos progress-view 10))
+                      (git-index-read-tree index tree)
+                      (git-index-write index)
+                      (git-repository-merge-cleanup repo)
+                      (git-reference-free upstream)
+                      (git-object-free commit)
+                      (git-index-free index)
+                      (git-tree-free tree)
+                      (git-repository-free repo)
+                      (cont new-content?)))
+                  (git-checkout-tree-force-threaded repo tree (window-handle current-window)))))))
+        (git-remote-download-threaded remote (window-handle current-window))))))
+
+
+(define (downloading-title title step of)
+  (string-append "Downloading " title " (" (number->string step) "/" (number->string of) ")"))
+
+
+(define (installing-title title step of)
+  (string-append "Installing " title " (" (number->string (+ step 1)) "/" (number->string of) ")"))
+
+
+;;;
+;;;; Delegate
+;;;
+
+
+(define (delegate-install root-dir closed-beta-password called-from)
+  (setenv "root-dir" root-dir)
+  (setenv "closed-beta-password" (or closed-beta-password ""))
+  (setenv "called-from" called-from)
+  (if devel-testing?
+      (open-process (string-append (install-dir) "InstallConsole"))
+    (open-process (install-exe)))
+  ;; wait for install window to cover us
+  (thread-sleep! .5)
+  (exit))
+
+
+;;;
+;;;; Play
+;;;
+
+
+(define (play)
+  (open-process (app-exe))
+  (quit))
+
+
+;;;
+;;;; Quit
+;;;
+
+
+(define (quit)
+  (if (not work-in-progress?)
+      (exit)
+    (let ((code (system-message (string-append "Setup in progress.\n\nDo you want to abort?") type: 'confirmation)))
+      (when (eq? code 'yes)
+        (exit)))))
+
+
+;;;
+;;;; Callback
+;;;
+
+
+(define download-progress
+  #f)
+
+(define (set-download-progress proc)
+  (set! download-progress proc))
+
+
+(define download-done
+  #f)
+
+(define (set-download-done proc)
+  (set! download-done proc))
+
+
+(define checkout-progress
+  #f)
+
+(define (set-checkout-progress proc)
+  (set! checkout-progress proc))
+
+
+(define checkout-done
+  #f)
+
+(define (set-checkout-done proc)
+  (set! checkout-done proc))
+
+
+(define (user-callback wparam lparam)
+  (cond ((= wparam DOWNLOAD_PROGRESS) (download-progress lparam))
+        ((= wparam DOWNLOAD_DONE)     (download-done     lparam))
+        ((= wparam CHECKOUT_PROGRESS) (checkout-progress lparam))
+        ((= wparam CHECKOUT_DONE)     (checkout-done     lparam))))
+
+
+;;;
+;;;; Git
+;;;
+
+
+(define (git-setup-credentials remote username password)
+  (git-remote-check-cert remote 0)
+  (git-remote-set-cred-acquire-cb remote
+                                  (lambda ()
+                                    (git-cred-userpass-plaintext-new username password))))
+
+
+;;;
+;;;; Prepare
+;;;
+
+
+(define (prepare)
+  (initialize-windows)
+  (prepare-bitmap)
+  (set-current-window window))
+
+
+;;;
+;;;; Run
+;;;
+
+
+(define (run #!optional (start #f))
+  (let ((hwnd (SetupWindow (current-instance) jiri-title (BITMAP-width current-bitmap) (BITMAP-height current-bitmap))))
+    (window-handle-set! current-window hwnd)
+    (ShowWindow hwnd SW_SHOWNORMAL)
+    (UpdateWindow hwnd)
+    (when start
+      (start))
+    (MessageLoop)))
+
+
+;;;
+;;;; Main
+;;;
+
+
+(define (main #!optional (start #f))
+  (prepare)
+  (layout)
+  (run start))

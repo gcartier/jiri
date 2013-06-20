@@ -113,6 +113,16 @@
          (string=? (substring str (- sl tl) sl) target))))
 
 
+(define (string-find-reversed str c)
+  (let iter ((n (- (string-length str) 1)))
+    (cond ((< n 0)
+           #f)
+          ((char=? (string-ref str n) c)
+           n)
+          (else
+           (iter (- n 1))))))
+
+
 (define (string-replace str old new)
   (let ((cpy (string-copy str)))
     (let iter ((n (- (string-length cpy) 1)))
@@ -125,12 +135,34 @@
 
 
 ;;;
+;;;; Environment
+;;;
+
+
+(define (getenv-default name #!optional (default #f))
+  (with-exception-catcher
+    (lambda (exc)
+      (if (unbound-os-environment-variable-exception? exc)
+          default
+        (raise exc)))
+    (lambda ()
+      (getenv name))))
+
+
+;;;
 ;;;; Pathname
 ;;;
 
 
 (define (pathname-standardize path)
   (string-replace path #\\ #\/))
+
+
+(define (pathname-dir pathname)
+  (let ((pos (string-find-reversed pathname #\/)))
+    (if (not pos)
+        #f
+      (substring pathname 0 (+ pos 1)))))
 
 
 ;;;
@@ -155,6 +187,10 @@
   (if (string-ends-with? directory "/")
       directory
     (string-append directory "/")))
+
+
+(define (executable-directory)
+  (pathname-dir (pathname-standardize (executable-path))))
 
 
 ;;;
@@ -199,4 +235,4 @@
     thunk))
 
 
-(current-exception-handler jiri-exception-handler)
+;(current-exception-handler jiri-exception-handler)
