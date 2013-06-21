@@ -328,6 +328,13 @@ end-of-c-code
 ;;;
 
 
+(define current-window
+  #f)
+
+(define (set-current-window window)
+  (set! current-window window))
+
+
 (define (window-cursor-position window)
   (point- (cursor-position) (get-window-position window)))
 

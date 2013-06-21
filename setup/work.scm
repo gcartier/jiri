@@ -26,6 +26,8 @@
 ;; - I think I prefer to stay away from git remote names, more like
 ;;   - app
 ;;     - space or release
+;; - Install can pass info to the app of what was the last head so that we could show
+;;   only what changed since last time by having a what's new system indexed by commit!?
 
 ;; DEVEL
 ;; - comment out (current-exception-handler jiri-exception-handler)
@@ -33,11 +35,13 @@
 
 ;; SCENARIO
 ;; - Setup : clone install, invoke Install with environment
-;; - Root direct : pull install, if newer invoke Install with environment else pull app/world
-;; - Install from setup : clone app/world
-;; - Install from root : pull app/world
+;; - Root : invoke Current
+;; - Current from Root : pull install, if newer invoke Install with environment else pull app/world
+;; - Current direct : incorrect
+;; - Install from Setup : clone app/world
+;; - Install from Current : pull app/world
 ;; - Install direct : incorrect
-;; - App direct : incorrect but could be correct when version is validated with server
+;; - App : incorrect but could be correct when version is validated with server
 
 ;; SPACE
 ;; - app
@@ -288,6 +292,9 @@
 
 (define (install-dir)
   (string-append current-root-dir (normalize-directory jiri-install-dir)))
+
+(define (current-dir)
+  (string-append current-root-dir (normalize-directory jiri-current-dir)))
 
 (define (world-dir)
   (string-append current-root-dir (normalize-directory jiri-world-dir)))

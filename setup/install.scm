@@ -24,8 +24,8 @@
               (equal? called-from "setup"))
          (from-setup-work))
         ((and current-root-dir
-              (equal? called-from "root"))
-         (from-root-work))
+              (equal? called-from "current"))
+         (from-current-work))
         (else
          (system-message "It is incorrect to launch this application explicitly")
          (exit 1))))
@@ -36,8 +36,7 @@
        (not closed-beta-password)
        (not called-from)
        (let ((root-dir (executable-directory)))
-         (and (file-exists? (string-append root-dir "install"))
-              (file-exists? (string-append root-dir "install/Install.exe"))))))
+         (file-exists? (string-append root-dir "install/dawn-install/Install.exe")))))
 
 
 ;;;
@@ -46,6 +45,21 @@
 
 
 (define (root-work)
+  (set! current-root-dir (executable-directory))
+  (when (setup-password #f)
+    (clone/pull-repository "application" jiri-install-remote closed-beta-password (install-dir) 1 4 #f #f #f
+      (lambda (new-content?)
+        (if new-content?
+            (delegate-install current-root-dir closed-beta-password "root")
+          (install-application/world #f))))))
+
+
+;;;
+;;;; Current
+;;;
+
+
+(define (current-work)
   (set! current-root-dir (executable-directory))
   (when (setup-password #f)
     (clone/pull-repository "application" jiri-install-remote closed-beta-password (install-dir) 1 4 #f #f #f
@@ -66,11 +80,11 @@
 
 
 ;;;
-;;;; From Root
+;;;; From Current
 ;;;
 
 
-(define (from-root-work)
+(define (from-current-work)
   (install-application/world #t))
 
 
