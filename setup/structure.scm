@@ -1,0 +1,82 @@
+;;;==============
+;;;  JazzScheme
+;;;==============
+;;;
+;;;; Structure
+;;;
+
+
+(include "syntax.scm")
+
+
+;;;
+;;;; Structure
+;;;
+
+
+(define current-root-dir
+  #f)
+
+(define closed-beta-password
+  #f)
+
+(define called-from
+  #f)
+
+(define devel-testing?
+  #f)
+
+
+(define (app-dir)
+  (string-append current-root-dir (normalize-directory jiri-app-dir)))
+
+(define (install-dir)
+  (string-append current-root-dir (normalize-directory jiri-install-dir)))
+
+(define (current-dir)
+  (string-append current-root-dir (normalize-directory jiri-current-dir)))
+
+(define (world-dir)
+  (string-append current-root-dir (normalize-directory jiri-world-dir)))
+
+(define (root-exe)
+  (add-extension (string-append current-root-dir jiri-application) executable-extension))
+
+(define (app-exe)
+  (add-extension (string-append (app-dir) jiri-application) executable-extension))
+
+(define (current-exe)
+  (add-extension (string-append (current-dir) "Install") executable-extension))
+
+(define (install-exe)
+  (add-extension (string-append (install-dir) "Install") executable-extension))
+
+(define (launch-exe)
+  (add-extension (string-append (install-dir) "Launch") executable-extension))
+
+
+;;;
+;;;; Delegate
+;;;
+
+
+(define (delegate-current root-dir closed-beta-password called-from)
+  (setenv "root-dir" root-dir)
+  (setenv "closed-beta-password" (or closed-beta-password ""))
+  (setenv "called-from" called-from)
+  (if #f ;devel-testing?
+      (open-process (string-append (current-dir) "InstallConsole"))
+    (open-process (current-exe)))
+  (exit))
+
+
+(define (delegate-install root-dir closed-beta-password called-from)
+  (setenv "root-dir" root-dir)
+  (setenv "closed-beta-password" (or closed-beta-password ""))
+  (setenv "called-from" called-from)
+  (if #f ;devel-testing?
+      (open-process (string-append (install-dir) "InstallConsole"))
+    (open-process (install-exe)))
+  ;; wait for install window to cover our own window
+  (thread-sleep! .5)
+  (exit))

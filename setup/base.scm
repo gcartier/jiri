@@ -165,6 +165,12 @@
       (substring pathname 0 (+ pos 1)))))
 
 
+(define (add-extension filename extension)
+  (if (not extension)
+      filename
+    (string-append filename "." extension)))
+
+
 ;;;
 ;;;; File
 ;;;
@@ -235,4 +241,4 @@
     thunk))
 
 
-;(current-exception-handler jiri-exception-handler)
+(current-exception-handler jiri-exception-handler)

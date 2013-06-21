@@ -13,21 +13,14 @@
 ;;   - Change at 100% / nb of background!?
 ;; - Improve password validation logic
 ;; - Root escape on password dialog should quit!?
-;; - Seems double-click on Install fails
 ;; - Need a robust way to handle exe / dll being in used until root quits
 ;; - Maybe it should be -> alot cleaner for user and the removal / copy is alot safer
 ;;   maybe also delete-directory will support a timeout!?
-;;   - Space
-;;   - install
-;;     - Install.exe
-;;     - libgit2.dll
-;;     - space-install-windows
-;;   or maybe even put everything in some 'current' folder!?
-;; - I think I prefer to stay away from git remote names, more like
-;;   - app
-;;     - space or release
 ;; - Install can pass info to the app of what was the last head so that we could show
 ;;   only what changed since last time by having a what's new system indexed by commit!?
+;; - It is not user-friendly to not be able to change setup dir after clicking Setup and
+;;   changing ones mind at password stage
+;; - Wrong password from root bugs
 
 ;; DEVEL
 ;; - comment out (current-exception-handler jiri-exception-handler)
@@ -55,7 +48,6 @@
 ;; - worlds
 ;;   - space
 ;; Space.exe
-;; libgit2.dll
 
 
 (include "syntax.scm")
@@ -261,19 +253,6 @@
 ;;;
 
 
-(define current-root-dir
-  #f)
-
-(define closed-beta-password
-  #f)
-
-(define called-from
-  #f)
-
-(define devel-testing?
-  #f)
-
-
 (define work-in-progress?
   #f)
 
@@ -285,28 +264,6 @@
 
 (define work-downloaded
   0)
-
-
-(define (app-dir)
-  (string-append current-root-dir (normalize-directory jiri-app-dir)))
-
-(define (install-dir)
-  (string-append current-root-dir (normalize-directory jiri-install-dir)))
-
-(define (current-dir)
-  (string-append current-root-dir (normalize-directory jiri-current-dir)))
-
-(define (world-dir)
-  (string-append current-root-dir (normalize-directory jiri-world-dir)))
-
-(define (root-exe)
-  (string-append current-root-dir jiri-application))
-
-(define (app-exe)
-  (string-append (app-dir) jiri-application))
-
-(define (install-exe)
-  (string-append (install-dir) "Install"))
 
 
 ;;;
@@ -472,23 +429,6 @@
 
 (define (installing-title title step of)
   (string-append "Installing " title " (" (number->string (+ step 1)) "/" (number->string of) ")"))
-
-
-;;;
-;;;; Delegate
-;;;
-
-
-(define (delegate-install root-dir closed-beta-password called-from)
-  (setenv "root-dir" root-dir)
-  (setenv "closed-beta-password" (or closed-beta-password ""))
-  (setenv "called-from" called-from)
-  (if devel-testing?
-      (open-process (string-append (install-dir) "InstallConsole"))
-    (open-process (install-exe)))
-  ;; wait for install window to cover us
-  (thread-sleep! .5)
-  (exit))
 
 
 ;;;

@@ -15,8 +15,13 @@ BUILD="$ROOT/build"
 SETUP="$ROOT/setup"
 INSTALL="$ROOT/install"
 
-CFILES="$BUILD/features.c $BUILD/crash.c $BUILD/windows.c $BUILD/git.c"
-OFILES="$BUILD/features.o $BUILD/crash.o $BUILD/windows.o $BUILD/git.o"
+CBASE="$BUILD/features.c $BUILD/crash.c $BUILD/windows.c"
+OBASE="$BUILD/features.o $BUILD/crash.o $BUILD/windows.o"
+
+CFILES="$CBASE $BUILD/git.c"
+OFILES="$OBASE $BUILD/git.o"
+
+LBASE="-lgambc -lws2_32 -lgdi32 -lole32 -luuid"
 
 if [ ! -d $ROOT ]; then
     mkdir $ROOT
@@ -38,13 +43,14 @@ gsc -c -o $BUILD $ABS/windows
 gsc -c -o $BUILD $ABS/git
 gsc -c -o $BUILD $ABS/devel-setup
 gsc -c -o $BUILD $ABS/devel-install
+gsc -c -o $BUILD $ABS/devel-launch
 
 # Setup
 windres --input $ABS/setup.rc --output $BUILD/setup.res --output-format=coff
 gsc -link -o $BUILD $CFILES $BUILD/devel-setup.c
 gsc -cc-options "-I$LIBGIT2/include" -obj $CFILES $BUILD/devel-setup.c $BUILD/devel-setup_.c
-gcc -L$GAMBIT/lib -L$LIBGIT2/lib $OFILES $BUILD/devel-setup.o $BUILD/devel-setup_.o $BUILD/setup.res -mwindows -lgit2 -lgambc -lws2_32 -lgdi32 -lole32 -luuid -o $SETUP/Setup
-gcc -L$GAMBIT/lib -L$LIBGIT2/lib $OFILES $BUILD/devel-setup.o $BUILD/devel-setup_.o $BUILD/setup.res -mconsole -lgit2 -lgambc -lws2_32 -lgdi32 -lole32 -luuid -o $SETUP/SetupConsole
+gcc -L$GAMBIT/lib -L$LIBGIT2/lib $OFILES $BUILD/devel-setup.o $BUILD/devel-setup_.o $BUILD/setup.res -mwindows -lgit2 $LBASE -o $SETUP/Setup
+gcc -L$GAMBIT/lib -L$LIBGIT2/lib $OFILES $BUILD/devel-setup.o $BUILD/devel-setup_.o $BUILD/setup.res -mconsole -lgit2 $LBASE -o $SETUP/SetupConsole
 cp $LIBGIT2/lib/libgit2.dll $SETUP
 cp $OPENSSL/lib/libeay32.dll $SETUP
 cp $OPENSSL/lib/ssleay32.dll $SETUP
@@ -53,8 +59,14 @@ cp $OPENSSL/lib/ssleay32.dll $SETUP
 windres --input $ABS/install.rc --output $BUILD/install.res --output-format=coff
 gsc -link -o $BUILD $CFILES $BUILD/devel-install.c
 gsc -cc-options "-I$LIBGIT2/include" -obj $CFILES $BUILD/devel-install.c $BUILD/devel-install_.c
-gcc -L$GAMBIT/lib -L$LIBGIT2/lib $OFILES $BUILD/devel-install.o $BUILD/devel-install_.o $BUILD/install.res -mwindows -lgit2 -lgambc -lws2_32 -lgdi32 -lole32 -luuid -o $INSTALL/Install
-gcc -L$GAMBIT/lib -L$LIBGIT2/lib $OFILES $BUILD/devel-install.o $BUILD/devel-install_.o $BUILD/install.res -mconsole -lgit2 -lgambc -lws2_32 -lgdi32 -lole32 -luuid -o $INSTALL/InstallConsole
+gcc -L$GAMBIT/lib -L$LIBGIT2/lib $OFILES $BUILD/devel-install.o $BUILD/devel-install_.o $BUILD/install.res -mwindows -lgit2 $LBASE -o $INSTALL/Install
+gcc -L$GAMBIT/lib -L$LIBGIT2/lib $OFILES $BUILD/devel-install.o $BUILD/devel-install_.o $BUILD/install.res -mconsole -lgit2 $LBASE -o $INSTALL/InstallConsole
 cp $LIBGIT2/lib/libgit2.dll $INSTALL
 cp $OPENSSL/lib/libeay32.dll $INSTALL
 cp $OPENSSL/lib/ssleay32.dll $INSTALL
+
+# Launch
+windres --input $ABS/launch.rc --output $BUILD/launch.res --output-format=coff
+gsc -link -o $BUILD $CBASE $BUILD/devel-launch.c
+gsc -cc-options "-I$LIBGIT2/include" -obj $CBASE $BUILD/devel-launch.c $BUILD/devel-launch_.c
+gcc -L$GAMBIT/lib -L$LIBGIT2/lib $OBASE $BUILD/devel-launch.o $BUILD/devel-launch_.o $BUILD/launch.res -mwindows -lgit2 $LBASE -o $INSTALL/Launch

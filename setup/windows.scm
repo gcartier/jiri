@@ -492,6 +492,10 @@ end-of-c-code
   'cr-lf)
 
 
+(define executable-extension
+  "exe")
+
+
 (define (system-message text #!key (type 'message) (title #f))
   (let ((window current-window)
         (title

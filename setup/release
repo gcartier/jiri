@@ -15,8 +15,8 @@ BUILD="$ROOT/build"
 SETUP="$ROOT/setup"
 INSTALL="$ROOT/install"
 
-CBASE="$BUILD/settings.c $BUILD/features.c $BUILD/crash.c $BUILD/windows.c $BUILD/base.c $BUILD/geometry.c $BUILD/color.c $BUILD/font.c"
-OBASE="$BUILD/settings.o $BUILD/features.o $BUILD/crash.o $BUILD/windows.o $BUILD/base.o $BUILD/geometry.o $BUILD/color.o $BUILD/font.o"
+CBASE="$BUILD/settings.c $BUILD/features.c $BUILD/crash.c $BUILD/windows.c $BUILD/base.c $BUILD/geometry.c $BUILD/color.c $BUILD/font.c $BUILD/structure.c"
+OBASE="$BUILD/settings.o $BUILD/features.o $BUILD/crash.o $BUILD/windows.o $BUILD/base.o $BUILD/geometry.o $BUILD/color.o $BUILD/font.o $BUILD/structure.o"
 
 CFILES="$CBASE $BUILD/git.c $BUILD/window.c $BUILD/draw.c $BUILD/view.c $BUILD/work.c"
 OFILES="$OBASE $BUILD/git.o $BUILD/window.o $BUILD/draw.o $BUILD/view.o $BUILD/work.o"
@@ -49,6 +49,7 @@ gsc -c -o $BUILD $ABS/font
 gsc -c -o $BUILD $ABS/window
 gsc -c -o $BUILD $ABS/draw
 gsc -c -o $BUILD $ABS/view
+gsc -c -o $BUILD $ABS/structure
 gsc -c -o $BUILD $ABS/work
 gsc -c -o $BUILD $ABS/setup
 gsc -c -o $BUILD $ABS/install

@@ -2,7 +2,7 @@
 ;;;  JazzScheme
 ;;;==============
 ;;;
-;;;; Devel Setup
+;;;; Devel Launch
 ;;;
 
 
@@ -27,11 +27,7 @@
 (load-source "geometry")
 (load-source "color")
 (load-source "font")
-(load-source "window")
-(load-source "draw")
-(load-source "view")
 (load-source "structure")
-(load-source "work")
 
 (set! devel-testing? #t)
-(load-source "setup")
+(load-source "launch")
