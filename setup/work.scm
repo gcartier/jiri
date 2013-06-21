@@ -12,15 +12,12 @@
 ;; - Add multiple background support
 ;;   - Change at 100% / nb of background!?
 ;; - Improve password validation logic
-;; - Root escape on password dialog should quit!?
-;; - Need a robust way to handle exe / dll being in used until root quits
-;; - Maybe it should be -> alot cleaner for user and the removal / copy is alot safer
-;;   maybe also delete-directory will support a timeout!?
 ;; - Install can pass info to the app of what was the last head so that we could show
 ;;   only what changed since last time by having a what's new system indexed by commit!?
 ;; - It is not user-friendly to not be able to change setup dir after clicking Setup and
 ;;   changing ones mind at password stage
-;; - Wrong password from root bugs
+;; - Wrong password from Root bugs
+;; - App can become unresponsive if github takes a long while to respond
 
 ;; DEVEL
 ;; - comment out (current-exception-handler jiri-exception-handler)

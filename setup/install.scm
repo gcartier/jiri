@@ -38,12 +38,13 @@
 
 
 (define (current-from-root-work)
-  (when (setup-password #f)
-    (clone/pull-repository "application" jiri-install-remote closed-beta-password (install-dir) 1 4 #f #f #f
-      (lambda (new-content?)
-        (if new-content?
-            (delegate-install current-root-dir closed-beta-password "current")
-          (install-application/world #f))))))
+  (if (setup-password #f)
+      (clone/pull-repository "application" jiri-install-remote closed-beta-password (install-dir) 1 4 #f #f #f
+        (lambda (new-content?)
+          (if new-content?
+              (delegate-install current-root-dir closed-beta-password "current")
+            (install-application/world #f))))
+    (exit)))
 
 
 ;;;
