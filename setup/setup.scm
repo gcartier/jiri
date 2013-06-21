@@ -16,7 +16,7 @@
 
 (define setup-view
   (new-button (make-rect 50 450 390 490)
-              (string-append "Setup " jiri-title)
+              (string-append "Install " jiri-title)
               (lambda (view)
                 (setup))))
 
@@ -28,15 +28,22 @@
 
 (define (setup)
   (when (setup-root)
-    (when (setup-password)
-      (remove-view setup-view)
-      (add-view percentage-view)
-      (add-view downloaded-view)
-      (add-view remaining-view)
-      (add-view status-view)
-      (add-view progress-view)
-      (add-view play-view)
-      (setup-work))))
+    (continuation-capture
+      (lambda (cancel)
+        (setup-password cancel)
+        (remove-view setup-view)
+        (add-view percentage-view)
+        (add-view downloaded-view)
+        (add-view remaining-view)
+        (add-view status-view)
+        (add-view progress-view)
+        (add-view play-view)
+        (setup-work)))))
+
+
+;;;
+;;;; Root
+;;;
 
 
 (define (setup-root)
@@ -70,10 +77,46 @@
                   #f)))))))))
 
 
+;;;
+;;;; Password
+;;;
+
+
+(define (setup-password cancel)
+  (or closed-beta-password
+      (let ((repo #f)
+            (remote #f)
+            (successful? #f)
+            (dir (install-dir)))
+        (dynamic-wind
+          (lambda ()
+            (set! repo (git-repository-init dir 0))
+            (set! remote (git-remote-create repo "origin" jiri-install-remote)))
+          (lambda ()
+            (git-remote-connect-with-retries remote cancel))
+          (lambda ()
+            (when remote
+              (when successful?
+                (git-remote-disconnect remote))
+              (git-remote-free remote))
+            (when repo
+              (git-repository-free repo)))))))
+
+
+;;;
+;;;; Work
+;;;
+
+
 (define (setup-work)
   (clone/pull-repository "application" jiri-install-remote closed-beta-password (install-dir) 1 4 #f #f #f
     (lambda (new-content?)
       (setup-done))))
+
+
+;;;
+;;;; Done
+;;;
 
 
 (define (setup-done)

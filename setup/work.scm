@@ -9,24 +9,24 @@
 ;; TODO
 ;; - Create start menu folder!? (others!?)
 ;; - Handle all git errors!?
+;; - It is not user-friendly to not be able to change setup dir after clicking Setup and
+;;   changing ones mind at password stage but I do not see any alternative
+;; - App can become unresponsive if github takes a long while to respond
 ;; - Add multiple background support
 ;;   - Change at 100% / nb of background!?
-;; - Improve password validation logic
-;; - Install can pass info to the app of what was the last head so that we could show
+;; - Install could pass info to the app of what was the last head so that we could show
 ;;   only what changed since last time by having a what's new system indexed by commit!?
-;; - It is not user-friendly to not be able to change setup dir after clicking Setup and
-;;   changing ones mind at password stage
-;; - Wrong password from Root bugs
-;; - App can become unresponsive if github takes a long while to respond
+;; - Invoking app directly should error
+;; - Uninstaller
 
 ;; DEVEL
 ;; - comment out (current-exception-handler jiri-exception-handler)
 ;; - test/Dawn/Dawn -:dar
 
 ;; SCENARIO
-;; - Setup : clone install, invoke Install with environment
-;; - Root : invoke Current
-;; - Current from Root : pull install, if newer invoke Install with environment else pull app/world
+;; - Setup : clone install, delegate Install
+;; - Root : delegate Current
+;; - Current from Root : pull install, if newer delegate Install else pull app/world
 ;; - Current direct : incorrect
 ;; - Install from Setup : clone app/world
 ;; - Install from Current : pull app/world
@@ -40,8 +40,13 @@
 ;;     - lib
 ;;   - space-debug
 ;; - install
-;;   - Install.exe
-;;   - libgit2.dll
+;;   - current
+;;     - Install.exe
+;;     - libgit2.dll
+;;   - space-install
+;;     - Install.exe
+;;     - Launch.exe
+;;     - libgit2.dll
 ;; - worlds
 ;;   - space
 ;; Space.exe
@@ -264,66 +269,6 @@
 
 
 ;;;
-;;;; Password
-;;;
-
-
-(define (setup-password #!optional (validate? #t))
-  (or closed-beta-password
-      (let ((max-tries 3))
-        (let loop ((try 1))
-          (if (> try max-tries)
-              #f
-            (let ((password (dialog-box (window-handle current-window))))
-              (cond ((not password)
-                     (set-default-cursor IDC_ARROW)
-                     (set! work-in-progress? #f)
-                     #f)
-                    ((and validate? (not (validate-password password)))
-                     (loop (+ try 1)))
-                    (else
-                     (set! closed-beta-password password)
-                     password))))))))
-
-
-(define (validate-password password)
-  (let ((repo #f)
-        (remote #f)
-        (successful? #f)
-        (dir (install-dir)))
-    (dynamic-wind
-      (lambda ()
-        (set! repo (git-repository-init dir 0))
-        (set! remote (git-remote-create repo "origin" jiri-install-remote))
-        (git-setup-credentials remote jiri-username password))
-      (lambda ()
-        (with-exception-catcher
-          (lambda (exc)
-            (if (and (error-exception? exc)
-                     (let ((err (->string (car (error-exception-parameters exc)))))
-                       (string-ends-with? err "401")))
-                (begin
-                  (set-default-cursor IDC_ARROW)
-                  (set! work-in-progress? #f)
-                  (system-message "Incorrect password")
-                  #f)
-              (raise exc)))
-          (lambda ()
-            (git-remote-connect remote GIT_DIRECTION_FETCH)
-            (set! successful? #t))))
-      (lambda ()
-        (when remote
-          (when successful?
-            (git-remote-disconnect remote))
-          (git-remote-free remote))
-        (when repo
-          (git-repository-free repo))
-        (when (file-exists? dir)
-          ;; danger
-          (delete-directory dir))))))
-
-
-;;;
 ;;;; Pull
 ;;;
 
@@ -341,8 +286,7 @@
                       (git-remote-create repo "origin" url)))
             (report-progress? (and head mid tail))
             (megabytes 0))
-        (git-setup-credentials remote jiri-username password)
-        (git-remote-connect remote GIT_DIRECTION_FETCH)
+        (git-remote-connect-with-retries remote #f)
         (set-download-progress
           (let ((inited? #f))
             (lambda (lparam)
@@ -496,11 +440,38 @@
 ;;;
 
 
-(define (git-setup-credentials remote username password)
-  (git-remote-check-cert remote 0)
-  (git-remote-set-cred-acquire-cb remote
-                                  (lambda ()
-                                    (git-cred-userpass-plaintext-new username password))))
+(define (git-remote-connect-with-retries remote cancel)
+  (let ((password #f))
+    (define (ask-password)
+      (set! password (or closed-beta-password (dialog-box (window-handle current-window))))
+      (or password
+          (if cancel
+              (begin
+                (set-default-cursor IDC_ARROW)
+                (set! work-in-progress? #f)
+                (continuation-return cancel))
+            (exit 1))))
+    
+    (git-remote-check-cert remote 0)
+    (git-remote-set-cred-acquire-cb remote
+                                    (lambda ()
+                                      (git-cred-userpass-plaintext-new jiri-username (ask-password))))
+    (let ((max-tries 3))
+      (let loop ((try 1))
+        (if (> try max-tries)
+            (exit 1)
+          (with-exception-catcher
+            (lambda (exc)
+              (if (and (error-exception? exc)
+                       (let ((err (->string (car (error-exception-parameters exc)))))
+                         (string-ends-with? err "401")))
+                  (begin
+                    (system-message "Incorrect password")
+                    (loop (+ try 1)))
+                (raise exc)))
+            (lambda ()
+              (git-remote-connect remote GIT_DIRECTION_FETCH)
+              (set! closed-beta-password password))))))))
 
 
 ;;;
