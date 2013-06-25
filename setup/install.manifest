@@ -2,7 +2,7 @@
   <trustInfo xmlns="urn:schemas-microsoft-com:asm.v3">
     <security>
       <requestedPrivileges>
-        <requestedExecutionLevel level="requireAdministrator"></requestedExecutionLevel>
+        <requestedExecutionLevel level="asInvoker"></requestedExecutionLevel>
       </requestedPrivileges>
     </security>
   </trustInfo>

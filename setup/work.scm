@@ -23,14 +23,23 @@
 ;; - A potential problem can occur when I push a new release because pushing to both app and
 ;;   world is not atomic. This can be alleviated a bit by a script to push a release pushing
 ;;   both repositories rapidly maybe even in parallel
-;; - Marc had the following problem:
-;;   - Failed to make directory 'C:/Program Files/Dawn of Space': The system cannot find the file specified
+;; - The pipe is closed is a real bug occuring when using Launch
+;;   - Maybe open-process with options to not create pipes!?
+;; - Do not forget about the --orphan branch as the multiple pushes of Install versions are starting to
+;;   make even the clone of Install painfully long
 ;; - Invoking app directly should error
 ;; - Uninstaller
 
 ;; DEVEL
 ;; - comment out (current-exception-handler jiri-exception-handler)
 ;; - test/Dawn/Dawn -:dar
+
+;; RELEASE
+;; - b
+;; - i
+;; - remove manifest resource from Dawn of Space Setup.exe
+;; - cd release/install
+;; - commit and push changes
 
 ;; SCENARIO
 ;; - Setup : clone install, delegate Install

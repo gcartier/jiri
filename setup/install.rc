@@ -1,7 +1,7 @@
 #include "winuser.h"
 
-1          RT_MANIFEST setup.manifest
-app        ICON        setup.ico
+1          RT_MANIFEST install.manifest
+app        ICON        install.ico
 Background BITMAP      background.bmp
 
 //
