@@ -9,15 +9,49 @@
 (include "features.scm")
 
 
+(define bug-report
+  "bug-report.txt")
+
+
+(define (call-with-bug-report proc)
+  (call-with-output-file (list path: bug-report eol-encoding: eol-encoding output-width: 256)
+    (lambda (output)
+      (display jiri-title output)
+      (display " Setup " output)
+      (display jiri-version output)
+      (newline output)
+      (newline output)
+      (display "Date: " output)
+      (display (get-local-time) output)
+      (newline output)
+      (newline output)
+      (display "Platform: " output)
+      (display (get-platform-name) output)
+      (let ((version (get-platform-version)))
+        (let ((major (car version))
+              (minor (cdr version)))
+          (display " " output)
+          (display major output)
+          (display "." output)
+          (display minor output)))
+      (newline output)
+      (display "Processor: " output)
+      (display (get-processor-type) output)
+      (newline output)
+      (newline output)
+      (proc output)
+      (force-output output)))
+  (system-message (string-append "An unexpected problem occurred.\r\n\r\n"
+                                 "Please send the generated bug report and any comments to gucartier@gmail.com.\r\n\r\n"
+                                 (path-normalize bug-report))))
+
+
 (define (log-backtrace ignore)
-  (call-with-output-file (list path: "crash-report.txt" eol-encoding: eol-encoding output-width: 256)
+  (call-with-bug-report
     (lambda (output)
       (continuation-capture
         (lambda (cont)
-          (display-continuation-backtrace cont output #t #t 1000 1000)))))
-  (system-message (string-append "An unexpected problem occurred.\r\n\r\n"
-                                 "Please send the generated bug report to gucartier@gmail.com:\r\n\r\n"
-                                 (path-normalize "crash-report.txt"))))
+          (display-continuation-backtrace cont output #t #t 1000 1000))))))
 
 
 (define crash-reporter
@@ -50,7 +84,7 @@
       static LONG WINAPI unhandled_exception_filter(LPEXCEPTION_POINTERS info)
       {
         jazz_call_crash_reporter(info);
-        return EXCEPTION_CONTINUE_SEARCH;
+        return EXCEPTION_EXECUTE_HANDLER;
       }
 
       static void setup_low_level_windows_crash_handler()

@@ -15,8 +15,8 @@ BUILD="$ROOT/build"
 SETUP="$ROOT/setup"
 INSTALL="$ROOT/install"
 
-CBASE="$BUILD/features.c $BUILD/windows.c $BUILD/crash.c"
-OBASE="$BUILD/features.o $BUILD/windows.o $BUILD/crash.o"
+CBASE="$BUILD/settings.c $BUILD/features.c $BUILD/windows.c $BUILD/crash.c"
+OBASE="$BUILD/settings.o $BUILD/features.o $BUILD/windows.o $BUILD/crash.o"
 
 CFILES="$CBASE $BUILD/git.c"
 OFILES="$OBASE $BUILD/git.o"
@@ -37,6 +37,7 @@ if [ ! -d $INSTALL ]; then
 fi
 
 # Common
+gsc -c -o $BUILD settings
 gsc -c -o $BUILD $ABS/features
 gsc -c -o $BUILD $ABS/windows
 gsc -c -o $BUILD $ABS/crash
@@ -54,7 +55,7 @@ gcc -L$GAMBIT/lib -L$LIBGIT2/lib $OFILES $BUILD/devel-setup.o $BUILD/devel-setup
 cp $LIBGIT2/lib/libgit2.dll $SETUP
 cp $OPENSSL/lib/libeay32.dll $SETUP
 cp $OPENSSL/lib/ssleay32.dll $SETUP
-
+<<WAIT
 # Install
 windres --input $ABS/install.rc --output $BUILD/install.res --output-format=coff
 gsc -link -o $BUILD $CFILES $BUILD/devel-install.c
@@ -70,3 +71,4 @@ windres --input $ABS/launch.rc --output $BUILD/launch.res --output-format=coff
 gsc -link -o $BUILD $CBASE $BUILD/devel-launch.c
 gsc -cc-options "-I$LIBGIT2/include" -obj $CBASE $BUILD/devel-launch.c $BUILD/devel-launch_.c
 gcc -L$GAMBIT/lib -L$LIBGIT2/lib $OBASE $BUILD/devel-launch.o $BUILD/devel-launch_.o $BUILD/launch.res -mwindows -lgit2 $LBASE -o $INSTALL/Launch
+WAIT

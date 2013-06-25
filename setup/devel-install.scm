@@ -22,6 +22,7 @@
     (load file)))
 
 
+;; reload settings
 (load-install "settings")
 (load-source "base")
 (load-source "geometry")

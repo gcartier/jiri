@@ -222,18 +222,13 @@
 
 
 (define (jiri-exception-handler exc)
-  (define (debug-exception exc)
-    (call-with-output-file (list path: "exception-report.txt" eol-encoding: eol-encoding output-width: 256)
-      (lambda (output)
-        (display-exception exc output)
-        (continuation-capture
-          (lambda (cont)
-            (display-continuation-backtrace cont output #t #t 1000 1000))))))
-  
-  (debug-exception exc)
-  (system-message (string-append "An unexpected problem occurred.\r\n\r\n"
-                                 "Please send the generated bug report to gucartier@gmail.com:\r\n\r\n"
-                                 (path-normalize "exception-report.txt")))
+  (call-with-bug-report
+    (lambda (output)
+      (display-exception exc output)
+      (newline output)
+      (continuation-capture
+        (lambda (cont)
+          (display-continuation-backtrace cont output #t #t 1000 1000)))))
   (exit 1))
 
 

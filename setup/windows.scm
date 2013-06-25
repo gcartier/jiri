@@ -195,6 +195,50 @@
 
 
 ;;;
+;;;; Information
+;;;
+
+
+(define get-local-time
+  (c-lambda () char-string
+    #<<end-of-c-code
+    SYSTEMTIME time;
+    char str[256];
+    GetLocalTime(&time);
+    sprintf(str, "%d/%d/%d %d:%d:%.2d", time.wYear, time.wMonth, time.wDay, time.wHour, time.wMinute, time.wSecond);
+    ___result = str;
+end-of-c-code
+))
+
+
+(define get-processor-type
+  (c-lambda () DWORD
+    #<<end-of-c-code
+    SYSTEM_INFO info;
+    GetSystemInfo(&info);
+    ___result = info.dwProcessorType;
+end-of-c-code
+))
+
+
+(define get-platform-name
+  (lambda ()
+    "Windows"))
+
+
+(define get-platform-version
+  (c-lambda () scheme-object
+    #<<end-of-c-code
+    OSVERSIONINFO info;
+    info.dwOSVersionInfoSize = sizeof(OSVERSIONINFO);
+    GetVersionEx(&info);
+    ___SCMOBJ version = ___EXT(___make_pair) (___FIX(info.dwMajorVersion), ___FIX(info.dwMinorVersion), ___STILL);
+    ___result = version;
+end-of-c-code
+))
+
+
+;;;
 ;;;; Initialize
 ;;;
 
