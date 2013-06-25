@@ -223,14 +223,7 @@ end-of-c-code
 ;;;
 
 
-(define git-cred-userpass-plaintext-new
-  (c-lambda (char-string char-string) git_cred*
-    #<<end-of-c-code
-    git_cred* cred;
-    git_check_error(git_cred_userpass_plaintext_new(&cred, ___arg1, ___arg2));
-    ___result_voidstar = cred;
-end-of-c-code
-))
+(git-external (git-cred-userpass-plaintext-new (out git_cred*) char-string char-string) :error "git_cred_userpass_plaintext_new")
 
 
 ;;;
@@ -238,23 +231,9 @@ end-of-c-code
 ;;;
 
 
-(define git-index-free
-  (c-lambda (git_index*) void
-    "git_index_free(___arg1);"))
-
-(define git-index-read-tree
-  (c-lambda (git_index* git_tree*) void
-    #<<end-of-c-code
-    git_check_error(git_index_read_tree(___arg1, ___arg2));
-end-of-c-code
-))
-
-(define git-index-write
-  (c-lambda (git_index*) void
-    #<<end-of-c-code
-    git_check_error(git_index_write(___arg1));
-end-of-c-code
-))
+(git-external (git-index-free git_index*) void "git_index_free")
+(git-external (git-index-read-tree git_index* git_tree*) :error "git_index_read_tree")
+(git-external (git-index-write git_index*) :error "git_index_write")
 
 
 ;;;
@@ -262,27 +241,10 @@ end-of-c-code
 ;;;
 
 
-(define git-object-lookup
-  (c-lambda (git_repository* git_oid* git_otype) git_object*
-    #<<end-of-c-code
-    git_object* obj;
-    git_check_error(git_object_lookup(&obj, ___arg1, ___arg2, ___arg3));
-    ___result_voidstar = obj;
-end-of-c-code
-))
+(git-external (git-object-lookup (out git_object*) git_repository* git_oid* git_otype) :lookup "git_object_lookup")
+(git-external (git-object-free git_object*) void "git_object_free")
+(git-external (git-object-peel (out git_object*) git_object* git_otype) :error "git_object_peel")
 
-(define git-object-free
-  (c-lambda (git_object*) void
-    "git_object_free(___arg1);"))
-
-(define git-object-peel
-  (c-lambda (git_object* git_otype) git_object*
-    #<<end-of-c-code
-    git_object* obj;
-    git_check_error(git_object_peel(&obj, ___arg1, ___arg2));
-    ___result_voidstar = obj;
-end-of-c-code
-))
 
 (define git-object-id
   (c-lambda (git_object*) git_oid*
@@ -297,30 +259,10 @@ end-of-c-code
 ;;;
 
 
-(define git-reference-create
-  (c-lambda (git_repository* char-string git_oid* int) git_reference*
-    #<<end-of-c-code
-    git_reference* ref;
-    git_check_error(git_reference_create(&ref, ___arg1, ___arg2, ___arg3, ___arg4));
-    ___result_voidstar = ref;
-end-of-c-code
-))
+(git-external (git-reference-create (out git_reference*) git_repository* char-string git_oid* int) :error "git_reference_create")
+(git-external (git-reference-free git_reference*) void "git_reference_free")
+(git-external (git-reference-lookup (out git_reference*) git_repository* char-string) :lookup "git_reference_lookup")
 
-(define git-reference-free
-  (c-lambda (git_reference*) void
-    #<<end-of-c-code
-    git_reference_free(___arg1);
-end-of-c-code
-))
-
-(define git-reference-lookup
-  (c-lambda (git_repository* char-string) git_reference*
-    #<<end-of-c-code
-    git_reference* ref;
-    git_check_error(git_reference_lookup(&ref, ___arg1, ___arg2));
-    ___result_voidstar = ref;
-end-of-c-code
-))
 
 (define git-reference-name
   (c-lambda (git_reference*) char-string
@@ -354,30 +296,10 @@ end-of-c-code
 ;;;
 
 
-(define git-remote-create
-  (c-lambda (git_repository* char-string char-string) git_remote*
-    #<<end-of-c-code
-    git_remote* remote;
-    git_check_error(git_remote_create(&remote, ___arg1, ___arg2, ___arg3));
-    ___result_voidstar = remote;
-end-of-c-code
-))
+(git-external (git-remote-create (out git_remote*) git_repository* char-string char-string) :error "git_remote_create")
+(git-external (git-remote-load (out git_remote*) git_repository* char-string) :error "git_remote_load")
+(git-external (git-remote-check-cert git_remote* int) void "git_remote_check_cert")
 
-(define git-remote-load
-  (c-lambda (git_repository* char-string) git_remote*
-    #<<end-of-c-code
-    git_remote* remote;
-    git_check_error(git_remote_load(&remote, ___arg1, ___arg2));
-    ___result_voidstar = remote;
-end-of-c-code
-))
-
-(define git-remote-check-cert
-  (c-lambda (git_remote* int) void
-    #<<end-of-c-code
-    git_remote_check_cert(___arg1, ___arg2);
-end-of-c-code
-))
 
 (c-define (cred-acquire-procedure proc) (scheme-object) git_cred* "cred_acquire_procedure" ""
   (proc))
@@ -495,20 +417,10 @@ end-of-c-declare
 end-of-c-code
 ))
 
-(define git-remote-disconnect
-  (c-lambda (git_remote*) void
-    "git_remote_disconnect"))
 
-(define git-remote-update-tips
-  (c-lambda (git_remote*) void
-    #<<end-of-c-code
-    git_check_error(git_remote_update_tips(___arg1));
-end-of-c-code
-))
-
-(define git-remote-free
-  (c-lambda (git_remote*) void
-    "git_remote_free"))
+(git-external (git-remote-disconnect git_remote*) void "git_remote_disconnect")
+(git-external (git-remote-update-tips git_remote*) :error "git_remote_update_tips")
+(git-external (git-remote-free git_remote*) void "git_remote_free")
 
 
 ;;;
@@ -516,50 +428,12 @@ end-of-c-code
 ;;;
 
 
-(define git-repository-init
-  (c-lambda (char-string unsigned-int) git_repository*
-    #<<end-of-c-code
-    git_repository* repo;
-    git_check_error(git_repository_init(&repo, ___arg1, ___arg2));
-    ___result_voidstar = repo;
-end-of-c-code
-))
-
-(define git-repository-open
-  (c-lambda (char-string) git_repository*
-    #<<end-of-c-code
-    git_repository* repo;
-    git_check_error(git_repository_open(&repo, ___arg1));
-    ___result_voidstar = repo;
-end-of-c-code
-))
-
-(define git-repository-free
-  (c-lambda (git_repository*) void
-    "git_repository_free"))
-
-(define git-repository-index
-  (c-lambda (git_repository*) git_index*
-    #<<end-of-c-code
-    git_index* index;
-    git_check_error(git_repository_index(&index, ___arg1));
-    ___result_voidstar = index;
-end-of-c-code
-))
-
-(define git-repository-merge-cleanup
-  (c-lambda (git_repository*) void
-    #<<end-of-c-code
-    git_check_error(git_repository_merge_cleanup(___arg1));
-end-of-c-code
-))
-
-(define git-repository-set-head
-  (c-lambda (git_repository* char-string) void
-    #<<end-of-c-code
-    git_check_error(git_repository_set_head(___arg1, ___arg2));
-end-of-c-code
-))
+(git-external (git-repository-init (out git_repository*) char-string unsigned-int) :error "git_repository_init")
+(git-external (git-repository-open (out git_repository*) char-string) :error "git_repository_open")
+(git-external (git-repository-free git_repository*) void "git_repository_free")
+(git-external (git-repository-index (out git_index*) git_repository*) :error "git_repository_index")
+(git-external (git-repository-merge-cleanup git_repository*) :error "git_repository_merge_cleanup")
+(git-external (git-repository-set-head git_repository* char-string) :error "git_repository_set_head")
 
 
 ;;;
@@ -567,12 +441,7 @@ end-of-c-code
 ;;;
 
 
-(define git-reset
-  (c-lambda (git_repository* git_object* git_reset_t) void
-    #<<end-of-c-code
-    git_check_error(git_reset(___arg1, ___arg2, ___arg3));
-end-of-c-code
-))
+(git-external (git-reset git_repository* git_object* git_reset_t) :error "git_reset")
 
 
 ;;;
@@ -580,6 +449,4 @@ end-of-c-code
 ;;;
 
 
-(define git-tree-free
-  (c-lambda (git_tree*) void
-    "git_tree_free(___arg1);"))
+(git-external (git-tree-free git_tree*) void "git_tree_free")

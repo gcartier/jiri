@@ -57,3 +57,49 @@
          (c-name-or-code (if (null? rest) (symbol->string s-name) (car rest))))
     `(define ,s-name
        (c-lambda ,params ,type ,c-name-or-code))))
+
+
+;;;
+;;;; Git
+;;;
+
+
+(define-macro (git-external signature type . rest)
+  (define (out-parameter? obj)
+    (and (pair? obj)
+         (eq? (car obj) 'out)))
+  
+  (define (expand-args count initial-comma?)
+    (let ((out ""))
+      (let loop ((n 1))
+        (if (<= n count)
+            (begin
+              (set! out (string-append out (if (or initial-comma? (not (= n 1))) ", " "") (string-append "___arg" (number->string n))))
+              (loop (+ n 1)))))
+      out))
+  
+  (let* ((s-name (car signature))
+         (params (cdr signature))
+         (c-name-or-code (if (null? rest) (symbol->string s-name) (car rest))))
+    (if (or (null? params)
+            (not (out-parameter? (car params))))
+        (if (eq? type ':error)
+            (let ((c-code
+                    (string-append "int result = " c-name-or-code "(" (expand-args (length params) #f) ");\n"
+                                   "if (result != 0) git_raise_error(result);\n")))
+              `(define ,s-name
+                 (c-lambda ,params void ,c-code)))
+          `(define ,s-name
+             (c-lambda ,params ,type ,c-name-or-code)))
+      (let ((out-type (cadr (car params)))
+            (parameters (cdr params)))
+        (let ((c-code
+                (string-append (symbol->string out-type) " out;\n"
+                               "int result = " c-name-or-code "(&out" (expand-args (length parameters) #t) ");\n"
+                               "if (result == 0) ___result_voidstar = out;\n"
+                               (if (eq? type ':lookup)
+                                   "else if (result == GIT_ENOTFOUND) ___result_voidstar = NULL;\n"
+                                 "")
+                               "else git_raise_error(result);")))
+          `(define ,s-name
+             (c-lambda ,parameters ,out-type ,c-code)))))))

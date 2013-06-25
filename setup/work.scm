@@ -16,6 +16,12 @@
 ;;   - Change at 100% / nb of background!?
 ;; - Install could pass info to the app of what was the last head so that we could show
 ;;   only what changed since last time by having a what's new system indexed by commit!?
+;; - Need a way for the user to find exception.txt and crash.txt
+;; - When Marc has fixed the FFI error problem, replace the global error-handler by a catcher
+;;   to ward against recursive errors
+;; - A potential problem can occur when I push a new release because pushing to both app and
+;;   world is not atomic. This can be alleviated a bit by a script to push a release pushing
+;;   both repositories rapidly maybe even in parallel
 ;; - Invoking app directly should error
 ;; - Uninstaller
 
