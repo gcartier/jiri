@@ -76,6 +76,13 @@
                  (git-error-message err)
                code)))))
 
+(c-define (git-raise-error code) (int) void "git_raise_error" ""
+  (error "Libgit2 error:"
+         (let ((err (giterr-last)))
+           (if err
+               (git-error-message err)
+             code))))
+
 (define giterr-last
   (c-lambda () git_error*
     "___result_voidstar = (void*) giterr_last();"))
@@ -83,6 +90,19 @@
 (define git-error-message
   (c-lambda (git_error*) char-string
     "___result = ___arg1->message;"))
+
+
+;;;
+;;;; Validate
+;;;
+
+
+(define (git-validate c-lambda)
+  (lambda rest
+    (let ((result (apply c-lambda rest)))
+      (if (integer? result)
+          (git-raise-error result)
+        result))))
 
 
 ;;;
@@ -114,19 +134,30 @@ end-of-c-declare
 
 
 (define git-checkout-head
-  (c-lambda (git_repository*) void
+  (git-validate
+  (c-lambda (git_repository*) scheme-object ;; void
     #<<end-of-c-code
     git_checkout_opts options = GIT_CHECKOUT_OPTS_INIT;
-    git_check_error(git_checkout_head(___arg1, &options));
+    // git_check_error(git_checkout_head(___arg1, &options));
+    int result = git_checkout_head(___arg1, &options);
+    if (result != 0)
+        ___result = ___FIX(result);
+    else
+        ___result = ___FAL;
 end-of-c-code
-))
+)))
 
 (define git-checkout-tree-force
-  (c-lambda (git_repository* git_tree*) void
+  (c-lambda (git_repository* git_tree*) scheme-object ;; void
     #<<end-of-c-code
     git_checkout_opts options = GIT_CHECKOUT_OPTS_INIT;
     options.checkout_strategy = GIT_CHECKOUT_FORCE;
-    git_check_error(git_checkout_tree(___arg1, (git_object*) ___arg2, &options));
+    // git_check_error(git_checkout_tree(___arg1, (git_object*) ___arg2, &options));
+    int result = git_checkout_tree(___arg1, (git_object*) ___arg2, &options);
+    if (result != 0)
+        ___result = ___FIX(result);
+    else
+        ___result = ___FAL;
 end-of-c-code
 ))
 
@@ -209,11 +240,20 @@ end-of-c-code
 
 
 (define git-commit-tree
-  (c-lambda (git_object*) git_tree*
+  (c-lambda (git_object*) scheme-object ;; git_tree*
     #<<end-of-c-code
     git_tree* tree;
-    git_check_error(git_commit_tree(&tree, (git_commit*) ___arg1));
-    ___result_voidstar = tree;
+    // git_check_error(git_commit_tree(&tree, (git_commit*) ___arg1));
+    // ___result_voidstar = tree;
+    int result = git_commit_tree(&tree, (git_commit*) ___arg1);
+    if (result != 0)
+        ___result = ___FIX(result);
+    else
+    {
+        ___SCMOBJ foreign;
+        ___EXT(___POINTER_to_SCMOBJ)(tree, ___FAL, NULL, &foreign, ___RETURN_POS);
+        ___result = foreign;
+    }
 end-of-c-code
 ))
 
@@ -272,11 +312,20 @@ end-of-c-code
 ))
 
 (define git-reference-name->id
-  (c-lambda (git_repository* char-string) git_oid*
+  (c-lambda (git_repository* char-string) scheme-object ;; git_oid*
     #<<end-of-c-code
     git_oid* oid = calloc(1, sizeof(git_oid));
-    git_check_error(git_reference_name_to_id(oid, ___arg1, ___arg2));
-    ___result_voidstar = oid;
+    // git_check_error(git_reference_name_to_id(oid, ___arg1, ___arg2));
+    // ___result_voidstar = oid;
+    int result = git_reference_name_to_id(oid, ___arg1, ___arg2);
+    if (result != 0)
+        ___result = ___FIX(result);
+    else
+    {
+        ___SCMOBJ foreign;
+        ___EXT(___POINTER_to_SCMOBJ)(oid, ___FAL, NULL, &foreign, ___RETURN_POS);
+        ___result = foreign;
+    }
 end-of-c-code
 ))
 
@@ -284,9 +333,14 @@ end-of-c-code
   (git-reference-name->id repo (git-reference-name ref)))
 
 (define git-reference__update_terminal
-  (c-lambda (git_repository* char-string git_object*) void
+  (c-lambda (git_repository* char-string git_object*) scheme-object ;; void
     #<<end-of-c-code
-    git_check_error(git_reference__update_terminal(___arg1, ___arg2, git_object_id(___arg3)));
+    // git_check_error(git_reference__update_terminal(___arg1, ___arg2, git_object_id(___arg3)));
+    int result = git_reference__update_terminal(___arg1, ___arg2, git_object_id(___arg3));
+    if (result != 0)
+        ___result = ___FIX(result);
+    else
+        ___result = ___FAL;
 end-of-c-code
 ))
 
@@ -297,6 +351,7 @@ end-of-c-code
 
 
 (git-external (git-remote-create (out git_remote*) git_repository* char-string char-string) :error "git_remote_create")
+(git-external (git-remote-connect git_remote* int) :error "git_remote_connect")
 (git-external (git-remote-load (out git_remote*) git_repository* char-string) :error "git_remote_load")
 (git-external (git-remote-check-cert git_remote* int) void "git_remote_check_cert")
 
@@ -322,13 +377,6 @@ end-of-c-declare
 end-of-c-code
 ))
 
-(define git-remote-connect
-  (c-lambda (git_remote* int) void
-    #<<end-of-c-code
-    git_check_error(git_remote_connect(___arg1, ___arg2));
-end-of-c-code
-))
-
 (c-define (remote-download-procedure proc total_objects indexed_objects received_objects received_bytes) (scheme-object unsigned-int unsigned-int unsigned-int unsigned-int) void "remote_download_procedure" ""
   (when proc
     (proc total_objects indexed_objects received_objects received_bytes)))
@@ -343,12 +391,17 @@ end-of-c-code
 )
 
 (define git-remote-download
-  (c-lambda (git_remote* scheme-object) void
+  (c-lambda (git_remote* scheme-object) scheme-object ;; void
     #<<end-of-c-code
     void* p = ___EXT(___alloc_rc)(0);
     ___EXT(___set_data_rc)(p, ___arg2);
-    git_check_error(git_remote_download(___arg1, &remote_download_cb, p));
+    // git_check_error(git_remote_download(___arg1, &remote_download_cb, p));
+    int result = git_remote_download(___arg1, &remote_download_cb, p);
     ___EXT(___release_rc)(p);
+    if (result != 0)
+        ___result = ___FIX(result);
+    else
+        ___result = ___FAL;
 end-of-c-code
 ))
 

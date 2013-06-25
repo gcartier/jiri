@@ -22,6 +22,8 @@
 ;; - A potential problem can occur when I push a new release because pushing to both app and
 ;;   world is not atomic. This can be alleviated a bit by a script to push a release pushing
 ;;   both repositories rapidly maybe even in parallel
+;; - Marc had the following problem:
+;;   - Failed to make directory 'C:/Program Files/Dawn of Space': The system cannot find the file specified
 ;; - Invoking app directly should error
 ;; - Uninstaller
 
