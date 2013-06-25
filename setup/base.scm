@@ -223,7 +223,7 @@
 
 (define (jiri-exception-handler exc)
   (define (debug-exception exc)
-    (call-with-output-file (list path: "exception.txt" eol-encoding: eol-encoding)
+    (call-with-output-file (list path: "exception.txt" eol-encoding: eol-encoding output-width: 9999)
       (lambda (output)
         (display-exception exc output)
         (continuation-capture

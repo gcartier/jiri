@@ -10,7 +10,7 @@
 
 
 (define (log-backtrace ignore)
-  (call-with-output-file (list path: "crash.txt" eol-encoding: eol-encoding)
+  (call-with-output-file (list path: "crash.txt" eol-encoding: eol-encoding output-width: 9999)
     (lambda (output)
       (continuation-capture
         (lambda (cont)
