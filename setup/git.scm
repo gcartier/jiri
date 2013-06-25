@@ -106,6 +106,22 @@
 
 
 ;;;
+;;;; Version
+;;;
+
+
+(define git-version
+  (c-lambda () scheme-object
+    #<<end-of-c-code
+    int major, minor, rev;
+    git_libgit2_version(&major, &minor, &rev);
+    ___SCMOBJ version = ___EXT(___make_pair) (___FIX(major), ___FIX(minor), ___STILL);
+    ___result = version;
+end-of-c-code
+))
+
+
+;;;
 ;;;; Thread
 ;;;
 
