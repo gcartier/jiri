@@ -15,8 +15,8 @@ BUILD="$ROOT/build"
 SETUP="$ROOT/setup"
 INSTALL="$ROOT/install"
 
-CBASE="$BUILD/features.c $BUILD/crash.c $BUILD/windows.c"
-OBASE="$BUILD/features.o $BUILD/crash.o $BUILD/windows.o"
+CBASE="$BUILD/features.c $BUILD/windows.c $BUILD/crash.c"
+OBASE="$BUILD/features.o $BUILD/windows.o $BUILD/crash.o"
 
 CFILES="$CBASE $BUILD/git.c"
 OFILES="$OBASE $BUILD/git.o"
@@ -38,8 +38,8 @@ fi
 
 # Common
 gsc -c -o $BUILD $ABS/features
-gsc -c -o $BUILD $ABS/crash
 gsc -c -o $BUILD $ABS/windows
+gsc -c -o $BUILD $ABS/crash
 gsc -c -o $BUILD $ABS/git
 gsc -c -o $BUILD $ABS/devel-setup
 gsc -c -o $BUILD $ABS/devel-install

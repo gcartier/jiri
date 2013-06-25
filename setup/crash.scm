@@ -10,11 +10,14 @@
 
 
 (define (log-backtrace ignore)
-  (call-with-output-file (list path: "crash.txt" eol-encoding: eol-encoding output-width: 9999)
+  (call-with-output-file (list path: "crash-report.txt" eol-encoding: eol-encoding output-width: 256)
     (lambda (output)
       (continuation-capture
         (lambda (cont)
-          (display-continuation-backtrace cont output #t #t 1000 1000))))))
+          (display-continuation-backtrace cont output #t #t 1000 1000)))))
+  (system-message (string-append "An unexpected problem occurred.\r\n\r\n"
+                                 "Please send the generated bug report to gucartier@gmail.com:\r\n\r\n"
+                                 (path-normalize "crash-report.txt"))))
 
 
 (define crash-reporter
