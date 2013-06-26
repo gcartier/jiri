@@ -24,8 +24,6 @@
 ;;   - Change at 100% / nb of background!?
 ;; - Install could pass info to the app of what was the last head so that we could show
 ;;   only what changed since last time by having a what's new system indexed by commit!?
-;; - Should prolly save problem reports to a standard easier to find location
-;;   - Generate in ~ !? Ask Marc what ~ corresponds to on a machine where Gambit is *not* installed
 ;; - When Marc has fixed the FFI error problem, replace the global error-handler by a catcher
 ;;   to ward against recursive errors
 ;; - A potential problem can occur when I push a new release because pushing to both app and
