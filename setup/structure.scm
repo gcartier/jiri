@@ -65,8 +65,8 @@
   (setenv "closed-beta-password" (or closed-beta-password ""))
   (setenv "called-from" called-from)
   (if #f ;devel-testing?
-      (open-process (string-append (current-dir) "InstallConsole"))
-    (open-process (current-exe)))
+      (delegate-process (string-append (current-dir) "InstallConsole"))
+    (delegate-process (current-exe)))
   (exit))
 
 
@@ -75,8 +75,8 @@
   (setenv "closed-beta-password" (or closed-beta-password ""))
   (setenv "called-from" called-from)
   (if #f ;devel-testing?
-      (open-process (string-append (install-dir) "InstallConsole"))
-    (open-process (install-exe)))
+      (delegate-process (string-append (install-dir) "InstallConsole"))
+    (delegate-process (install-exe)))
   ;; wait for install window to cover our own window
   (thread-sleep! .5)
   (exit))

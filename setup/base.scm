@@ -200,6 +200,20 @@
 
 
 ;;;
+;;;; Process
+;;;
+
+
+(define (delegate-process path)
+  (open-process (list
+                  path: path
+                  stdin-redirection: #f
+                  stdout-redirection: #f
+                  stderr-redirection: #f
+                  show-console: #f)))
+
+
+;;;
 ;;;; Debug
 ;;;
 

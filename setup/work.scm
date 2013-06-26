@@ -6,8 +6,12 @@
 ;;;
 
 
-;; DAMN we need to give CREATOR OWNER full rights on Dawn of Space (and recursively!?) folder
-;; else we still have access denied errors with libgit2 during Install
+;; Pas afficher le terminal pour la creation des settings tout comme pour Jazz
+;; Pourquoi le shortcut sur le desktop a perdu son icone???
+
+
+;; Ajouter un monde de minecraft
+;; Warcraft present -> can't find model pyro
 
 
 ;; TODO
@@ -27,8 +31,6 @@
 ;; - A potential problem can occur when I push a new release because pushing to both app and
 ;;   world is not atomic. This can be alleviated a bit by a script to push a release pushing
 ;;   both repositories rapidly maybe even in parallel
-;; - The pipe is closed is a real bug occuring when using Launch
-;;   - Maybe open-process with options to not create pipes!?
 ;; - Do not forget about the --orphan branch as the multiple pushes of Install versions are starting to
 ;;   make even the clone of Install painfully long
 ;; - Invoking app directly should error
@@ -403,7 +405,7 @@
 
 
 (define (play)
-  (open-process (app-exe))
+  (delegate-process (app-exe))
   (quit))
 
 
