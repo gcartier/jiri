@@ -7,7 +7,6 @@
 
 
 ;; TODO
-;; - Create start menu folder!? (others!?)
 ;; - Handle all git errors!?
 ;; - It is not user-friendly to not be able to change setup dir after clicking Setup and
 ;;   changing ones mind at password stage but I do not see any alternative

@@ -141,6 +141,7 @@
 
 (c-enumerant FILE_ATTRIBUTE_READONLY)
 
+(c-enumerant CSIDL_STARTMENU)
 (c-enumerant CSIDL_DESKTOPDIRECTORY)
 (c-enumerant CSIDL_PROGRAM_FILESX86)
 

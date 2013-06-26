@@ -102,7 +102,8 @@
   (when install?
     (install-current)
     (install-root)
-    (install-shortcut))
+    (install-desktop-shortcut)
+    (install-start-menu))
   (set-label-title status-view "Done")
   (set-view-active? play-view #t)
   (set-default-cursor IDC_ARROW)
@@ -137,12 +138,25 @@
     (copy-file from to)))
 
 
-(define (install-shortcut)
+(define (install-desktop-shortcut)
   (let ((path (root-exe))
         (desktop (get-special-folder CSIDL_DESKTOPDIRECTORY)))
     (let ((hr (create-shortcut path (string-append desktop "/" jiri-title ".lnk") jiri-title)))
       (when (< hr 0)
         (error "Unable to create desktop shortcut (0x" (number->string hr 16) ")")))))
+
+
+(define (install-start-menu)
+  (let ((path (root-exe))
+        (startdir (get-special-folder CSIDL_STARTMENU)))
+    (let ((appdir (string-append startdir "/Programs/" jiri-title)))
+      (when (file-exists? appdir)
+        ;; danger
+        (delete-directory appdir))
+      (create-directory appdir)
+      (let ((hr (create-shortcut path (string-append appdir "/" jiri-title ".lnk") jiri-title)))
+        (when (< hr 0)
+          (error "Unable to create start menu shortcut (0x" (number->string hr 16) ")"))))))
 
 
 ;;;
