@@ -556,8 +556,9 @@ end-of-c-code
             ((confirmation) (bitwise-ior MB_YESNOCANCEL MB_ICONWARNING))
             ((problem) (bitwise-ior MB_OK MB_ICONERROR))
             ((error) (bitwise-ior MB_OKCANCEL MB_ICONERROR)))))
-    (let ((code (parameterize ((in-modal? #t))
-                  (MessageBox (if window (window-handle window) #f) text title (bitwise-ior MB_TASKMODAL flags)))))
+    (let ((code (with-modal
+                  (lambda ()
+                    (MessageBox (if window (window-handle window) #f) text title (bitwise-ior MB_TASKMODAL flags))))))
       (cond ((= code IDOK) 'yes)
             ((= code IDCANCEL) 'cancel)
             ((= code IDYES) 'yes)
@@ -764,10 +765,6 @@ end-of-c-code
 ;;;
 
 
-(define in-modal?
-  (make-parameter #f))
-
-
 (c-declare #<<end-of-c-code
 wchar_t szItemName[80];
 
@@ -829,8 +826,36 @@ end-of-c-code
 
 (define dialog-box
   (lambda (handle)
-    (parameterize ((in-modal? #t))
-      (dialog-box-internal handle))))
+    (with-modal
+      (lambda ()
+        (dialog-box-internal handle)))))
+
+
+;;;
+;;;; Modal
+;;;
+
+
+(define in-modal?
+  (make-parameter #f))
+
+
+(define delayed-modal-user-event
+  #f)
+
+(define (delay-modal-user-event wparam lparam)
+  (set! delayed-modal-user-event (cons wparam lparam)))
+
+
+(define (with-modal thunk)
+  (let ((code (parameterize ((in-modal? #t))
+                (thunk))))
+    (when delayed-modal-user-event
+      (let ((wparam (car delayed-modal-user-event))
+            (lparam (cdr delayed-modal-user-event)))
+        (set! delayed-modal-user-event #f)
+        (PostMessage (window-handle current-window) WM_USER wparam lparam)))
+    code))
 
 
 ;;;

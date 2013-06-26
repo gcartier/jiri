@@ -6,10 +6,6 @@
 ;;;
 
 
-;; Crash if abort dialog present when delegate-install called!?
-;; - also try to move the window, anything else that could go
-;;   wrong when delegate gets called
-
 ;; Pour bien faire, faudrait aussi passer la position de la fenetre pour
 ;; toujours ouvrir pile au dessus
 
@@ -455,7 +451,9 @@
     (cond ((= wparam DOWNLOAD_PROGRESS) (download-progress lparam))
           ((= wparam DOWNLOAD_DONE)     (download-done     lparam))
           ((= wparam CHECKOUT_PROGRESS) (checkout-progress lparam))
-          ((= wparam CHECKOUT_DONE)     (checkout-done     lparam)))))
+          ((= wparam CHECKOUT_DONE)     (if (in-modal?)
+                                            (delay-modal-user-event wparam lparam)
+                                          (checkout-done lparam))))))
 
 
 ;;;
