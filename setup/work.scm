@@ -6,7 +6,9 @@
 ;;;
 
 
-;; Pourquoi le shortcut sur le desktop a perdu son icone???
+;; Crash if abort dialog present when delegate-install called!?
+;; - also try to move the window, anything else that could go
+;;   wrong when delegate gets called
 
 
 ;; Ajouter un monde de minecraft

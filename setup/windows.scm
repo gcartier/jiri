@@ -743,6 +743,7 @@ end-of-c-code
         {
             hres = psl->lpVtbl->SetPath(psl, ___arg1);
             psl->lpVtbl->SetDescription(psl, ___arg3);
+            psl->lpVtbl->SetIconLocation(psl, ___arg1, 0);
             if (SUCCEEDED(hres))
             {
                 hres=ppf->lpVtbl->Save(ppf, ___arg2, TRUE);
