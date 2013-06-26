@@ -38,9 +38,9 @@
         (newline output)
         (proc output)
         (force-output output))))
-  (system-message (string-append "An unexpected problem occurred.\r\n\r\n"
-                                 "Please send the bug report that was generated on your desktop and any comments to gucartier@gmail.com.\r\n\r\n")
-                  title: "Problem"))
+  (message-box (string-append "An unexpected problem occurred.\r\n\r\n"
+                              "Please send the bug report that was generated on your desktop and any comments to gucartier@gmail.com.\r\n\r\n")
+               title: "Problem"))
 
 
 (define (log-backtrace ignore)

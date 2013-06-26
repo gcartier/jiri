@@ -19,7 +19,7 @@
   (cond ((file-exists? (current-exe))
          (delegate-current current-root-dir closed-beta-password "root"))
         (else
-         (system-message "Incorrect installation")
+         (message-box "Incorrect installation")
          (exit 1))))
 
 

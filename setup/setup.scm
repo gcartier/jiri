@@ -61,7 +61,7 @@
             root-dir)
         (let ((code (if current-root-dir
                         'yes
-                      (system-message (string-append "Installation folder already exists: " root-dir "\n\nDo you want to replace?") type: 'confirmation))))
+                      (message-box (string-append "Installation folder already exists: " root-dir "\n\nDo you want to replace?") type: 'confirmation))))
           (when (eq? code 'yes)
             (set-default-cursor IDC_WAIT)
             (set! work-in-progress? #t)
@@ -75,7 +75,7 @@
                 (begin
                   (set-default-cursor IDC_ARROW)
                   (set! work-in-progress? #f)
-                  (system-message (string-append "Unable to delete folder (0x" (number->string code 16) ")"))
+                  (message-box (string-append "Unable to delete folder (0x" (number->string code 16) ")"))
                   #f)))))))))
 
 

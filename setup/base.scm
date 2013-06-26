@@ -219,7 +219,7 @@
 
 
 (define (debug n)
-  (system-message (->string n)))
+  (message-box (->string n)))
 
 
 (define (->string expr)

@@ -27,7 +27,7 @@
                           (equal? called-from "current"))
                      'install-from-current)
                     (else
-                     (system-message "It is incorrect to launch this application")
+                     (message-box "It is incorrect to launch this application")
                      (exit 1))))
   (when (neq? stage 'current-from-root)
     (set! work-percentage (string->number (getenv-default "work-percentage" "0.")))

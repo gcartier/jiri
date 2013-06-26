@@ -409,7 +409,7 @@
 (define (quit)
   (if (not work-in-progress?)
       (exit)
-    (let ((code (system-message (string-append "Setup in progress.\n\nDo you want to abort?") type: 'confirmation)))
+    (let ((code (message-box (string-append "Setup in progress.\n\nDo you want to abort?") type: 'confirmation)))
       (when (eq? code 'yes)
         (exit)))))
 
@@ -485,7 +485,7 @@
                        (let ((err (->string (car (error-exception-parameters exc)))))
                          (string-ends-with? err "401")))
                   (begin
-                    (system-message "Incorrect password")
+                    (message-box "Incorrect password")
                     (loop (+ try 1)))
                 (raise exc)))
             (lambda ()

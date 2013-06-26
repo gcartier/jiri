@@ -540,7 +540,7 @@ end-of-c-code
   "exe")
 
 
-(define (system-message text #!key (type 'message) (title #f))
+(define (message-box text #!key (type 'message) (title #f))
   (let ((window current-window)
         (title
           (or title (case type
