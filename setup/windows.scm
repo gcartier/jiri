@@ -556,7 +556,8 @@ end-of-c-code
             ((confirmation) (bitwise-ior MB_YESNOCANCEL MB_ICONWARNING))
             ((problem) (bitwise-ior MB_OK MB_ICONERROR))
             ((error) (bitwise-ior MB_OKCANCEL MB_ICONERROR)))))
-    (let ((code (MessageBox (if window (window-handle window) #f) text title (bitwise-ior MB_TASKMODAL flags))))
+    (let ((code (parameterize ((in-modal? #t))
+                  (MessageBox (if window (window-handle window) #f) text title (bitwise-ior MB_TASKMODAL flags)))))
       (cond ((= code IDOK) 'yes)
             ((= code IDCANCEL) 'cancel)
             ((= code IDYES) 'yes)
@@ -763,6 +764,10 @@ end-of-c-code
 ;;;
 
 
+(define in-modal?
+  (make-parameter #f))
+
+
 (c-declare #<<end-of-c-code
 wchar_t szItemName[80];
 
@@ -810,7 +815,7 @@ end-of-c-code
 )
 
 
-(define dialog-box
+(define dialog-box-internal
   (c-lambda (HWND) wchar_t-string
     #<<end-of-c-code
     int code = DialogBox(GetModuleHandle(NULL), MAKEINTRESOURCE(50), ___arg1, DlgProc);
@@ -820,6 +825,12 @@ end-of-c-code
         ___result = NULL;
 end-of-c-code
 ))
+
+
+(define dialog-box
+  (lambda (handle)
+    (parameterize ((in-modal? #t))
+      (dialog-box-internal handle))))
 
 
 ;;;

@@ -10,6 +10,9 @@
 ;; - also try to move the window, anything else that could go
 ;;   wrong when delegate gets called
 
+;; Pour bien faire, faudrait aussi passer la position de la fenetre pour
+;; toujours ouvrir pile au dessus
+
 
 ;; Ajouter un monde de minecraft
 
@@ -447,11 +450,12 @@
   (set! checkout-done proc))
 
 
-(define (user-callback wparam lparam)
-  (cond ((= wparam DOWNLOAD_PROGRESS) (download-progress lparam))
-        ((= wparam DOWNLOAD_DONE)     (download-done     lparam))
-        ((= wparam CHECKOUT_PROGRESS) (checkout-progress lparam))
-        ((= wparam CHECKOUT_DONE)     (checkout-done     lparam))))
+(set-user-callback
+  (lambda (wparam lparam)
+    (cond ((= wparam DOWNLOAD_PROGRESS) (download-progress lparam))
+          ((= wparam DOWNLOAD_DONE)     (download-done     lparam))
+          ((= wparam CHECKOUT_PROGRESS) (checkout-progress lparam))
+          ((= wparam CHECKOUT_DONE)     (checkout-done     lparam)))))
 
 
 ;;;

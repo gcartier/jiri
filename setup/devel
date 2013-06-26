@@ -61,6 +61,7 @@ cp $LIBGIT2/lib/libgit2.dll $SETUP
 cp $OPENSSL/lib/libeay32.dll $SETUP
 cp $OPENSSL/lib/ssleay32.dll $SETUP
 
+<<WAIT
 # Install
 windres --input $ABS/install.rc --output $BUILD/install.res --output-format=coff
 gsc -link -o $BUILD $CFILES $BUILD/devel-install.c
@@ -76,3 +77,4 @@ windres --input $ABS/launch.rc --output $BUILD/launch.res --output-format=coff
 gsc -link -o $BUILD $CBASE $BUILD/devel-launch.c
 gsc -cc-options "$CCOPT" -obj $CBASE $BUILD/devel-launch.c $BUILD/devel-launch_.c
 gcc -L$GAMBIT/lib -L$LIBGIT2/lib $OBASE $BUILD/devel-launch.o $BUILD/devel-launch_.o $BUILD/launch.res -mwindows -lgit2 $LBASE -o $INSTALL/Launch
+WAIT
