@@ -568,7 +568,7 @@ end-of-c-code
   (c-lambda (int) wchar_t-string
     #<<end-of-c-code
     wchar_t szDir[MAX_PATH];
-    SHGetSpecialFolderPathW(0, szDir, ___arg1, FALSE);
+    SHGetSpecialFolderPath(0, szDir, ___arg1, FALSE);
     ___result = szDir;
 end-of-c-code
 ))
@@ -663,7 +663,7 @@ end-of-c-code
 (define choose-directory
   (c-lambda (HWND wchar_t-string wchar_t-string) wchar_t-string
     #<<end-of-c-code
-    BROWSEINFOW  bi = {0};
+    BROWSEINFO   bi = {0};
     LPITEMIDLIST pidl;
     wchar_t      szDisplay[MAX_PATH];
     wchar_t      szDir[MAX_PATH];
@@ -675,9 +675,9 @@ end-of-c-code
     bi.lpfn           = BrowseCallbackProc;
     bi.lParam         = (LPARAM) ___arg3;
 
-    pidl = SHBrowseForFolderW(&bi);
+    pidl = SHBrowseForFolder(&bi);
     
-    SHGetPathFromIDListW(pidl, szDir);
+    SHGetPathFromIDList(pidl, szDir);
     
     ___result = szDir;
 end-of-c-code
@@ -694,7 +694,7 @@ end-of-c-code
     pszFrom[len] = 0;
     pszFrom[len+1] = 0;
     
-    SHFILEOPSTRUCTW fileop;
+    SHFILEOPSTRUCT fileop;
     fileop.hwnd   = NULL;    // no status display
     fileop.wFunc  = FO_DELETE;  // delete operation
     fileop.pFrom  = pszFrom;  // source file name as double null terminated string
@@ -704,7 +704,7 @@ end-of-c-code
     fileop.lpszProgressTitle     = NULL;
     fileop.hNameMappings         = NULL;
     
-    int ret = SHFileOperationW(&fileop);
+    int ret = SHFileOperation(&fileop);
     free(pszFrom);
     
     ___result = ret;
@@ -716,7 +716,7 @@ end-of-c-code
   (c-lambda () wchar_t-string
     #<<end-of-c-code
     wchar_t buf[MAX_PATH];
-    GetModuleFileNameW(NULL, buf, MAX_PATH);
+    GetModuleFileName(NULL, buf, MAX_PATH);
     ___result = buf;
 end-of-c-code
 ))
@@ -854,7 +854,7 @@ end-of-c-code
     int width = ___arg3;
     int height = ___arg4;
     
-    WNDCLASSEXW wc;
+    WNDCLASSEX wc;
     HWND hwnd;
     
     // Register the Window Class
@@ -871,14 +871,14 @@ end-of-c-code
     wc.lpszClassName = g_szClassName;
     wc.hIconSm       = LoadImage(hInstance, L"app", IMAGE_ICON, 16, 16, LR_SHARED);
 
-    RegisterClassExW(&wc);
+    RegisterClassEx(&wc);
 
     // Create the Window
     int screenX = GetSystemMetrics(SM_CXSCREEN);
     int screenY = GetSystemMetrics(SM_CYSCREEN);
     int xCtr = (screenX / 2) - (width / 2);
     int yCtr = (screenY / 2) - (height / 2);
-    hwnd = CreateWindowExW(
+    hwnd = CreateWindowEx(
         0,
         g_szClassName,
         title,

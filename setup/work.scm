@@ -6,12 +6,10 @@
 ;;;
 
 
-;; Pas afficher le terminal pour la creation des settings tout comme pour Jazz
 ;; Pourquoi le shortcut sur le desktop a perdu son icone???
 
 
 ;; Ajouter un monde de minecraft
-;; Warcraft present -> can't find model pyro
 
 
 ;; TODO
@@ -20,6 +18,8 @@
 ;; - It is not user-friendly to not be able to change setup dir after clicking Setup and
 ;;   changing ones mind at password stage but I do not see any alternative
 ;; - App can become unresponsive if github takes a long while to respond
+;;   - Need to fully integrate the Install update into the app update
+;;   - Should prolly make git-remote-connect threaded (any other potentially blocking calls?)
 ;; - Add multiple background support
 ;;   - Change at 100% / nb of background!?
 ;; - Install could pass info to the app of what was the last head so that we could show
