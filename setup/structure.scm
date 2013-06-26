@@ -71,6 +71,9 @@
   (setenv "called-from" called-from)
   (setenv "work-percentage" (number->string work-percentage))
   (setenv "work-downloaded" (number->string work-downloaded))
+  (let ((pos (get-window-position current-window)))
+    (setenv "window-h" (number->string (point-h pos)))
+    (setenv "window-v" (number->string (point-v pos))))
   (delegate-process (install-exe))
   ;; wait for install window to cover our own window
   (thread-sleep! .5)

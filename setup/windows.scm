@@ -884,12 +884,14 @@ end-of-c-code
 
 
 (define SetupWindow
-  (c-lambda (HINSTANCE LPCWSTR int int) HWND
+  (c-lambda (HINSTANCE LPCWSTR int int int int) HWND
     #<<end-of-c-code
     HINSTANCE hInstance = ___arg1;
     LPCWSTR title = ___arg2;
-    int width = ___arg3;
-    int height = ___arg4;
+    int x = ___arg3;
+    int y = ___arg4;
+    int width = ___arg5;
+    int height = ___arg6;
     
     WNDCLASSEX wc;
     HWND hwnd;
@@ -913,8 +915,8 @@ end-of-c-code
     // Create the Window
     int screenX = GetSystemMetrics(SM_CXSCREEN);
     int screenY = GetSystemMetrics(SM_CYSCREEN);
-    int xCtr = (screenX / 2) - (width / 2);
-    int yCtr = (screenY / 2) - (height / 2);
+    int xCtr = (x != -1) ? x : (screenX / 2) - (width / 2);
+    int yCtr = (y != -1) ? y : (screenY / 2) - (height / 2);
     hwnd = CreateWindowEx(
         0,
         g_szClassName,

@@ -31,7 +31,9 @@
                      (exit 1))))
   (when (neq? stage 'current-from-root)
     (set! work-percentage (string->number (getenv-default "work-percentage" "0.")))
-    (set! work-downloaded (string->number (getenv-default "work-downloaded" "0")))))
+    (set! work-downloaded (string->number (getenv-default "work-downloaded" "0")))
+    (set! window-h (string->number (getenv-default "window-h" "-1")))
+    (set! window-v (string->number (getenv-default "window-v" "-1")))))
 
 
 ;;;

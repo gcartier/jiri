@@ -6,13 +6,6 @@
 ;;;
 
 
-;; Pour bien faire, faudrait aussi passer la position de la fenetre pour
-;; toujours ouvrir pile au dessus
-
-
-;; Ajouter un monde de minecraft
-
-
 ;; TODO
 ;; - Create start menu folder!? (others!?)
 ;; - Handle all git errors!?
@@ -511,8 +504,15 @@
 ;;;
 
 
+(define window-h
+  -1)
+
+(define window-v
+  -1)
+
+
 (define (run #!optional (start #f))
-  (let ((hwnd (SetupWindow (current-instance) jiri-title (BITMAP-width current-bitmap) (BITMAP-height current-bitmap))))
+  (let ((hwnd (SetupWindow (current-instance) jiri-title window-h window-v (BITMAP-width current-bitmap) (BITMAP-height current-bitmap))))
     (window-handle-set! current-window hwnd)
     (ShowWindow hwnd SW_SHOWNORMAL)
     (UpdateWindow hwnd)
