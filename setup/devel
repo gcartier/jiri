@@ -1,7 +1,11 @@
 #!/bin/sh
 
-REL="$(dirname "$0")"
-ABS="$(cd "$REL"; pwd)"
+# Doesn't work because gcc doesn't understand the /d syntax and using
+# the d:\ syntax somehow splices d;C:\MinGW\msys\1.0 in front of the path
+# REL="$(dirname "$0")"
+# ABS="$(cd "$REL"; pwd)"
+
+ABS="d:\jiri\devel\setup"
 
 JIRI="$ABS/.."
 JAZZ="$JIRI/jazz"
@@ -21,7 +25,8 @@ OBASE="$BUILD/settings.o $BUILD/features.o $BUILD/windows.o $BUILD/crash.o"
 CFILES="$CBASE $BUILD/git.c"
 OFILES="$OBASE $BUILD/git.o"
 
-LBASE="-lgambc -lws2_32 -lgdi32 -lole32 -luuid"
+CCOPT="-DUNICODE -D_WIN32_WINNT=0x0502 -D_WIN32_IE=0x0400 -I$LIBGIT2/include"
+LBASE="-lgambc -lws2_32 -lgdi32 -lole32 -luuid -ladvapi32"
 
 if [ ! -d $ROOT ]; then
     mkdir $ROOT
@@ -49,7 +54,7 @@ gsc -c -o $BUILD $ABS/devel-launch
 # Setup
 windres --input $ABS/setup.rc --output $BUILD/setup.res --output-format=coff
 gsc -link -o $BUILD $CFILES $BUILD/devel-setup.c
-gsc -cc-options "-I$LIBGIT2/include" -obj $CFILES $BUILD/devel-setup.c $BUILD/devel-setup_.c
+gsc -cc-options "$CCOPT" -obj $CFILES $BUILD/devel-setup.c $BUILD/devel-setup_.c
 gcc -L$GAMBIT/lib -L$LIBGIT2/lib $OFILES $BUILD/devel-setup.o $BUILD/devel-setup_.o $BUILD/setup.res -mwindows -lgit2 $LBASE -o $SETUP/Setup
 gcc -L$GAMBIT/lib -L$LIBGIT2/lib $OFILES $BUILD/devel-setup.o $BUILD/devel-setup_.o $BUILD/setup.res -mconsole -lgit2 $LBASE -o $SETUP/SetupConsole
 cp $LIBGIT2/lib/libgit2.dll $SETUP
@@ -59,7 +64,7 @@ cp $OPENSSL/lib/ssleay32.dll $SETUP
 # Install
 windres --input $ABS/install.rc --output $BUILD/install.res --output-format=coff
 gsc -link -o $BUILD $CFILES $BUILD/devel-install.c
-gsc -cc-options "-I$LIBGIT2/include" -obj $CFILES $BUILD/devel-install.c $BUILD/devel-install_.c
+gsc -cc-options "$CCOPT" -obj $CFILES $BUILD/devel-install.c $BUILD/devel-install_.c
 gcc -L$GAMBIT/lib -L$LIBGIT2/lib $OFILES $BUILD/devel-install.o $BUILD/devel-install_.o $BUILD/install.res -mwindows -lgit2 $LBASE -o $INSTALL/Install
 gcc -L$GAMBIT/lib -L$LIBGIT2/lib $OFILES $BUILD/devel-install.o $BUILD/devel-install_.o $BUILD/install.res -mconsole -lgit2 $LBASE -o $INSTALL/InstallConsole
 cp $LIBGIT2/lib/libgit2.dll $INSTALL
@@ -69,5 +74,5 @@ cp $OPENSSL/lib/ssleay32.dll $INSTALL
 # Launch
 windres --input $ABS/launch.rc --output $BUILD/launch.res --output-format=coff
 gsc -link -o $BUILD $CBASE $BUILD/devel-launch.c
-gsc -cc-options "-I$LIBGIT2/include" -obj $CBASE $BUILD/devel-launch.c $BUILD/devel-launch_.c
+gsc -cc-options "$CCOPT" -obj $CBASE $BUILD/devel-launch.c $BUILD/devel-launch_.c
 gcc -L$GAMBIT/lib -L$LIBGIT2/lib $OBASE $BUILD/devel-launch.o $BUILD/devel-launch_.o $BUILD/launch.res -mwindows -lgit2 $LBASE -o $INSTALL/Launch

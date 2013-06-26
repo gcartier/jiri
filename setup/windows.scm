@@ -10,11 +10,11 @@
 (include "foreign.scm")
 
 
-(c-declare "#define UNICODE")
-(c-declare "#define _WIN32_IE 0x0400")
-(c-declare "#include <Ole2.h>")
-(c-declare "#include <ObjIdl.h>")
-(c-declare "#include <Shlobj.h>")
+(c-declare "#include <ole2.h>")
+(c-declare "#include <objidl.h>")
+(c-declare "#include <shlobj.h>")
+(c-declare "#include <accctrl.h>")
+(c-declare "#include <aclapi.h>")
 
 
 ;;;
@@ -579,6 +579,65 @@ end-of-c-code
 ;;;
 
 
+(define create-directory-with-acl-internal
+  (c-lambda (wchar_t-string) BOOL
+    #<<end-of-c-code
+    LPCTSTR lpPath = (LPCTSTR) ___arg1;
+    BOOL result = TRUE;
+    
+    if (!CreateDirectory(lpPath, NULL))
+    {
+        result = FALSE;
+        goto exit;
+    }
+
+    HANDLE hDir = CreateFile(lpPath, READ_CONTROL|WRITE_DAC, 0, NULL, OPEN_EXISTING, FILE_FLAG_BACKUP_SEMANTICS, NULL);
+    if (hDir == INVALID_HANDLE_VALUE)
+    {
+        result = FALSE;
+        goto exit;
+    }
+
+    ACL* pOldDACL;
+    SECURITY_DESCRIPTOR* pSD = NULL;
+    GetSecurityInfo(hDir, SE_FILE_OBJECT, DACL_SECURITY_INFORMATION, NULL, NULL, &pOldDACL, NULL, &pSD);
+
+    PSID pSid = NULL;
+    SID_IDENTIFIER_AUTHORITY authNt = SECURITY_NT_AUTHORITY;
+    AllocateAndInitializeSid(&authNt, 2, SECURITY_BUILTIN_DOMAIN_RID, DOMAIN_ALIAS_RID_USERS, 0, 0, 0, 0, 0, 0, &pSid);
+
+    EXPLICIT_ACCESS ea={0};
+    ea.grfAccessMode = GRANT_ACCESS;
+    ea.grfAccessPermissions = GENERIC_ALL;
+    ea.grfInheritance = CONTAINER_INHERIT_ACE|OBJECT_INHERIT_ACE;
+    ea.Trustee.TrusteeType = TRUSTEE_IS_GROUP;
+    ea.Trustee.TrusteeForm = TRUSTEE_IS_SID;
+    ea.Trustee.ptstrName = (LPTSTR)pSid;
+
+    ACL* pNewDACL = 0;
+    DWORD err = SetEntriesInAcl(1, &ea, pOldDACL, &pNewDACL);
+
+    if (pNewDACL)
+        SetSecurityInfo(hDir, SE_FILE_OBJECT, DACL_SECURITY_INFORMATION, NULL, NULL, pNewDACL, NULL);
+
+    FreeSid(pSid);
+    LocalFree(pNewDACL);
+    LocalFree(pSD);
+    LocalFree(pOldDACL);
+    CloseHandle(hDir);
+    
+exit:
+    ___result = result;
+end-of-c-code
+))
+
+
+(define create-directory-with-acl
+  (lambda (dir)
+    (when (not (create-directory-with-acl-internal dir))
+      (error "Unable to create directory:" dir))))
+
+
 (c-declare #<<end-of-c-code
 static int CALLBACK BrowseCallbackProc(HWND hwnd,UINT uMsg, LPARAM lParam, LPARAM lpData)
 {
@@ -704,7 +763,7 @@ end-of-c-code
 
 
 (c-declare #<<end-of-c-code
-char szItemName[80];
+wchar_t szItemName[80];
 
 BOOL CALLBACK DlgProc(HWND hwndDlg, UINT Message, WPARAM wParam, LPARAM lParam)
 {
@@ -751,7 +810,7 @@ end-of-c-code
 
 
 (define dialog-box
-  (c-lambda (HWND) char-string
+  (c-lambda (HWND) wchar_t-string
     #<<end-of-c-code
     int code = DialogBox(GetModuleHandle(NULL), MAKEINTRESOURCE(50), ___arg1, DlgProc);
     if (code == IDOK)
@@ -805,12 +864,12 @@ end-of-c-code
     wc.cbClsExtra    = 0;
     wc.cbWndExtra    = 0;
     wc.hInstance     = hInstance;
-    wc.hIcon         = LoadImage(hInstance, "app", IMAGE_ICON, 32, 32, LR_SHARED);
+    wc.hIcon         = LoadImage(hInstance, L"app", IMAGE_ICON, 32, 32, LR_SHARED);
     wc.hCursor       = NULL;
     wc.hbrBackground = NULL;
     wc.lpszMenuName  = NULL;
     wc.lpszClassName = g_szClassName;
-    wc.hIconSm       = LoadImage(hInstance, "app", IMAGE_ICON, 16, 16, LR_SHARED);
+    wc.hIconSm       = LoadImage(hInstance, L"app", IMAGE_ICON, 16, 16, LR_SHARED);
 
     RegisterClassExW(&wc);
 

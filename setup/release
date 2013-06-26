@@ -1,7 +1,11 @@
 #!/bin/sh
 
-REL="$(dirname "$0")"
-ABS="$(cd "$REL"; pwd)"
+# Doesn't work because gcc doesn't understand the /d syntax and using
+# the d:\ syntax somehow splices d;C:\MinGW\msys\1.0 in front of the path
+# REL="$(dirname "$0")"
+# ABS="$(cd "$REL"; pwd)"
+
+ABS="d:\jiri\devel\setup"
 
 JIRI="$ABS/.."
 JAZZ="$JIRI/jazz"
@@ -21,6 +25,7 @@ OBASE="$BUILD/settings.o $BUILD/features.o $BUILD/windows.o $BUILD/crash.o $BUIL
 CFILES="$CBASE $BUILD/git.c $BUILD/window.c $BUILD/draw.c $BUILD/view.c $BUILD/work.c"
 OFILES="$OBASE $BUILD/git.o $BUILD/window.o $BUILD/draw.o $BUILD/view.o $BUILD/work.o"
 
+CCOPT="-DUNICODE -D_WIN32_WINNT=0x0502 -D_WIN32_IE=0x0400 -I$LIBGIT2/include"
 LBASE="-lgambc -lws2_32 -lgdi32 -lole32 -luuid"
 
 if [ ! -d $ROOT ]; then
@@ -58,7 +63,7 @@ gsc -c -o $BUILD $ABS/launch
 # Setup
 windres --input $ABS/setup.rc --output $BUILD/setup.res --output-format=coff
 gsc -link -o $BUILD $CFILES $BUILD/setup.c
-gsc -cc-options "-I$LIBGIT2/include" -obj $CFILES $BUILD/setup.c $BUILD/setup_.c
+gsc -cc-options "$CCOPT" -obj $CFILES $BUILD/setup.c $BUILD/setup_.c
 gcc -L$GAMBIT/lib -L$LIBGIT2/lib $OFILES $BUILD/setup.o $BUILD/setup_.o $BUILD/setup.res -mwindows -lgit2 $LBASE -o $SETUP/Setup
 cp $LIBGIT2/lib/libgit2.dll $SETUP
 cp $OPENSSL/lib/libeay32.dll $SETUP
@@ -67,7 +72,7 @@ cp $OPENSSL/lib/ssleay32.dll $SETUP
 # Install
 windres --input $ABS/install.rc --output $BUILD/install.res --output-format=coff
 gsc -link -o $BUILD $CFILES $BUILD/install.c
-gsc -cc-options "-I$LIBGIT2/include" -obj $CFILES $BUILD/install.c $BUILD/install_.c
+gsc -cc-options "$CCOPT" -obj $CFILES $BUILD/install.c $BUILD/install_.c
 gcc -L$GAMBIT/lib -L$LIBGIT2/lib $OFILES $BUILD/install.o $BUILD/install_.o $BUILD/install.res -mwindows -lgit2 $LBASE -o $INSTALL/Install
 cp $LIBGIT2/lib/libgit2.dll $INSTALL
 cp $OPENSSL/lib/libeay32.dll $INSTALL
@@ -76,5 +81,5 @@ cp $OPENSSL/lib/ssleay32.dll $INSTALL
 # Launch
 windres --input $ABS/launch.rc --output $BUILD/launch.res --output-format=coff
 gsc -link -o $BUILD $CBASE $BUILD/launch.c
-gsc -obj $CBASE $BUILD/launch.c $BUILD/launch_.c
+gsc -cc-options "$CCOPT" -obj $CBASE $BUILD/launch.c $BUILD/launch_.c
 gcc -L$GAMBIT/lib $OBASE $BUILD/launch.o $BUILD/launch_.o $BUILD/launch.res -mwindows $LBASE -o $INSTALL/Launch

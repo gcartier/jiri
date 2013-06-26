@@ -6,6 +6,10 @@
 ;;;
 
 
+;; DAMN we need to give CREATOR OWNER full rights on Dawn of Space (and recursively!?) folder
+;; else we still have access denied errors with libgit2 during Install
+
+
 ;; TODO
 ;; - Create start menu folder!? (others!?)
 ;; - Handle all git errors!?
@@ -35,11 +39,14 @@
 ;; - test/Dawn/Dawn -:dar
 
 ;; RELEASE
-;; - b
-;; - i
-;; - remove manifest resource from Dawn of Space Setup.exe
-;; - cd release/install
-;; - commit and push changes
+;; Install
+;;   - b
+;;   - cd release/install
+;;   - commit and push changes
+;; Setup
+;;   - i
+;;   - m
+;;   - publish Dawn of Space Setup
 
 ;; SCENARIO
 ;; - Setup : clone install, delegate Install

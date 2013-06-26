@@ -56,6 +56,7 @@
     (when root-dir
       (if (not (file-exists? root-dir))
           (begin
+            (create-directory-with-acl root-dir)
             (set! current-root-dir root-dir)
             root-dir)
         (let ((code (if current-root-dir
@@ -68,6 +69,7 @@
             (let ((code (delete-directory root-dir)))
               (if (= code 0)
                   (begin
+                    (create-directory-with-acl root-dir)
                     (set! current-root-dir root-dir)
                     root-dir)
                 (begin
