@@ -33,6 +33,4 @@
 (load-source "view")
 (load-source "structure")
 (load-source "work")
-
-(set! devel-testing? #t)
 (load-source "setup")

@@ -34,8 +34,8 @@
         (remove-view setup-view)
         (add-view percentage-view)
         (add-view downloaded-view)
-        (add-view remaining-view)
         (add-view status-view)
+        (add-view remaining-view)
         (add-view progress-view)
         (add-view play-view)
         (setup-work)))))
@@ -111,7 +111,7 @@
 
 
 (define (setup-work)
-  (clone/pull-repository "application" jiri-install-remote closed-beta-password (install-dir) 1 4 #f #f #f
+  (clone/pull-repository "launcher" jiri-install-remote closed-beta-password (install-dir) 1 6 0. .05 .1
     (lambda (new-content?)
       (setup-done))))
 

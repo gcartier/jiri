@@ -23,9 +23,6 @@
 (define called-from
   #f)
 
-(define devel-testing?
-  #f)
-
 
 (define (app-dir)
   (string-append current-root-dir (normalize-directory jiri-app-dir)))
@@ -64,9 +61,7 @@
   (setenv "root-dir" root-dir)
   (setenv "closed-beta-password" (or closed-beta-password ""))
   (setenv "called-from" called-from)
-  (if #f ;devel-testing?
-      (delegate-process (string-append (current-dir) "InstallConsole"))
-    (delegate-process (current-exe)))
+  (delegate-process (current-exe))
   (exit))
 
 
@@ -74,9 +69,9 @@
   (setenv "root-dir" root-dir)
   (setenv "closed-beta-password" (or closed-beta-password ""))
   (setenv "called-from" called-from)
-  (if #f ;devel-testing?
-      (delegate-process (string-append (install-dir) "InstallConsole"))
-    (delegate-process (install-exe)))
+  (setenv "work-percentage" (number->string work-percentage))
+  (setenv "work-downloaded" (number->string work-downloaded))
+  (delegate-process (install-exe))
   ;; wait for install window to cover our own window
   (thread-sleep! .5)
   (exit))

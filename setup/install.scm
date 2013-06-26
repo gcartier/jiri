@@ -9,27 +9,41 @@
 (include "syntax.scm")
 
 
+(define stage
+  #f)
+
+
+(define (prepare-stage)
+  (set! current-root-dir (getenv-default "root-dir"))
+  (set! closed-beta-password (getenv-default "closed-beta-password"))
+  (set! called-from (getenv-default "called-from"))
+  (set! stage (cond ((and current-root-dir
+                          (equal? called-from "root"))
+                     'current-from-root)
+                    ((and current-root-dir
+                          (equal? called-from "setup"))
+                     'install-from-setup)
+                    ((and current-root-dir
+                          (equal? called-from "current"))
+                     'install-from-current)
+                    (else
+                     (system-message "It is incorrect to launch this application")
+                     (exit 1))))
+  (when (neq? stage 'current-from-root)
+    (set! work-percentage (string->number (getenv-default "work-percentage" "0.")))
+    (set! work-downloaded (string->number (getenv-default "work-downloaded" "0")))))
+
+
 ;;;
 ;;;; Install
 ;;;
 
 
 (define (install)
-  (set! current-root-dir (getenv-default "root-dir"))
-  (set! closed-beta-password (getenv-default "closed-beta-password"))
-  (set! called-from (getenv-default "called-from"))
-  (cond ((and current-root-dir
-              (equal? called-from "root"))
-         (current-from-root-work))
-        ((and current-root-dir
-              (equal? called-from "setup"))
-         (install-from-setup-work))
-        ((and current-root-dir
-              (equal? called-from "current"))
-         (install-from-current-work))
-        (else
-         (system-message "It is incorrect to launch this application")
-         (exit 1))))
+  (case stage
+    ((current-from-root) (current-from-root-work))
+    ((install-from-setup) (install-from-setup-work))
+    ((install-from-current) (install-from-current-work))))
 
 
 ;;;
@@ -38,7 +52,7 @@
 
 
 (define (current-from-root-work)
-  (clone/pull-repository "application" jiri-install-remote closed-beta-password (install-dir) 1 4 #f #f #f
+  (clone/pull-repository "launcher" jiri-install-remote closed-beta-password (install-dir) 1 6 0. .05 .1
     (lambda (new-content?)
       (if new-content?
           (delegate-install current-root-dir closed-beta-password "current")
@@ -69,12 +83,12 @@
 ;;;
 
 
-(define (install-application/world copy/shortcut?)
-  (clone/pull-repository "application" jiri-app-remote closed-beta-password (app-dir) 1 4 0. .2 .4
+(define (install-application/world install?)
+  (clone/pull-repository "application" jiri-app-remote closed-beta-password (app-dir) 3 6 .1 .2 .4
     (lambda (new-content?)
-      (clone/pull-repository "world" jiri-world-remote closed-beta-password (world-dir) 3 4 .4 .85 1.
+      (clone/pull-repository "world" jiri-world-remote closed-beta-password (world-dir) 5 6 .4 .85 1.
         (lambda (new-content?)
-          (install-done copy/shortcut?))))))
+          (install-done install?))))))
 
 
 ;;;
@@ -82,8 +96,8 @@
 ;;;
 
 
-(define (install-done copy/shortcut?)
-  (when copy/shortcut?
+(define (install-done install?)
+  (when install?
     (install-current)
     (install-root)
     (install-shortcut))
@@ -141,11 +155,15 @@
   (add-view minimize-view)
   (add-view percentage-view)
   (add-view downloaded-view)
-  (add-view remaining-view)
   (add-view status-view)
+  (add-view remaining-view)
   (add-view progress-view)
   (add-view play-view)
-  (set-label-title status-view (downloading-title "application" 1 4))
+  (when (neq? stage 'current-from-root)
+    (set-label-title percentage-view (string-append (number->string (fxround work-percentage)) "%"))
+    (set-label-title downloaded-view (string-append "Downloaded: " (number->string work-downloaded) "M"))
+    (set-label-title status-view (downloading-title "application" 3 6))
+    (set-progress-info progress-view (make-range .1 .4) (make-range 0 10)))
   (set! return-press
         (lambda ()
           (when work-done?
@@ -157,4 +175,5 @@
 ;;;
 
 
+(prepare-stage)
 (main install)

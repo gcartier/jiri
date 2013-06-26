@@ -29,6 +29,4 @@
 (load-source "color")
 (load-source "font")
 (load-source "structure")
-
-(set! devel-testing? #t)
 (load-source "launch")
