@@ -53,6 +53,7 @@
 (c-type HGDIOBJ      (pointer VOID handle))
 (c-type COLORREF     DWORD)
 (c-type HRESULT      unsigned-long)
+(c-type HKEY         (pointer (struct "HKEY__") handle))
 
 
 ;;;
@@ -757,6 +758,46 @@ end-of-c-code
     }
     
     ___result = hres;
+end-of-c-code
+))
+
+
+;;;
+;;;; Registry
+;;;
+
+
+(define registry-create-key
+  (c-lambda (wchar_t-string) HKEY
+    #<<end-of-c-code
+    HKEY key;
+    RegCreateKey(HKEY_CURRENT_USER, ___arg1, &key);
+    ___result = key;
+end-of-c-code
+))
+
+
+(define registry-close-key
+  (c-lambda (HKEY) void
+    #<<end-of-c-code
+    RegCloseKey(___arg1);
+end-of-c-code
+))
+
+
+(define registry-set-int
+  (c-lambda (HKEY wchar_t-string int) void
+    #<<end-of-c-code
+    DWORD value = ___arg3;
+    RegSetValueEx(___arg1, ___arg2, 0, REG_DWORD, (LPBYTE) &value, sizeof(value));
+end-of-c-code
+))
+
+
+(define registry-set-string
+  (c-lambda (HKEY wchar_t-string wchar_t-string) void
+    #<<end-of-c-code
+    RegSetValueEx(___arg1, ___arg2, 0, REG_SZ, (LPBYTE) ___arg3, (wcslen(___arg3)+1)*sizeof(wchar_t));
 end-of-c-code
 ))
 
