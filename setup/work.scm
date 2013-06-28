@@ -6,6 +6,9 @@
 ;;;
 
 
+;; HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Explorer\StartPage\NewShortcuts
+
+
 ;; TODO
 ;; - Handle all git and windows errors!?
 ;; - It is not user-friendly to not be able to change setup dir after clicking Setup and
@@ -23,7 +26,6 @@
 ;;   make even the clone of Install painfully long
 ;; - What do we need to do for the start menu highlight to disappear after first execution?
 ;; - My HKEY_LOCAL_MACHINE keys where being created under Wow6432Node so maybe I can support GameUX!?
-;; - Should I somehow use jazz:obliterate-PE-timestamp on executables!?
 ;; - Installer self-verification using a checksum!?
 ;; - Invoking app directly should error
 

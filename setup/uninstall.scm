@@ -39,12 +39,16 @@
         (registry-close-key key)
         (if (not install-dir)
             (not-found)
-          (let ((code (message-box (string-append "Remove " jiri-title " and all of its components?") type: 'question)))
+          (let ((code (message-box (string-append "Remove " jiri-title " and all of its components?")
+                                   title: (string-append jiri-title " Uninstall")
+                                   type: 'question)))
             (when (eq? code 'yes)
               (uninstall-desktop-shortcut)
               (uninstall-start-menu)
               (uninstall-uninstall)
               (uninstall-install install-dir)
+              (message-box (string-append jiri-title " was successfully removed from your computer.")
+                           title: (string-append jiri-title " Uninstall"))
               (seppuku-exit))))))))
 
 
