@@ -22,9 +22,6 @@
 ;; - Do not forget about the --orphan branch as the multiple pushes of Install versions are starting to
 ;;   make even the clone of Install painfully long
 ;; - What do we need to do for the start menu highlight to disappear after first execution?
-;; - Need to auto remove uninstall on X close!
-;;   - The actual code in (quit) gets bypassed by alt-F4 (maybe this is correct?!)
-;; - Can I do something about the dos console flashing on uninstall remove-self
 ;; - My HKEY_LOCAL_MACHINE keys where being created under Wow6432Node so maybe I can support GameUX!?
 ;; - Should I somehow use jazz:obliterate-PE-timestamp on executables!?
 ;; - Installer self-verification using a checksum!?

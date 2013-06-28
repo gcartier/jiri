@@ -45,7 +45,7 @@
               (uninstall-start-menu)
               (uninstall-uninstall)
               (uninstall-install install-dir)
-              (remove-self))))))))
+              (seppuku-exit))))))))
 
 
 (define (uninstall-desktop-shortcut)
@@ -74,7 +74,7 @@
         (message-box (string-append "Unable to delete installation folder (0x" (number->string code 16) "): " install-dir))))))
 
 
-(define (remove-self)
+(define (seppuku-exit)
   (define (generate-remover uninstall remove)
     (call-with-output-file (list path: remove eol-encoding: eol-encoding)
       (lambda (output)
@@ -91,7 +91,7 @@
   (let ((uninstall (executable-path))
         (remove (get-temporary-file (string-append jiri-title " remove") "bat")))
     (generate-remover uninstall remove)
-    (create-process (string-append "cmd /c \"" remove "\""))
+    (create-console-process (string-append "cmd /c \"" remove "\""))
     (exit)))
 
 
@@ -111,7 +111,7 @@
       (uninstall)))
   (set-quit
     (lambda ()
-      (remove-self))))
+      (seppuku-exit))))
 
 
 ;;;

@@ -603,7 +603,7 @@ end-of-c-code
 ))
 
 
-(define create-process
+(define create-console-process
   (c-lambda (wchar_t-string) BOOL
     #<<end-of-c-code
     STARTUPINFOW siStartupInfo;
@@ -611,13 +611,15 @@ end-of-c-code
     memset(&siStartupInfo, 0, sizeof(siStartupInfo));
     memset(&piProcessInfo, 0, sizeof(piProcessInfo));
     siStartupInfo.cb = sizeof(siStartupInfo);
+    siStartupInfo.dwFlags = STARTF_USESHOWWINDOW;
+    siStartupInfo.wShowWindow = SW_HIDE;
     ___result = CreateProcess(
                   NULL,
                   ___arg1,
                   NULL,
                   NULL,
                   0,
-                  0,
+                  CREATE_NEW_CONSOLE,
                   NULL,
                   NULL,
                   &siStartupInfo,
