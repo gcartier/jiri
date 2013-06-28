@@ -1,0 +1,5 @@
+#include "winuser.h"
+
+1          RT_MANIFEST uninstall.manifest
+app        ICON        uninstall.ico
+Background BITMAP      background.bmp

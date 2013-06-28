@@ -103,7 +103,8 @@
     (install-current)
     (install-root)
     (install-desktop-shortcut)
-    (install-start-menu))
+    (install-start-menu)
+    (install-uninstall))
   (set-label-title status-view "Done")
   (set-view-active? play-view #t)
   (set-default-cursor IDC_ARROW)
@@ -124,13 +125,15 @@
     (create-directory current-dir)
     
     (copy "Install.exe")
+    (copy "Uninstall.exe")
+    (copy "Uninstaller.exe")
     (copy "libgit2.dll")
     (copy "libeay32.dll")
     (copy "ssleay32.dll")))
 
 
 (define (install-root)
-  (let ((from (launch-exe))
+  (let ((from (launcher-exe))
         (to (root-exe)))
     ;; danger
     (when (file-exists? to)
@@ -140,23 +143,37 @@
 
 (define (install-desktop-shortcut)
   (let ((path (root-exe))
-        (desktop (get-special-folder CSIDL_DESKTOPDIRECTORY)))
-    (let ((hr (create-shortcut path (string-append desktop "/" jiri-title ".lnk") jiri-title)))
+        (shortcut (desktop-shortcut)))
+    (let ((hr (create-shortcut path shortcut jiri-title)))
       (when (< hr 0)
         (error "Unable to create desktop shortcut (0x" (number->string hr 16) ")")))))
 
 
 (define (install-start-menu)
   (let ((path (root-exe))
-        (startdir (get-special-folder CSIDL_STARTMENU)))
-    (let ((appdir (string-append startdir "/Programs/" jiri-title)))
-      (when (file-exists? appdir)
-        ;; danger
-        (delete-directory appdir))
-      (create-directory appdir)
-      (let ((hr (create-shortcut path (string-append appdir "/" jiri-title ".lnk") jiri-title)))
-        (when (< hr 0)
-          (error "Unable to create start menu shortcut (0x" (number->string hr 16) ")"))))))
+        (appdir (start-menu-appdir)))
+    (when (file-exists? appdir)
+      ;; danger
+      (delete-directory appdir))
+    (create-directory appdir)
+    (let ((hr (create-shortcut path (string-append appdir "/" jiri-title ".lnk") jiri-title)))
+      (when (< hr 0)
+        (error "Unable to create start menu shortcut (0x" (number->string hr 16) ")")))))
+
+
+(define (install-uninstall)
+  (let ((key (registry-create-key (HKEY_CURRENT_USER) (uninstall-subkey))))
+    (registry-set-string key "DisplayName" jiri-title)
+    (registry-set-string key "DisplayIcon" (pathname-platformize (root-exe)))
+    (registry-set-string key "DisplayVersion" jiri-version)
+    (registry-set-string key "Publisher" jiri-company)
+    (registry-set-string key "InstallDate" (get-local-date))
+    (registry-set-string key "InstallLocation" (pathname-platformize current-root-dir))
+    (registry-set-string key "UninstallString" (pathname-platformize (uninstaller-exe)))
+    (registry-set-int key "EstimatedSize" jiri-size)
+    (registry-set-int key "NoModify" 1)
+    (registry-set-int key "NoRepair" 1)
+    (registry-close-key key)))
 
 
 ;;;
@@ -180,10 +197,11 @@
     (set-label-title downloaded-view (string-append "Downloaded: " (number->string work-downloaded) "M"))
     (set-label-title status-view (downloading-title "application" 3 6))
     (set-progress-info progress-view (make-range .1 .4) (make-range 0 10)))
-  (set! return-press
-        (lambda ()
-          (when work-done?
-            (play)))))
+  (set-return-press
+    (lambda ()
+      (when work-done?
+        (play))))
+  (set-quit (quit-confirm-abort "Install")))
 
 
 ;;;

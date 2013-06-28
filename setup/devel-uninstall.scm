@@ -2,7 +2,7 @@
 ;;;  JazzScheme
 ;;;==============
 ;;;
-;;;; Devel Launch
+;;;; Devel Uninstall
 ;;;
 
 
@@ -28,5 +28,9 @@
 (load-source "geometry")
 (load-source "color")
 (load-source "font")
+(load-source "window")
+(load-source "draw")
+(load-source "view")
 (load-source "structure")
-(load-source "launch")
+(load-source "work")
+(load-source "uninstall")

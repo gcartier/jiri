@@ -32,5 +32,6 @@
 (load-source "draw")
 (load-source "view")
 (load-source "structure")
+(load-source "git-interface")
 (load-source "work")
 (load-source "setup")

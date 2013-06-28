@@ -201,13 +201,25 @@
 ;;;
 
 
+(define get-local-date
+  (c-lambda () char-string
+    #<<end-of-c-code
+    SYSTEMTIME time;
+    char str[256];
+    GetLocalTime(&time);
+    sprintf(str, "%.4d%.2d%.2d", time.wYear, time.wMonth, time.wDay);
+    ___result = str;
+end-of-c-code
+))
+
+
 (define get-local-time
   (c-lambda () char-string
     #<<end-of-c-code
     SYSTEMTIME time;
     char str[256];
     GetLocalTime(&time);
-    sprintf(str, "%d/%d/%d %d:%d:%.2d", time.wYear, time.wMonth, time.wDay, time.wHour, time.wMinute, time.wSecond);
+    sprintf(str, "%.4d/%.2d/%.2d %.2d:%.2d:%.2d", time.wYear, time.wMonth, time.wDay, time.wHour, time.wMinute, time.wSecond);
     ___result = str;
 end-of-c-code
 ))
@@ -510,7 +522,9 @@ end-of-c-code
 
 
 (define (process-close hwnd)
-  (DestroyWindow hwnd))
+  (DestroyWindow hwnd)
+  (when quit
+    (quit)))
 
 
 (define (process-destroy)
@@ -529,6 +543,13 @@ end-of-c-code
     (user-callback wparam lparam)))
 
 
+(define quit
+  #f)
+
+(define (set-quit callback)
+  (set! quit callback))
+
+
 ;;;
 ;;;; Platform
 ;;;
@@ -536,6 +557,10 @@ end-of-c-code
 
 (define eol-encoding
   'cr-lf)
+
+
+(define pathname-separator
+  #\\)
 
 
 (define executable-extension
@@ -574,6 +599,29 @@ end-of-c-code
     wchar_t szDir[MAX_PATH];
     SHGetSpecialFolderPath(0, szDir, ___arg1, FALSE);
     ___result = szDir;
+end-of-c-code
+))
+
+
+(define create-process
+  (c-lambda (wchar_t-string) BOOL
+    #<<end-of-c-code
+    STARTUPINFOW siStartupInfo;
+    PROCESS_INFORMATION piProcessInfo;
+    memset(&siStartupInfo, 0, sizeof(siStartupInfo));
+    memset(&piProcessInfo, 0, sizeof(piProcessInfo));
+    siStartupInfo.cb = sizeof(siStartupInfo);
+    ___result = CreateProcess(
+                  NULL,
+                  ___arg1,
+                  NULL,
+                  NULL,
+                  0,
+                  0,
+                  NULL,
+                  NULL,
+                  &siStartupInfo,
+                  &piProcessInfo);
 end-of-c-code
 ))
 
@@ -627,7 +675,8 @@ end-of-c-code
     FreeSid(pSid);
     LocalFree(pNewDACL);
     LocalFree(pSD);
-    LocalFree(pOldDACL);
+    // No clue why this will sometimes crash like on E:/Dawn
+    // LocalFree(pOldDACL);
     CloseHandle(hDir);
     
 exit:
@@ -726,6 +775,16 @@ end-of-c-code
 ))
 
 
+(define get-temporary-dir
+  (c-lambda () wchar_t-string
+    #<<end-of-c-code
+    wchar_t buf[MAX_PATH];
+    GetTempPath(MAX_PATH, buf);
+    ___result = buf;
+end-of-c-code
+))
+
+
 ;;;
 ;;;; Shortcut
 ;;;
@@ -767,12 +826,45 @@ end-of-c-code
 ;;;
 
 
+(define HKEY_CURRENT_USER
+  (c-lambda () HKEY
+    #<<end-of-c-code
+    ___result = HKEY_CURRENT_USER;
+end-of-c-code
+))
+
+
 (define registry-create-key
-  (c-lambda (wchar_t-string) HKEY
+  (c-lambda (HKEY wchar_t-string) HKEY
     #<<end-of-c-code
     HKEY key;
-    RegCreateKey(HKEY_CURRENT_USER, ___arg1, &key);
-    ___result = key;
+    LONG code = RegCreateKey(___arg1, ___arg2, &key);
+    if (code == ERROR_SUCCESS)
+        ___result = key;
+    else
+        ___result = NULL;
+end-of-c-code
+))
+
+
+(define registry-open-key
+  (c-lambda (HKEY wchar_t-string) HKEY
+    #<<end-of-c-code
+    HKEY key;
+    LONG code = RegOpenKeyEx(___arg1, ___arg2, 0, KEY_QUERY_VALUE, &key);
+    if (code == ERROR_SUCCESS)
+        ___result = key;
+    else
+        ___result = NULL;
+end-of-c-code
+))
+
+
+(define registry-delete-key
+  (c-lambda (HKEY wchar_t-string) bool
+    #<<end-of-c-code
+    LONG code = RegDeleteKey(___arg1, ___arg2);
+    ___result = (code == ERROR_SUCCESS);
 end-of-c-code
 ))
 
@@ -781,6 +873,20 @@ end-of-c-code
   (c-lambda (HKEY) void
     #<<end-of-c-code
     RegCloseKey(___arg1);
+end-of-c-code
+))
+
+
+(define registry-query-string
+  (c-lambda (HKEY wchar_t-string) wchar_t-string
+    #<<end-of-c-code
+    DWORD size = 512;
+    wchar_t str[size];
+    LONG code = RegQueryValueEx(___arg1, ___arg2, 0, 0, (LPBYTE) str, &size);
+    if (code == ERROR_SUCCESS)
+        ___result = str;
+    else
+        ___result = NULL;
 end-of-c-code
 ))
 

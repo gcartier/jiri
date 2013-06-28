@@ -22,8 +22,11 @@ INSTALL="$ROOT/install"
 CBASE="$BUILD/settings.c $BUILD/features.c $BUILD/windows.c $BUILD/crash.c $BUILD/base.c $BUILD/geometry.c $BUILD/color.c $BUILD/font.c $BUILD/structure.c"
 OBASE="$BUILD/settings.o $BUILD/features.o $BUILD/windows.o $BUILD/crash.o $BUILD/base.o $BUILD/geometry.o $BUILD/color.o $BUILD/font.o $BUILD/structure.o"
 
-CFILES="$CBASE $BUILD/git.c $BUILD/window.c $BUILD/draw.c $BUILD/view.c $BUILD/work.c"
-OFILES="$OBASE $BUILD/git.o $BUILD/window.o $BUILD/draw.o $BUILD/view.o $BUILD/work.o"
+CVIEW="$CBASE $BUILD/window.c $BUILD/draw.c $BUILD/view.c $BUILD/work.c"
+OVIEW="$OBASE $BUILD/window.o $BUILD/draw.o $BUILD/view.o $BUILD/work.o"
+
+CFULL="$CVIEW $BUILD/git.c $BUILD/git-interface.c"
+OFULL="$OVIEW $BUILD/git.o $BUILD/git-interface.o"
 
 CCOPT="-DUNICODE -D_WIN32_WINNT=0x0502 -D_WIN32_IE=0x0400 -I$LIBGIT2/include"
 LBASE="-lgambc -lws2_32 -lgdi32 -lole32 -luuid"
@@ -47,6 +50,7 @@ gsc -c -o $BUILD $ABS/features
 gsc -c -o $BUILD $ABS/windows
 gsc -c -o $BUILD $ABS/crash
 gsc -c -o $BUILD $ABS/git
+gsc -c -o $BUILD $ABS/git-interface
 gsc -c -o $BUILD $ABS/base
 gsc -c -o $BUILD $ABS/geometry
 gsc -c -o $BUILD $ABS/color
@@ -58,28 +62,42 @@ gsc -c -o $BUILD $ABS/structure
 gsc -c -o $BUILD $ABS/work
 gsc -c -o $BUILD $ABS/setup
 gsc -c -o $BUILD $ABS/install
-gsc -c -o $BUILD $ABS/launch
+gsc -c -o $BUILD $ABS/launcher
+gsc -c -o $BUILD $ABS/uninstall
+gsc -c -o $BUILD $ABS/uninstaller
 
 # Setup
 windres --input $ABS/setup.rc --output $BUILD/setup.res --output-format=coff
-gsc -link -o $BUILD $CFILES $BUILD/setup.c
-gsc -cc-options "$CCOPT" -obj $CFILES $BUILD/setup.c $BUILD/setup_.c
-gcc -L$GAMBIT/lib -L$LIBGIT2/lib $OFILES $BUILD/setup.o $BUILD/setup_.o $BUILD/setup.res -mwindows -lgit2 $LBASE -o $SETUP/Setup
+gsc -link -o $BUILD $CFULL $BUILD/setup.c
+gsc -cc-options "$CCOPT" -obj $CFULL $BUILD/setup.c $BUILD/setup_.c
+gcc -L$GAMBIT/lib -L$LIBGIT2/lib $OFULL $BUILD/setup.o $BUILD/setup_.o $BUILD/setup.res -mwindows -lgit2 $LBASE -o $SETUP/Setup
 cp $LIBGIT2/lib/libgit2.dll $SETUP
 cp $OPENSSL/lib/libeay32.dll $SETUP
 cp $OPENSSL/lib/ssleay32.dll $SETUP
 
 # Install
 windres --input $ABS/install.rc --output $BUILD/install.res --output-format=coff
-gsc -link -o $BUILD $CFILES $BUILD/install.c
-gsc -cc-options "$CCOPT" -obj $CFILES $BUILD/install.c $BUILD/install_.c
-gcc -L$GAMBIT/lib -L$LIBGIT2/lib $OFILES $BUILD/install.o $BUILD/install_.o $BUILD/install.res -mwindows -lgit2 $LBASE -o $INSTALL/Install
+gsc -link -o $BUILD $CFULL $BUILD/install.c
+gsc -cc-options "$CCOPT" -obj $CFULL $BUILD/install.c $BUILD/install_.c
+gcc -L$GAMBIT/lib -L$LIBGIT2/lib $OFULL $BUILD/install.o $BUILD/install_.o $BUILD/install.res -mwindows -lgit2 $LBASE -o $INSTALL/Install
 cp $LIBGIT2/lib/libgit2.dll $INSTALL
 cp $OPENSSL/lib/libeay32.dll $INSTALL
 cp $OPENSSL/lib/ssleay32.dll $INSTALL
 
-# Launch
-windres --input $ABS/launch.rc --output $BUILD/launch.res --output-format=coff
-gsc -link -o $BUILD $CBASE $BUILD/launch.c
-gsc -cc-options "$CCOPT" -obj $CBASE $BUILD/launch.c $BUILD/launch_.c
-gcc -L$GAMBIT/lib $OBASE $BUILD/launch.o $BUILD/launch_.o $BUILD/launch.res -mwindows $LBASE -o $INSTALL/Launch
+# Launcher
+windres --input $ABS/launcher.rc --output $BUILD/launcher.res --output-format=coff
+gsc -link -o $BUILD $CBASE $BUILD/launcher.c
+gsc -cc-options "$CCOPT" -obj $CBASE $BUILD/launcher.c $BUILD/launcher_.c
+gcc -L$GAMBIT/lib $OBASE $BUILD/launcher.o $BUILD/launcher_.o $BUILD/launcher.res -mwindows $LBASE -o $INSTALL/Launcher
+
+# Uninstall
+windres --input $ABS/uninstall.rc --output $BUILD/uninstall.res --output-format=coff
+gsc -link -o $BUILD $CVIEW $BUILD/uninstall.c
+gsc -cc-options "$CCOPT" -obj $CVIEW $BUILD/uninstall.c $BUILD/uninstall_.c
+gcc -L$GAMBIT/lib $OVIEW $BUILD/uninstall.o $BUILD/uninstall_.o $BUILD/uninstall.res -mwindows $LBASE -o $INSTALL/Uninstall
+
+# Uninstaller
+windres --input $ABS/uninstaller.rc --output $BUILD/uninstaller.res --output-format=coff
+gsc -link -o $BUILD $CBASE $BUILD/uninstaller.c
+gsc -cc-options "$CCOPT" -obj $CBASE $BUILD/uninstaller.c $BUILD/uninstaller_.c
+gcc -L$GAMBIT/lib $OBASE $BUILD/uninstaller.o $BUILD/uninstaller_.o $BUILD/uninstaller.res -mwindows $LBASE -o $INSTALL/Uninstaller

@@ -2,7 +2,7 @@
 ;;;  JazzScheme
 ;;;==============
 ;;;
-;;;; Launch
+;;;; Launcher
 ;;;
 
 
@@ -16,6 +16,10 @@
 
 (define (launch)
   (set! current-root-dir (executable-directory))
+  (launch-current))
+
+
+(define (launch-current)
   (cond ((file-exists? (current-exe))
          (delegate-current current-root-dir closed-beta-password "root"))
         (else

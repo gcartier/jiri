@@ -155,7 +155,11 @@
 
 
 (define (pathname-standardize path)
-  (string-replace path #\\ #\/))
+  (string-replace path pathname-separator #\/))
+
+
+(define (pathname-platformize path)
+  (string-replace path #\/ pathname-separator))
 
 
 (define (pathname-dir pathname)
@@ -184,6 +188,16 @@
   (SetFileAttributes file (mask-bit-set (GetFileAttributes file) FILE_ATTRIBUTE_READONLY flag)))
 
 
+(define (get-temporary-file prefix extension)
+  (let ((temporary-dir (get-temporary-dir)))
+    (let loop ((n #f))
+      (let ((suffix (if n (string-append " " (number->string n)) "")))
+        (let ((file (add-extension (string-append temporary-dir prefix suffix) extension)))
+          (if (not (file-exists? file))
+              file
+            (loop (+ (or n 0) 1))))))))
+
+
 ;;;
 ;;;; Directory
 ;;;
@@ -202,6 +216,10 @@
 ;;;
 ;;;; Process
 ;;;
+
+
+(define (command-arguments)
+  (cdr (command-line)))
 
 
 (define (delegate-process path)

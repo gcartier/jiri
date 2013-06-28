@@ -2,7 +2,7 @@
 ;;;  JazzScheme
 ;;;==============
 ;;;
-;;;; Devel Install
+;;;; Devel Launcher
 ;;;
 
 
@@ -28,10 +28,5 @@
 (load-source "geometry")
 (load-source "color")
 (load-source "font")
-(load-source "window")
-(load-source "draw")
-(load-source "view")
 (load-source "structure")
-(load-source "git-interface")
-(load-source "work")
-(load-source "install")
+(load-source "launcher")

@@ -45,11 +45,17 @@
 (define (current-exe)
   (add-extension (string-append (current-dir) "Install") executable-extension))
 
+(define (uninstall-exe)
+  (add-extension (string-append (current-dir) "Uninstall") executable-extension))
+
+(define (uninstaller-exe)
+  (add-extension (string-append (current-dir) "Uninstaller") executable-extension))
+
 (define (install-exe)
   (add-extension (string-append (install-dir) "Install") executable-extension))
 
-(define (launch-exe)
-  (add-extension (string-append (install-dir) "Launch") executable-extension))
+(define (launcher-exe)
+  (add-extension (string-append (install-dir) "Launcher") executable-extension))
 
 
 ;;;

@@ -22,8 +22,8 @@ INSTALL="$ROOT/install"
 CBASE="$BUILD/settings.c $BUILD/features.c $BUILD/windows.c $BUILD/crash.c"
 OBASE="$BUILD/settings.o $BUILD/features.o $BUILD/windows.o $BUILD/crash.o"
 
-CFILES="$CBASE $BUILD/git.c"
-OFILES="$OBASE $BUILD/git.o"
+CFULL="$CBASE $BUILD/git.c"
+OFULL="$OBASE $BUILD/git.o"
 
 CCOPT="-DUNICODE -D_WIN32_WINNT=0x0502 -D_WIN32_IE=0x0400 -I$LIBGIT2/include"
 LBASE="-lgambc -lws2_32 -lgdi32 -lole32 -luuid -ladvapi32"
@@ -49,30 +49,39 @@ gsc -c -o $BUILD $ABS/crash
 gsc -c -o $BUILD $ABS/git
 gsc -c -o $BUILD $ABS/devel-setup
 gsc -c -o $BUILD $ABS/devel-install
-gsc -c -o $BUILD $ABS/devel-launch
+gsc -c -o $BUILD $ABS/devel-uninstall
+gsc -c -o $BUILD $ABS/devel-launcher
 
 # Setup
 windres --input $ABS/setup.rc --output $BUILD/setup.res --output-format=coff
-gsc -link -o $BUILD $CFILES $BUILD/devel-setup.c
-gsc -cc-options "$CCOPT" -obj $CFILES $BUILD/devel-setup.c $BUILD/devel-setup_.c
-gcc -L$GAMBIT/lib -L$LIBGIT2/lib $OFILES $BUILD/devel-setup.o $BUILD/devel-setup_.o $BUILD/setup.res -mwindows -lgit2 $LBASE -o $SETUP/Setup
-gcc -L$GAMBIT/lib -L$LIBGIT2/lib $OFILES $BUILD/devel-setup.o $BUILD/devel-setup_.o $BUILD/setup.res -mconsole -lgit2 $LBASE -o $SETUP/SetupConsole
+gsc -link -o $BUILD $CFULL $BUILD/devel-setup.c
+gsc -cc-options "$CCOPT" -obj $CFULL $BUILD/devel-setup.c $BUILD/devel-setup_.c
+gcc -L$GAMBIT/lib -L$LIBGIT2/lib $OFULL $BUILD/devel-setup.o $BUILD/devel-setup_.o $BUILD/setup.res -mwindows -lgit2 $LBASE -o $SETUP/Setup
+gcc -L$GAMBIT/lib -L$LIBGIT2/lib $OFULL $BUILD/devel-setup.o $BUILD/devel-setup_.o $BUILD/setup.res -mconsole -lgit2 $LBASE -o $SETUP/SetupConsole
 cp $LIBGIT2/lib/libgit2.dll $SETUP
 cp $OPENSSL/lib/libeay32.dll $SETUP
 cp $OPENSSL/lib/ssleay32.dll $SETUP
 
 # Install
 windres --input $ABS/install.rc --output $BUILD/install.res --output-format=coff
-gsc -link -o $BUILD $CFILES $BUILD/devel-install.c
-gsc -cc-options "$CCOPT" -obj $CFILES $BUILD/devel-install.c $BUILD/devel-install_.c
-gcc -L$GAMBIT/lib -L$LIBGIT2/lib $OFILES $BUILD/devel-install.o $BUILD/devel-install_.o $BUILD/install.res -mwindows -lgit2 $LBASE -o $INSTALL/Install
-gcc -L$GAMBIT/lib -L$LIBGIT2/lib $OFILES $BUILD/devel-install.o $BUILD/devel-install_.o $BUILD/install.res -mconsole -lgit2 $LBASE -o $INSTALL/InstallConsole
+gsc -link -o $BUILD $CFULL $BUILD/devel-install.c
+gsc -cc-options "$CCOPT" -obj $CFULL $BUILD/devel-install.c $BUILD/devel-install_.c
+gcc -L$GAMBIT/lib -L$LIBGIT2/lib $OFULL $BUILD/devel-install.o $BUILD/devel-install_.o $BUILD/install.res -mwindows -lgit2 $LBASE -o $INSTALL/Install
+gcc -L$GAMBIT/lib -L$LIBGIT2/lib $OFULL $BUILD/devel-install.o $BUILD/devel-install_.o $BUILD/install.res -mconsole -lgit2 $LBASE -o $INSTALL/InstallConsole
 cp $LIBGIT2/lib/libgit2.dll $INSTALL
 cp $OPENSSL/lib/libeay32.dll $INSTALL
 cp $OPENSSL/lib/ssleay32.dll $INSTALL
 
-# Launch
-windres --input $ABS/launch.rc --output $BUILD/launch.res --output-format=coff
-gsc -link -o $BUILD $CBASE $BUILD/devel-launch.c
-gsc -cc-options "$CCOPT" -obj $CBASE $BUILD/devel-launch.c $BUILD/devel-launch_.c
-gcc -L$GAMBIT/lib -L$LIBGIT2/lib $OBASE $BUILD/devel-launch.o $BUILD/devel-launch_.o $BUILD/launch.res -mwindows -lgit2 $LBASE -o $INSTALL/Launch
+# Uninstall
+windres --input $ABS/uninstall.rc --output $BUILD/uninstall.res --output-format=coff
+gsc -link -o $BUILD $CBASE $BUILD/devel-uninstall.c
+gsc -cc-options "$CCOPT" -obj $CBASE $BUILD/devel-uninstall.c $BUILD/devel-uninstall_.c
+gcc -L$GAMBIT/lib $OBASE $BUILD/devel-uninstall.o $BUILD/devel-uninstall_.o $BUILD/uninstall.res -mwindows $LBASE -o $INSTALL/Uninstall
+gcc -L$GAMBIT/lib $OBASE $BUILD/devel-uninstall.o $BUILD/devel-uninstall_.o $BUILD/uninstall.res -mconsole $LBASE -o $INSTALL/UninstallConsole
+
+# Launcher
+windres --input $ABS/launcher.rc --output $BUILD/launcher.res --output-format=coff
+gsc -link -o $BUILD $CBASE $BUILD/devel-launcher.c
+gsc -cc-options "$CCOPT" -obj $CBASE $BUILD/devel-launcher.c $BUILD/devel-launcher_.c
+gcc -L$GAMBIT/lib $OBASE $BUILD/devel-launcher.o $BUILD/devel-launcher_.o $BUILD/launcher.res -mwindows $LBASE -o $INSTALL/Launcher
+gcc -L$GAMBIT/lib $OBASE $BUILD/devel-launcher.o $BUILD/devel-launcher_.o $BUILD/launcher.res -mconsole $LBASE -o $INSTALL/LauncherConsole

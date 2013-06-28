@@ -50,7 +50,7 @@
   (define (determine-root-dir)
     (let ((dir (pathname-standardize (choose-directory (window-handle current-window) "Please select the installation folder" (get-special-folder CSIDL_PROGRAM_FILESX86)))))
       (when (not (equal? dir ""))
-        (normalize-directory (string-append dir "/" jiri-title)))))
+        (normalize-directory (string-append (normalize-directory dir) jiri-title)))))
   
   (let ((root-dir (or current-root-dir (determine-root-dir))))
     (when root-dir
@@ -139,10 +139,11 @@
   (add-view close-view)
   (add-view minimize-view)
   (add-view setup-view)
-  (set! return-press
-        (lambda ()
-          (when (not work-done?)
-            (setup)))))
+  (set-return-press
+    (lambda ()
+      (when (not work-done?)
+        (setup))))
+  (set-quit (quit-confirm-abort "Setup")))
 
 
 ;;;
