@@ -24,7 +24,11 @@
                   (git-repository-init dir 0))))
       (let ((remote (if existing?
                         (git-remote-load repo "origin")
-                      (git-remote-create repo "origin" url)))
+                      (let ((remote (git-remote-create repo "origin" url)))
+                        (git-remote-clear-refspecs remote)
+                        (git-remote-add-fetch remote (string-append "+refs/heads/" branch ":refs/remotes/origin/" branch))
+                        (git-remote-save remote)
+                        remote)))
             (megabytes 0))
         (git-remote-connect-with-retries remote #f)
         (set-download-progress

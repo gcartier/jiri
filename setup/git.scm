@@ -157,35 +157,6 @@ end-of-c-declare
 ;;;
 
 
-(define git-checkout-head-force
-  (git-validate
-  (c-lambda (git_repository*) scheme-object ;; void
-    #<<end-of-c-code
-    git_checkout_opts options = GIT_CHECKOUT_OPTS_INIT;
-    options.checkout_strategy = GIT_CHECKOUT_FORCE;
-    // git_check_error(git_checkout_head(___arg1, &options));
-    int result = git_checkout_head(___arg1, &options);
-    if (result != 0)
-        ___result = ___FIX(result);
-    else
-        ___result = ___FAL;
-end-of-c-code
-)))
-
-(define git-checkout-tree-force
-  (c-lambda (git_repository* git_tree*) scheme-object ;; void
-    #<<end-of-c-code
-    git_checkout_opts options = GIT_CHECKOUT_OPTS_INIT;
-    options.checkout_strategy = GIT_CHECKOUT_FORCE;
-    // git_check_error(git_checkout_tree(___arg1, (git_object*) ___arg2, &options));
-    int result = git_checkout_tree(___arg1, (git_object*) ___arg2, &options);
-    if (result != 0)
-        ___result = ___FIX(result);
-    else
-        ___result = ___FAL;
-end-of-c-code
-))
-
 (c-declare #<<end-of-c-declare
     git_repository* checkout_repository = NULL;
     git_tree* checkout_tree = NULL;
@@ -243,16 +214,6 @@ end-of-c-code
         PostMessage(remoteHwnd, WM_USER, CHECKOUT_DONE, result);
         return 0;
     }
-
-    DWORD WINAPI checkout_tree_proc(LPVOID lpParam)
-    {
-        git_checkout_opts options = GIT_CHECKOUT_OPTS_INIT;
-        options.checkout_strategy = GIT_CHECKOUT_FORCE;
-        options.progress_cb = checkout_callback;
-        int result = git_checkout_tree(checkout_repository, (git_object*) checkout_tree, &options);
-        PostMessage(remoteHwnd, WM_USER, CHECKOUT_DONE, result);
-        return 0;
-    }
 end-of-c-declare
 )
 
@@ -267,42 +228,6 @@ end-of-c-declare
 end-of-c-code
 ))
 
-(define git-checkout-tree-force-threaded
-  (c-lambda (git_repository* git_tree* HWND) HANDLE
-    #<<end-of-c-code
-    if (! ghMutex)
-        ghMutex = CreateMutex(NULL, FALSE, NULL);
-    remoteHwnd = ___arg3;
-    checkout_repository = ___arg1;
-    checkout_tree = ___arg2;
-    ___result = CreateThread(NULL, 0, &checkout_tree_proc, 0, 0, NULL);
-end-of-c-code
-))
-
-
-;;;
-;;;; Commit
-;;;
-
-
-(define git-commit-tree
-  (c-lambda (git_object*) scheme-object ;; git_tree*
-    #<<end-of-c-code
-    git_tree* tree;
-    // git_check_error(git_commit_tree(&tree, (git_commit*) ___arg1));
-    // ___result_voidstar = tree;
-    int result = git_commit_tree(&tree, (git_commit*) ___arg1);
-    if (result != 0)
-        ___result = ___FIX(result);
-    else
-    {
-        ___SCMOBJ foreign;
-        ___EXT(___POINTER_to_SCMOBJ)(tree, ___FAL, NULL, &foreign, ___RETURN_POS);
-        ___result = foreign;
-    }
-end-of-c-code
-))
-
 
 ;;;
 ;;;; Cred
@@ -313,31 +238,12 @@ end-of-c-code
 
 
 ;;;
-;;;; Index
-;;;
-
-
-(git-external (git-index-free git_index*) void "git_index_free")
-(git-external (git-index-read-tree git_index* git_tree*) :error "git_index_read_tree")
-(git-external (git-index-write git_index*) :error "git_index_write")
-
-
-;;;
 ;;;; Object
 ;;;
 
 
 (git-external (git-object-lookup (out git_object*) git_repository* git_oid* git_otype) :lookup "git_object_lookup")
 (git-external (git-object-free git_object*) void "git_object_free")
-(git-external (git-object-peel (out git_object*) git_object* git_otype) :error "git_object_peel")
-
-
-(define git-object-id
-  (c-lambda (git_object*) git_oid*
-    #<<end-of-c-code
-    ___result_voidstar = (git_oid*) git_object_id(___arg1);
-end-of-c-code
-))
 
 
 ;;;
@@ -345,7 +251,6 @@ end-of-c-code
 ;;;
 
 
-(git-external (git-reference-create (out git_reference*) git_repository* char-string git_oid* int) :error "git_reference_create")
 (git-external (git-reference-free git_reference*) void "git_reference_free")
 (git-external (git-reference-lookup (out git_reference*) git_repository* char-string) :lookup "git_reference_lookup")
 
@@ -356,6 +261,7 @@ end-of-c-code
     ___result = (char*) git_reference_name(___arg1);
 end-of-c-code
 ))
+
 
 (define git-reference-name->id
   (c-lambda (git_repository* char-string) scheme-object ;; git_oid*
@@ -374,6 +280,7 @@ end-of-c-code
     }
 end-of-c-code
 ))
+
 
 (define (git-reference->id repo ref)
   (git-reference-name->id repo (git-reference-name ref)))
@@ -414,33 +321,6 @@ end-of-c-declare
 end-of-c-code
 ))
 
-(c-define (remote-download-procedure proc total_objects indexed_objects received_objects received_bytes) (scheme-object unsigned-int unsigned-int unsigned-int unsigned-int) void "remote_download_procedure" ""
-  (when proc
-    (proc total_objects indexed_objects received_objects received_bytes)))
-
-(c-declare #<<end-of-c-code
-    int remote_download_cb(const git_transfer_progress *stats, void *payload)
-    {
-        remote_download_procedure(___EXT(___data_rc)(payload), stats->total_objects, stats->indexed_objects, stats->received_objects, stats->received_bytes);
-        return 0;
-    }
-end-of-c-code
-)
-
-(define git-remote-download
-  (c-lambda (git_remote* scheme-object) scheme-object ;; void
-    #<<end-of-c-code
-    void* p = ___EXT(___alloc_rc)(0);
-    ___EXT(___set_data_rc)(p, ___arg2);
-    // git_check_error(git_remote_download(___arg1, &remote_download_cb, p));
-    int result = git_remote_download(___arg1, &remote_download_cb, p);
-    ___EXT(___release_rc)(p);
-    if (result != 0)
-        ___result = ___FIX(result);
-    else
-        ___result = ___FAL;
-end-of-c-code
-))
 
 (c-declare #<<end-of-c-declare
     unsigned int total_objects = 0;
@@ -521,22 +401,4 @@ end-of-c-code
 (git-external (git-repository-init (out git_repository*) char-string unsigned-int) :error "git_repository_init")
 (git-external (git-repository-open (out git_repository*) char-string) :error "git_repository_open")
 (git-external (git-repository-free git_repository*) void "git_repository_free")
-(git-external (git-repository-index (out git_index*) git_repository*) :error "git_repository_index")
-(git-external (git-repository-merge-cleanup git_repository*) :error "git_repository_merge_cleanup")
 (git-external (git-repository-set-head git_repository* char-string) :error "git_repository_set_head")
-
-
-;;;
-;;;; Reset
-;;;
-
-
-(git-external (git-reset git_repository* git_object* git_reset_t) :error "git_reset")
-
-
-;;;
-;;;; Tree
-;;;
-
-
-(git-external (git-tree-free git_tree*) void "git_tree_free")

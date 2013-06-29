@@ -17,10 +17,12 @@
 ;; - A potential problem can occur when I push a new release because pushing to both app and
 ;;   world is not atomic. This can be alleviated a bit by a script to push a release pushing
 ;;   both repositories rapidly maybe even in parallel
-;; * Do not forget about the --orphan branch as the multiple pushes of Install versions are starting to
-;;   make even the clone of Install painfully long
-;; * Even better than a message-box, I should do like modern installers and consider setup is done
-;;   as soon as the install has been installed!
+;; - Do not forget about the --orphan branch as the multiple pushes of Install versions are
+;;   starting to make even the clone of Install painfully long
+;;   - For now, simply reset to initial commit and push --force
+;;     - Maybe we have nothing to do and GitHub cleans up dangling commits automatically!?
+;; * Even better than a message-box, I should do like modern installers and consider setup
+;;   is done as soon as the install has been installed!
 ;;   - Surely quitting hard when git is doing a threaded operation could then be dangerous
 ;;     and leave a repo in a corrupted state (this can happen also during an install!)
 ;;   - Abort message-box for first part or make it modal!?
