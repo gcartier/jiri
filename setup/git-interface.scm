@@ -14,7 +14,7 @@
 ;;;
 
 
-(define (pull-repository title url password dir step of head mid tail cont)
+(define (pull-repository title url branch password dir step of head mid tail cont)
   (set-default-cursor IDC_WAIT)
   (set! work-in-progress? #t)
   (set-label-title status-view (downloading-title title step of))
@@ -56,10 +56,10 @@
             (git-remote-disconnect remote)
             (git-remote-update-tips remote)
             (git-remote-free remote)
-            (git-repository-set-head repo "refs/heads/master")
-            (let ((upstream (git-reference-lookup repo "refs/remotes/origin/master")))
+            (git-repository-set-head repo (string-append "refs/heads/" branch))
+            (let ((upstream (git-reference-lookup repo (string-append "refs/remotes/origin/" branch))))
               (let ((commit (git-object-lookup repo (git-reference->id repo upstream) GIT_OBJ_COMMIT)))
-                (git-branch-create repo "master" commit 1)
+                (git-branch-create repo branch commit 1)
                 (let ((new-content? #f))
                   (set-checkout-progress
                     (let ((inited? #f))
