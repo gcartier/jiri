@@ -28,7 +28,6 @@
 ;; - Even better than a message-box, I should do like modern installers and consider setup is done
 ;;   as soon as the install has been installed!
 ;;   - Abort message-box for first part or make it modal!?
-;; - Should I change all message-box confirmation to question!?
 ;; - Installer self-verification using a checksum!?
 ;; - Invoking app directly should error
 
@@ -337,7 +336,7 @@
   (lambda ()
     (if (not work-in-progress?)
         (exit)
-      (let ((code (message-box (string-append title " in progress.\n\nDo you want to abort?") type: 'confirmation)))
+      (let ((code (message-box (string-append title " in progress.\n\nDo you want to abort?") type: 'question)))
         (when (eq? code 'yes)
           (exit))))))
 
