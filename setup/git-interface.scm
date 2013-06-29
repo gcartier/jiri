@@ -14,7 +14,7 @@
 ;;;
 
 
-(define (clone/pull-repository title url password dir step of head mid tail cont)
+(define (pull-repository title url password dir step of head mid tail cont)
   (set-default-cursor IDC_WAIT)
   (set! work-in-progress? #t)
   (set-label-title status-view (downloading-title title step of))

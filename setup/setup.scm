@@ -117,7 +117,7 @@
 
 
 (define (setup-work)
-  (clone/pull-repository "launcher" jiri-install-remote closed-beta-password (install-dir) 1 6 0. .05 .1
+  (pull-repository "launcher" jiri-install-remote closed-beta-password (install-dir) 1 6 0. .05 .1
     (lambda (new-content?)
       (setup-done))))
 

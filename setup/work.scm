@@ -19,10 +19,10 @@
 ;;   both repositories rapidly maybe even in parallel
 ;; * Do not forget about the --orphan branch as the multiple pushes of Install versions are starting to
 ;;   make even the clone of Install painfully long
-;; * My HKEY_LOCAL_MACHINE keys where being created under Wow6432Node so maybe I can support GameUX!?
-;; * Surely quitting hard when git is doing a threaded operation could be dangerous!?
 ;; * Even better than a message-box, I should do like modern installers and consider setup is done
 ;;   as soon as the install has been installed!
+;;   - Surely quitting hard when git is doing a threaded operation could then be dangerous
+;;     and leave a repo in a corrupted state (this can happen also during an install!)
 ;;   - Abort message-box for first part or make it modal!?
 ;; - Installer self-verification using a checksum!?
 ;; - Invoking app directly should error

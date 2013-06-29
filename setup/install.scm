@@ -54,7 +54,7 @@
 
 
 (define (current-from-root-work)
-  (clone/pull-repository "launcher" jiri-install-remote closed-beta-password (install-dir) 1 6 0. .05 .1
+  (pull-repository "launcher" jiri-install-remote closed-beta-password (install-dir) 1 6 0. .05 .1
     (lambda (new-content?)
       (if new-content?
           (delegate-install current-root-dir closed-beta-password "current")
@@ -100,9 +100,9 @@
 
 
 (define (install-application/world cont)
-  (clone/pull-repository "application" jiri-app-remote closed-beta-password (app-dir) 3 6 .1 .2 .4
+  (pull-repository "application" jiri-app-remote closed-beta-password (app-dir) 3 6 .1 .2 .4
     (lambda (new-content?)
-      (clone/pull-repository "world" jiri-world-remote closed-beta-password (world-dir) 5 6 .4 .85 1.
+      (pull-repository "world" jiri-world-remote closed-beta-password (world-dir) 5 6 .4 .85 1.
         cont))))
 
 
