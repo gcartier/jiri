@@ -102,9 +102,10 @@
   (when install?
     (install-current)
     (install-root)
-    (install-desktop-shortcut)
-    (install-start-menu)
-    (install-uninstall))
+    (when (eq? stage 'install-from-setup)
+      (install-desktop-shortcut)
+      (install-start-menu)
+      (install-uninstall)))
   (set-label-title status-view "Done")
   (set-view-active? play-view #t)
   (set-default-cursor IDC_ARROW)
@@ -156,9 +157,12 @@
       ;; danger
       (delete-directory appdir))
     (create-directory appdir)
-    (let ((hr (create-shortcut path (string-append appdir "/" jiri-title ".lnk") jiri-title)))
-      (when (< hr 0)
-        (error "Unable to create start menu shortcut (0x" (number->string hr 16) ")")))))
+    (let ((shortcut (string-append appdir "/" jiri-title ".lnk")))
+      (let ((hr (create-shortcut path shortcut jiri-title)))
+        (if (< hr 0)
+            (error "Unable to create start menu shortcut (0x" (number->string hr 16) ")")
+          ;; hack around windows taking forever to remove newly installed highlight
+          (rewind-creation-time shortcut))))))
 
 
 (define (install-uninstall)

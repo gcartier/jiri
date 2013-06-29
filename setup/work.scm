@@ -25,6 +25,7 @@
 ;; - Do not forget about the --orphan branch as the multiple pushes of Install versions are starting to
 ;;   make even the clone of Install painfully long
 ;; - What do we need to do for the start menu highlight to disappear after first execution?
+;; - Uninstall would be more robust if it went through the root app so no internal paths are exposed
 ;; - My HKEY_LOCAL_MACHINE keys where being created under Wow6432Node so maybe I can support GameUX!?
 ;; - Installer self-verification using a checksum!?
 ;; - Invoking app directly should error

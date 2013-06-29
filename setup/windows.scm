@@ -629,6 +629,35 @@ end-of-c-code
 
 
 ;;;
+;;;; File
+;;;
+
+
+(define rewind-creation-time
+  (c-lambda (wchar_t-string) BOOL
+    #<<end-of-c-code
+    HANDLE file = CreateFile(___arg1, GENERIC_WRITE, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+    FILETIME ct;
+    SYSTEMTIME st;
+    
+    GetFileTime(file, &ct, NULL, NULL);
+    FileTimeToSystemTime(&ct, &st);
+    if (st.wMonth == 1)
+    {
+        st.wYear -= 1;
+        st.wMonth = 12;
+    }
+    else
+        st.wMonth -= 1;
+    SystemTimeToFileTime(&st, &ct);
+    SetFileTime(file, &ct, NULL, NULL);
+    
+    CloseHandle(file);
+end-of-c-code
+))
+
+
+;;;
 ;;;; Directory
 ;;;
 
