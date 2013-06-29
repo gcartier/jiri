@@ -114,12 +114,15 @@
     (define (ask-password)
       (set! password (or closed-beta-password (dialog-box (window-handle current-window))))
       (or password
-          (if cancel
-              (begin
-                (set-default-cursor IDC_ARROW)
-                (set! work-in-progress? #f)
-                (continuation-return cancel))
-            (exit 1))))
+          (cancel-connection)))
+    
+    (define (cancel-connection)
+      (if cancel
+          (begin
+            (set-default-cursor IDC_ARROW)
+            (set! work-in-progress? #f)
+            (continuation-return cancel))
+        (exit 1)))
     
     (git-remote-check-cert remote 0)
     (git-remote-set-cred-acquire-cb remote
@@ -131,12 +134,14 @@
             (exit 1)
           (with-exception-catcher
             (lambda (exc)
-              (if (and (error-exception? exc)
-                       (let ((err (->string (car (error-exception-parameters exc)))))
-                         (string-ends-with? err "401")))
-                  (begin
-                    (message-box "Incorrect password")
-                    (loop (+ try 1)))
+              (if (error-exception? exc)
+                  (let ((err (->string (car (error-exception-parameters exc)))))
+                    (cond ((string-ends-with? err "401")
+                           (message-box "Incorrect password")
+                           (loop (+ try 1)))
+                          (else
+                           (message-box (string-append "Unable to connect to server:\n\n" err))
+                           (cancel-connection))))
                 (raise exc)))
             (lambda ()
               (git-remote-connect remote GIT_DIRECTION_FETCH)
