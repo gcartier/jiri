@@ -30,7 +30,7 @@
   (when (setup-root)
     (continuation-capture
       (lambda (cancel)
-        (setup-password cancel)
+        (validate-password cancel)
         (remove-view setup-view)
         (add-view percentage-view)
         (add-view downloaded-view)
@@ -46,37 +46,43 @@
 ;;;
 
 
+(define choosen-dir
+  #f)
+
+
 (define (setup-root)
-  (define (determine-root-dir)
-    (let ((dir (pathname-standardize (choose-directory (window-handle current-window) "Please select the installation folder" (get-special-folder CSIDL_PROGRAM_FILESX86)))))
+  (define (choose-dir)
+    (let ((dir (choose-directory (window-handle current-window) "Please select the installation folder" (or choosen-dir (get-special-folder CSIDL_PROGRAM_FILESX86)))))
       (when (not (equal? dir ""))
-        (normalize-directory (string-append (normalize-directory dir) jiri-title)))))
+        (set! choosen-dir dir)
+        (normalize-directory (pathname-standardize dir)))))
   
-  (let ((root-dir (or current-root-dir (determine-root-dir))))
-    (when root-dir
-      (if (not (file-exists? root-dir))
-          (begin
-            (create-directory-with-acl root-dir)
-            (set! current-root-dir root-dir)
-            root-dir)
-        (let ((code (if current-root-dir
-                        'yes
-                      (message-box (string-append "Installation folder already exists: " root-dir "\n\nDo you want to replace?") type: 'confirmation))))
-          (when (eq? code 'yes)
-            (set-default-cursor IDC_WAIT)
-            (set! work-in-progress? #t)
-            ;; danger
-            (let ((code (delete-directory root-dir)))
-              (if (= code 0)
+  (let ((dir (choose-dir)))
+    (when dir
+      (let ((root-dir (normalize-directory (string-append dir jiri-title))))
+        (if (not (file-exists? root-dir))
+            (begin
+              (create-directory-with-acl root-dir)
+              (set! current-root-dir root-dir)
+              root-dir)
+          (let ((code (if current-root-dir
+                          'yes
+                        (message-box (string-append "Installation folder already exists: " root-dir "\n\nDo you want to replace?") type: 'confirmation))))
+            (when (eq? code 'yes)
+              (set-default-cursor IDC_WAIT)
+              (set! work-in-progress? #t)
+              ;; danger
+              (let ((code (delete-directory root-dir)))
+                (if (= code 0)
+                    (begin
+                      (create-directory-with-acl root-dir)
+                      (set! current-root-dir root-dir)
+                      root-dir)
                   (begin
-                    (create-directory-with-acl root-dir)
-                    (set! current-root-dir root-dir)
-                    root-dir)
-                (begin
-                  (set-default-cursor IDC_ARROW)
-                  (set! work-in-progress? #f)
-                  (message-box (string-append "Unable to delete folder (0x" (number->string code 16) ")"))
-                  #f)))))))))
+                    (set-default-cursor IDC_ARROW)
+                    (set! work-in-progress? #f)
+                    (message-box (string-append "Unable to delete folder (0x" (number->string code 16) ")"))
+                    #f))))))))))
 
 
 ;;;
@@ -84,7 +90,7 @@
 ;;;
 
 
-(define (setup-password cancel)
+(define (validate-password cancel)
   (or closed-beta-password
       (let ((repo #f)
             (remote #f)

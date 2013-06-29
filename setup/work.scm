@@ -7,9 +7,7 @@
 
 
 ;; TODO
-;; - Handle all git and windows errors!?
-;; - It is not user-friendly to not be able to change setup dir after clicking Setup and
-;;   changing ones mind at password stage but I do not see any alternative
+;; * Handle all git and windows errors!?
 ;; - Add multiple background support
 ;;   - Change at 100% / nb of background!?
 ;; - Install could pass info to the app of what was the last head so that we could show
@@ -19,13 +17,13 @@
 ;; - A potential problem can occur when I push a new release because pushing to both app and
 ;;   world is not atomic. This can be alleviated a bit by a script to push a release pushing
 ;;   both repositories rapidly maybe even in parallel
-;; - Do not forget about the --orphan branch as the multiple pushes of Install versions are starting to
+;; * Do not forget about the --orphan branch as the multiple pushes of Install versions are starting to
 ;;   make even the clone of Install painfully long
-;; - Uninstall would be more robust if it went through the root app so no internal paths are exposed
+;; * Uninstall would be more robust if it went through the root app so no internal paths are exposed
 ;;   - Validate it works on a machine requiring elevation
-;; - My HKEY_LOCAL_MACHINE keys where being created under Wow6432Node so maybe I can support GameUX!?
-;; - Surely quitting hard when git is doing a threaded operation could be dangerous!?
-;; - Even better than a message-box, I should do like modern installers and consider setup is done
+;; * My HKEY_LOCAL_MACHINE keys where being created under Wow6432Node so maybe I can support GameUX!?
+;; * Surely quitting hard when git is doing a threaded operation could be dangerous!?
+;; * Even better than a message-box, I should do like modern installers and consider setup is done
 ;;   as soon as the install has been installed!
 ;;   - Abort message-box for first part or make it modal!?
 ;; - Installer self-verification using a checksum!?
