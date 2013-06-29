@@ -134,6 +134,14 @@
     cpy))
 
 
+(define (->string expr)
+  (if (string? expr)
+      expr
+    (let ((output (open-output-string)))
+      (display expr output)
+      (get-output-string output))))
+
+
 ;;;
 ;;;; Environment
 ;;;
@@ -229,23 +237,6 @@
                   stdout-redirection: #f
                   stderr-redirection: #f
                   show-console: #f)))
-
-
-;;;
-;;;; Debug
-;;;
-
-
-(define (debug n)
-  (message-box (->string n)))
-
-
-(define (->string expr)
-  (if (string? expr)
-      expr
-    (let ((output (open-output-string)))
-      (display expr output)
-      (get-output-string output))))
 
 
 ;;;
