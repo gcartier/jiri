@@ -19,8 +19,6 @@
 ;;   both repositories rapidly maybe even in parallel
 ;; * Do not forget about the --orphan branch as the multiple pushes of Install versions are starting to
 ;;   make even the clone of Install painfully long
-;; * Uninstall would be more robust if it went through the root app so no internal paths are exposed
-;;   - Validate it works on a machine requiring elevation
 ;; * My HKEY_LOCAL_MACHINE keys where being created under Wow6432Node so maybe I can support GameUX!?
 ;; * Surely quitting hard when git is doing a threaded operation could be dangerous!?
 ;; * Even better than a message-box, I should do like modern installers and consider setup is done

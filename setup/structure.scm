@@ -48,9 +48,6 @@
 (define (uninstall-exe)
   (add-extension (string-append (current-dir) "Uninstall") executable-extension))
 
-(define (uninstaller-exe)
-  (add-extension (string-append (current-dir) "Uninstaller") executable-extension))
-
 (define (install-exe)
   (add-extension (string-append (install-dir) "Install") executable-extension))
 

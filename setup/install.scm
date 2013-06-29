@@ -133,7 +133,6 @@
     
     (copy "Install.exe")
     (copy "Uninstall.exe")
-    (copy "Uninstaller.exe")
     (copy "libgit2.dll")
     (copy "libeay32.dll")
     (copy "ssleay32.dll")))
@@ -184,7 +183,7 @@
     (registry-set-string key "Publisher" jiri-company)
     (registry-set-string key "InstallDate" (get-local-date))
     (registry-set-string key "InstallLocation" (pathname-platformize current-root-dir))
-    (registry-set-string key "UninstallString" (pathname-platformize (uninstaller-exe)))
+    (registry-set-string key "UninstallString" (string-append (pathname-platformize (root-exe)) " -uninstall"))
     (registry-set-int key "EstimatedSize" jiri-size)
     (registry-set-int key "NoModify" 1)
     (registry-set-int key "NoRepair" 1)
