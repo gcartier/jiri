@@ -72,7 +72,7 @@
               (set-default-cursor IDC_WAIT)
               (set! work-in-progress? #t)
               ;; danger
-              (let ((code (delete-directory root-dir)))
+              (let ((code (remove-directory root-dir)))
                 (if (= code 0)
                     (begin
                       (create-directory-with-acl root-dir)

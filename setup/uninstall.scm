@@ -65,7 +65,7 @@
   (let ((appdir (start-menu-appdir)))
     (when (file-exists? appdir)
       ;; danger
-      (delete-directory appdir))))
+      (remove-directory appdir))))
 
 
 (define (uninstall-uninstall)
@@ -75,7 +75,7 @@
 (define (uninstall-install install-dir)
   (when (file-exists? install-dir)
     ;; danger
-    (let ((code (delete-directory install-dir)))
+    (let ((code (remove-directory install-dir)))
       (when (/= code 0)
         (message-box (string-append "Unable to delete installation folder (0x" (number->string code 16) "): " install-dir))))))
 

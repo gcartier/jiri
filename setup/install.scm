@@ -128,7 +128,7 @@
         (copy-file from to)))
     
     ;; danger
-    (delete-directory current-dir)
+    (remove-directory current-dir)
     (create-directory current-dir)
     
     (copy "Install.exe")
@@ -160,7 +160,7 @@
         (appdir (start-menu-appdir)))
     (when (file-exists? appdir)
       ;; danger
-      (delete-directory appdir))
+      (remove-directory appdir))
     (create-directory appdir)
     (let ((shortcut (start-menu-shortcut appdir)))
       (let ((hr (create-shortcut root shortcut jiri-title)))

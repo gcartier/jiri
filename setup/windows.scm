@@ -790,7 +790,7 @@ end-of-c-code
 ))
 
 
-(define delete-directory
+(define remove-directory
   (c-lambda (wchar_t-string) int
     #<<end-of-c-code
     LPCWSTR lpszDir = ___arg1;
