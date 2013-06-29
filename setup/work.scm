@@ -317,6 +317,7 @@
 
 
 (define (play)
+  (set-default-cursor IDC_WAIT)
   (delegate-process (app-exe))
   (quit))
 
