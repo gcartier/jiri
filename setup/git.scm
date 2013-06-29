@@ -145,15 +145,24 @@ end-of-c-declare
 
 
 ;;;
+;;;; Branch
+;;;
+
+
+(git-external (git-branch-create (out git_reference*) git_repository* char-string git_commit* int) int "git_branch_create")
+
+
+;;;
 ;;;; Checkout
 ;;;
 
 
-(define git-checkout-head
+(define git-checkout-head-force
   (git-validate
   (c-lambda (git_repository*) scheme-object ;; void
     #<<end-of-c-code
     git_checkout_opts options = GIT_CHECKOUT_OPTS_INIT;
+    options.checkout_strategy = GIT_CHECKOUT_FORCE;
     // git_check_error(git_checkout_head(___arg1, &options));
     int result = git_checkout_head(___arg1, &options);
     if (result != 0)
@@ -225,7 +234,17 @@ end-of-c-code
         PostMessage(remoteHwnd, WM_USER, CHECKOUT_PROGRESS, 0);
     }
 
-    DWORD WINAPI checkout_proc(LPVOID lpParam)
+    DWORD WINAPI checkout_head_proc(LPVOID lpParam)
+    {
+        git_checkout_opts options = GIT_CHECKOUT_OPTS_INIT;
+        options.checkout_strategy = GIT_CHECKOUT_FORCE;
+        options.progress_cb = checkout_callback;
+        int result = git_checkout_head(checkout_repository, &options);
+        PostMessage(remoteHwnd, WM_USER, CHECKOUT_DONE, result);
+        return 0;
+    }
+
+    DWORD WINAPI checkout_tree_proc(LPVOID lpParam)
     {
         git_checkout_opts options = GIT_CHECKOUT_OPTS_INIT;
         options.checkout_strategy = GIT_CHECKOUT_FORCE;
@@ -237,6 +256,17 @@ end-of-c-code
 end-of-c-declare
 )
 
+(define git-checkout-head-force-threaded
+  (c-lambda (git_repository* HWND) HANDLE
+    #<<end-of-c-code
+    if (! ghMutex)
+        ghMutex = CreateMutex(NULL, FALSE, NULL);
+    remoteHwnd = ___arg2;
+    checkout_repository = ___arg1;
+    ___result = CreateThread(NULL, 0, &checkout_head_proc, 0, 0, NULL);
+end-of-c-code
+))
+
 (define git-checkout-tree-force-threaded
   (c-lambda (git_repository* git_tree* HWND) HANDLE
     #<<end-of-c-code
@@ -245,7 +275,7 @@ end-of-c-declare
     remoteHwnd = ___arg3;
     checkout_repository = ___arg1;
     checkout_tree = ___arg2;
-    ___result = CreateThread(NULL, 0, &checkout_proc, 0, 0, NULL);
+    ___result = CreateThread(NULL, 0, &checkout_tree_proc, 0, 0, NULL);
 end-of-c-code
 ))
 
@@ -348,18 +378,6 @@ end-of-c-code
 (define (git-reference->id repo ref)
   (git-reference-name->id repo (git-reference-name ref)))
 
-(define git-reference__update_terminal
-  (c-lambda (git_repository* char-string git_object*) scheme-object ;; void
-    #<<end-of-c-code
-    // git_check_error(git_reference__update_terminal(___arg1, ___arg2, git_object_id(___arg3)));
-    int result = git_reference__update_terminal(___arg1, ___arg2, git_object_id(___arg3));
-    if (result != 0)
-        ___result = ___FIX(result);
-    else
-        ___result = ___FAL;
-end-of-c-code
-))
-
 
 ;;;
 ;;;; Remote
@@ -367,8 +385,11 @@ end-of-c-code
 
 
 (git-external (git-remote-create (out git_remote*) git_repository* char-string char-string) :error "git_remote_create")
+(git-external (git-remote-clear-refspecs git_remote*) void "git_remote_clear_refspecs")
+(git-external (git-remote-add-fetch git_remote* char-string) :error "git_remote_add_fetch")
 (git-external (git-remote-connect git_remote* int) :error "git_remote_connect")
 (git-external (git-remote-load (out git_remote*) git_repository* char-string) :error "git_remote_load")
+(git-external (git-remote-save git_remote*) :error "git_remote_save")
 (git-external (git-remote-check-cert git_remote* int) void "git_remote_check_cert")
 
 
