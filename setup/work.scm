@@ -7,7 +7,6 @@
 
 
 ;; TODO
-;; * Handle all git and windows errors!?
 ;; - Add multiple background support
 ;;   - Change at 100% / nb of background!?
 ;; - Install could pass info to the app of what was the last head so that we could show

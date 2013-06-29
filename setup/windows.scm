@@ -155,7 +155,6 @@
 (c-external (DefWindowProc            HWND UINT WPARAM LPARAM) LRESULT "DefWindowProcW")
 (c-external (ShowWindow               HWND INT) BOOL)
 (c-external (UpdateWindow             HWND) BOOL)
-(c-external (RedrawWindow             HWND RECT* HRGN UINT) BOOL)
 (c-external (InvalidateRect           HWND RECT* BOOL) BOOL)
 (c-external (DestroyWindow            HWND) BOOL)
 (c-external (GetWindowRect            HWND RECT*) BOOL)
