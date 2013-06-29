@@ -58,7 +58,10 @@
     (lambda (new-content?)
       (if new-content?
           (delegate-install current-root-dir closed-beta-password "current")
-        (install-application/world #f)))))
+        (install-application/world
+          (lambda (new-content?)
+            (rewind-start-menu)
+            (install-done)))))))
 
 
 ;;;
@@ -67,8 +70,14 @@
 
 
 (define (install-from-setup-work)
-  ;; ideally should only allow cloning
-  (install-application/world #t))
+  (install-application/world
+    (lambda (new-content?)
+      (install-current)
+      (install-root)
+      (install-desktop-shortcut)
+      (install-start-menu)
+      (install-uninstall)
+      (install-done))))
 
 
 ;;;
@@ -77,7 +86,12 @@
 
 
 (define (install-from-current-work)
-  (install-application/world #t))
+  (install-application/world
+    (lambda (new-content?)
+      (install-current)
+      (install-root)
+      (rewind-start-menu)
+      (install-done))))
 
 
 ;;;
@@ -85,12 +99,11 @@
 ;;;
 
 
-(define (install-application/world install?)
+(define (install-application/world cont)
   (clone/pull-repository "application" jiri-app-remote closed-beta-password (app-dir) 3 6 .1 .2 .4
     (lambda (new-content?)
       (clone/pull-repository "world" jiri-world-remote closed-beta-password (world-dir) 5 6 .4 .85 1.
-        (lambda (new-content?)
-          (install-done install?))))))
+        cont))))
 
 
 ;;;
@@ -98,14 +111,7 @@
 ;;;
 
 
-(define (install-done install?)
-  (when install?
-    (install-current)
-    (install-root)
-    (when (eq? stage 'install-from-setup)
-      (install-desktop-shortcut)
-      (install-start-menu)
-      (install-uninstall)))
+(define (install-done)
   (set-label-title status-view "Done")
   (set-view-active? play-view #t)
   (set-default-cursor IDC_ARROW)
@@ -151,18 +157,23 @@
 
 
 (define (install-start-menu)
-  (let ((path (root-exe))
+  (let ((root (root-exe))
         (appdir (start-menu-appdir)))
     (when (file-exists? appdir)
       ;; danger
       (delete-directory appdir))
     (create-directory appdir)
-    (let ((shortcut (string-append appdir "/" jiri-title ".lnk")))
-      (let ((hr (create-shortcut path shortcut jiri-title)))
-        (if (< hr 0)
-            (error "Unable to create start menu shortcut (0x" (number->string hr 16) ")")
-          ;; hack around windows taking forever to remove newly installed highlight
-          (rewind-creation-time shortcut))))))
+    (let ((shortcut (start-menu-shortcut appdir)))
+      (let ((hr (create-shortcut root shortcut jiri-title)))
+        (when (< hr 0)
+          (error "Unable to create start menu shortcut (0x" (number->string hr 16) ")"))))))
+
+
+;; hack around windows taking forever to remove newly installed highlight
+(define (rewind-start-menu)
+  (let ((shortcut (start-menu-shortcut (start-menu-appdir))))
+    (when (file-exists? shortcut)
+      (rewind-creation-time shortcut))))
 
 
 (define (install-uninstall)

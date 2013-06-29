@@ -637,22 +637,44 @@ end-of-c-code
   (c-lambda (wchar_t-string) BOOL
     #<<end-of-c-code
     HANDLE file = CreateFile(___arg1, GENERIC_WRITE, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
-    FILETIME ct;
-    SYSTEMTIME st;
+    FILETIME ft, st;
+    SYSTEMTIME systime;
+    ULARGE_INTEGER fi, si;
+    LONGLONG filetimeToSeconds, twoWeeks, fs, ss;
+    BOOL rewinded = FALSE;
     
-    GetFileTime(file, &ct, NULL, NULL);
-    FileTimeToSystemTime(&ct, &st);
-    if (st.wMonth == 1)
+    filetimeToSeconds = 10 * 1000 * 1000;
+    twoWeeks = 60 * 60 * 24 * 14;
+    
+    GetFileTime(file, &ft, NULL, NULL);
+    fi.LowPart = ft.dwLowDateTime;
+    fi.HighPart = ft.dwHighDateTime;
+    fs = (fi.QuadPart / filetimeToSeconds);
+    
+    GetSystemTime(&systime);
+    SystemTimeToFileTime(&systime, &st);
+    si.LowPart = st.dwLowDateTime;
+    si.HighPart = st.dwHighDateTime;
+    ss = (si.QuadPart / filetimeToSeconds);
+    
+    if ((ss - fs) <= twoWeeks)
     {
-        st.wYear -= 1;
-        st.wMonth = 12;
+        FileTimeToSystemTime(&ft, &systime);
+        if (systime.wMonth == 1)
+        {
+            systime.wYear -= 1;
+            systime.wMonth = 12;
+        }
+        else
+            systime.wMonth -= 1;
+        SystemTimeToFileTime(&systime, &ft);
+        SetFileTime(file, &ft, &ft, &ft);
+        rewinded = TRUE;
     }
-    else
-        st.wMonth -= 1;
-    SystemTimeToFileTime(&st, &ct);
-    SetFileTime(file, &ct, NULL, NULL);
     
     CloseHandle(file);
+    
+    ___result = rewinded;
 end-of-c-code
 ))
 

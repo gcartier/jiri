@@ -6,9 +6,6 @@
 ;;;
 
 
-;; HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Explorer\StartPage\NewShortcuts
-
-
 ;; TODO
 ;; - Handle all git and windows errors!?
 ;; - It is not user-friendly to not be able to change setup dir after clicking Setup and
@@ -24,9 +21,14 @@
 ;;   both repositories rapidly maybe even in parallel
 ;; - Do not forget about the --orphan branch as the multiple pushes of Install versions are starting to
 ;;   make even the clone of Install painfully long
-;; - What do we need to do for the start menu highlight to disappear after first execution?
 ;; - Uninstall would be more robust if it went through the root app so no internal paths are exposed
+;;   - Validate it works on a machine requiring elevation
 ;; - My HKEY_LOCAL_MACHINE keys where being created under Wow6432Node so maybe I can support GameUX!?
+;; - Surely quitting hard when git is doing a threaded operation could be dangerous!?
+;; - Even better than a message-box, I should do like modern installers and consider setup is done
+;;   as soon as the install has been installed!
+;;   - Abort message-box for first part or make it modal!?
+;; - Should I change all message-box confirmation to question!?
 ;; - Installer self-verification using a checksum!?
 ;; - Invoking app directly should error
 
@@ -309,6 +311,10 @@
 (define (start-menu-appdir)
   (let ((startdir (get-special-folder CSIDL_STARTMENU)))
     (string-append startdir "/Programs/" jiri-title)))
+
+
+(define (start-menu-shortcut appdir)
+  (string-append appdir "/" jiri-title ".lnk"))
 
 
 ;;;
