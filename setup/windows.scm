@@ -261,7 +261,7 @@ end-of-c-code
 
 
 (define (initialize-windows)
-  (when (not windows-initialized?)
+  (unless windows-initialized?
     (OleInitialize NULL)
     (set! windows-initialized? #t)))
 

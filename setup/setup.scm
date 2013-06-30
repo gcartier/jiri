@@ -54,7 +54,7 @@
 (define (setup-root)
   (define (choose-dir)
     (let ((dir (choose-directory (window-handle current-window) "Please select the installation folder" (or choosen-dir (get-special-folder CSIDL_PROGRAM_FILESX86)))))
-      (when (not (equal? dir ""))
+      (unless (equal? dir "")
         (set! choosen-dir dir)
         (normalize-directory (pathname-standardize dir)))))
   
@@ -152,7 +152,7 @@
   (add-view setup-view)
   (set-return-press
     (lambda ()
-      (when (not work-done?)
+      (unless work-done?
         (setup))))
   (set-quit (quit-confirm-abort "Setup")))
 
