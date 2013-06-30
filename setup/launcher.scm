@@ -16,9 +16,30 @@
 
 (define (launch)
   (set! current-root-dir (executable-directory))
-  (if (equal? (command-arguments) '("-uninstall"))
-      (launch-uninstall)
-    (launch-current)))
+  (let ((args (command-arguments)))
+    (cond ((equal? args '("-information"))
+           (launch-information))
+          ((equal? args '("-uninstall"))
+           (launch-uninstall))
+          ((equal? args '())
+           (launch-current))
+          (else
+           (message-box (string-append "Invalid command arguments: " (->string args)))
+           (exit 1)))))
+
+
+;;;
+;;;; Information
+;;;
+
+
+(define (launch-information)
+  (cond ((file-exists? (app-exe))
+         (delegate-process (app-exe) arguments: '("-glinformation" "true"))
+         (exit))
+        (else
+         (message-box "Incorrect installation")
+         (exit 1))))
 
 
 ;;;

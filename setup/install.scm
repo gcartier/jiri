@@ -58,6 +58,7 @@
   (install-root)
   (install-desktop)
   (install-start-menu)
+  (update-start-menu)
   (install-uninstall)
   (install-application/world
     (lambda (new-content?)
@@ -75,6 +76,7 @@
       (if new-content?
           (delegate-install current-root-dir closed-beta-password "current")
         (begin
+          (update-start-menu)
           (rewind-start-menu)
           (install-application/world
             (lambda (new-content?)
@@ -89,6 +91,7 @@
 (define (install-from-current-work)
   (install-current)
   (install-root)
+  (update-start-menu)
   (rewind-start-menu)
   (install-application/world
     (lambda (new-content?)
@@ -153,7 +156,7 @@
 (define (install-desktop)
   (let ((path (root-exe))
         (shortcut (desktop-shortcut)))
-    (let ((hr (create-shortcut path shortcut jiri-title)))
+    (let ((hr (create-shortcut path #f shortcut jiri-title)))
       (when (< hr 0)
         (error "Unable to create desktop shortcut (0x" (number->string hr 16) ")")))))
 
@@ -166,9 +169,20 @@
       (remove-directory appdir))
     (create-directory appdir)
     (let ((shortcut (start-menu-shortcut appdir)))
-      (let ((hr (create-shortcut root shortcut jiri-title)))
+      (let ((hr (create-shortcut root #f shortcut jiri-title)))
         (when (< hr 0)
           (error "Unable to create start menu shortcut (0x" (number->string hr 16) ")"))))))
+
+
+(define (update-start-menu)
+  (let ((root (root-exe))
+        (appdir (start-menu-appdir)))
+    (when (file-exists? appdir)
+      (let ((title "Video Card Information"))
+        (let ((shortcut (string-append appdir "/" title ".lnk")))
+          (let ((hr (create-shortcut root "-information" shortcut title)))
+            (when (< hr 0)
+              (error "Unable to create start menu shortcut (0x" (number->string hr 16) ")"))))))))
 
 
 ;; hack around windows taking forever to remove newly installed highlight

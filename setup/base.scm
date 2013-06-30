@@ -230,9 +230,10 @@
   (cdr (command-line)))
 
 
-(define (delegate-process path)
+(define (delegate-process path #!key (arguments '()))
   (open-process (list
                   path: path
+                  arguments: arguments
                   stdin-redirection: #f
                   stdout-redirection: #f
                   stderr-redirection: #f

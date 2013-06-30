@@ -843,7 +843,7 @@ end-of-c-code
 
 
 (define create-shortcut
-  (c-lambda (wchar_t-string wchar_t-string wchar_t-string) int
+  (c-lambda (wchar_t-string wchar_t-string wchar_t-string wchar_t-string) int
     #<<end-of-c-code
     HRESULT hres;
     IShellLink* psl;
@@ -857,11 +857,13 @@ end-of-c-code
         if (SUCCEEDED(hres))
         {
             hres = psl->lpVtbl->SetPath(psl, ___arg1);
-            psl->lpVtbl->SetDescription(psl, ___arg3);
+            if (___arg2)
+                psl->lpVtbl->SetArguments(psl, ___arg2);
+            psl->lpVtbl->SetDescription(psl, ___arg4);
             psl->lpVtbl->SetIconLocation(psl, ___arg1, 0);
             if (SUCCEEDED(hres))
             {
-                hres=ppf->lpVtbl->Save(ppf, ___arg2, TRUE);
+                hres=ppf->lpVtbl->Save(ppf, ___arg3, TRUE);
             }
             ppf->lpVtbl->Release(ppf);
         }
