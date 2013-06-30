@@ -18,11 +18,11 @@
   (set! closed-beta-password (getenv-default "closed-beta-password"))
   (set! called-from (getenv-default "called-from"))
   (set! stage (cond ((and current-root-dir
-                          (equal? called-from "root"))
-                     'current-from-root)
-                    ((and current-root-dir
                           (equal? called-from "setup"))
                      'install-from-setup)
+                    ((and current-root-dir
+                          (equal? called-from "root"))
+                     'current-from-root)
                     ((and current-root-dir
                           (equal? called-from "current"))
                      'install-from-current)
@@ -43,9 +43,25 @@
 
 (define (install)
   (case stage
-    ((current-from-root) (current-from-root-work))
     ((install-from-setup) (install-from-setup-work))
+    ((current-from-root) (current-from-root-work))
     ((install-from-current) (install-from-current-work))))
+
+
+;;;
+;;;; Install From Setup
+;;;
+
+
+(define (install-from-setup-work)
+  (install-current)
+  (install-root)
+  (install-desktop)
+  (install-start-menu)
+  (install-uninstall)
+  (install-application/world
+    (lambda (new-content?)
+      (install-done))))
 
 
 ;;;
@@ -58,26 +74,11 @@
     (lambda (new-content?)
       (if new-content?
           (delegate-install current-root-dir closed-beta-password "current")
-        (install-application/world
-          (lambda (new-content?)
-            (rewind-start-menu)
-            (install-done)))))))
-
-
-;;;
-;;;; Install From Setup
-;;;
-
-
-(define (install-from-setup-work)
-  (install-application/world
-    (lambda (new-content?)
-      (install-current)
-      (install-root)
-      (install-desktop-shortcut)
-      (install-start-menu)
-      (install-uninstall)
-      (install-done))))
+        (begin
+          (rewind-start-menu)
+          (install-application/world
+            (lambda (new-content?)
+              (install-done))))))))
 
 
 ;;;
@@ -86,11 +87,11 @@
 
 
 (define (install-from-current-work)
+  (install-current)
+  (install-root)
+  (rewind-start-menu)
   (install-application/world
     (lambda (new-content?)
-      (install-current)
-      (install-root)
-      (rewind-start-menu)
       (install-done))))
 
 
@@ -149,7 +150,7 @@
     (copy-file from to)))
 
 
-(define (install-desktop-shortcut)
+(define (install-desktop)
   (let ((path (root-exe))
         (shortcut (desktop-shortcut)))
     (let ((hr (create-shortcut path shortcut jiri-title)))
@@ -226,7 +227,7 @@
     (lambda ()
       (when work-done?
         (play))))
-  (set-quit (quit-confirm-abort "Install")))
+  (set-quit (quit-safely)))
 
 
 ;;;

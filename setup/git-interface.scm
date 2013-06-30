@@ -185,12 +185,23 @@
         (exit)
       (let ((code (message-box (string-append title " in progress.\n\nDo you want to abort?") type: 'question)))
         (when (eq? code 'yes)
-          (set! quit-requested? #t)
-          (git-request-quit)
-          (set-default-cursor IDC_WAIT)
-          (set-label-title status-view "Aborting...")
-          (set-view-active? minimize-view #f)
-          (set-view-active? close-view #f))))))
+          (request-quit "Aborting..."))))))
+
+
+(define (quit-safely)
+  (lambda ()
+    (if (not work-in-progress?)
+        (exit)
+      (request-quit "Disconnecting..."))))
+
+
+(define (request-quit title)
+  (set! quit-requested? #t)
+  (git-request-quit)
+  (set-default-cursor IDC_WAIT)
+  (set-label-title status-view title)
+  (set-view-active? minimize-view #f)
+  (set-view-active? close-view #f))
 
 
 (define (safe-quit-point)

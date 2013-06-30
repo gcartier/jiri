@@ -7,23 +7,13 @@
 
 
 ;; TODO
-;; - Add multiple background support
-;;   - Change at 100% / nb of background!?
-;; - Install could pass info to the app of what was the last head so that we could show
-;;   only what changed since last time by having a what's new system indexed by commit!?
 ;; - When Marc has fixed the FFI error problem, replace the global error-handler by a catcher
 ;;   to ward against recursive errors
 ;; - A potential problem can occur when I push a new release because pushing to both app and
 ;;   world is not atomic. This can be alleviated a bit by a script to push a release pushing
 ;;   both repositories rapidly maybe even in parallel
-;; - Do not forget about the --orphan branch as the multiple pushes of Install versions are
-;;   starting to make even the clone of Install painfully long
-;;   - For now, simply reset to initial commit and push --force
-;;     - Maybe we have nothing to do and GitHub cleans up dangling commits automatically!?
-;; * Even better than a message-box, I should do like modern installers and consider setup
-;;   done as soon as the install has been installed!
-;;   - Abort message-box only for the setup part
-;; - Installer self-verification using a checksum!?
+;; - Install could pass info to the app of what was the last head so that we could show
+;;   only what changed since last time by having a what's new system indexed by commit!?
 ;; - Invoking app directly should error
 
 ;; DEVEL
