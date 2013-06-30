@@ -134,8 +134,6 @@
   (set-default-cursor IDC_ARROW)
   (set! work-in-progress? #f)
   (set! work-done? #t)
-  (update-window current-window)
-  (thread-sleep! 1.)
   (delegate-install current-root-dir closed-beta-password "setup"))
 
 

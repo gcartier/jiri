@@ -165,7 +165,9 @@
           ((= wparam CHECKOUT_PROGRESS) (checkout-progress lparam))
           ((= wparam CHECKOUT_DONE)     (if (in-modal?)
                                             (delay-modal-user-event wparam lparam)
-                                          (checkout-done lparam))))))
+                                          (checkout-done lparam)))
+          ((= wparam UPDATING_GAME)     (unless work-done?
+                                          (set-label-title stage-view "Updating game"))))))
 
 
 ;;;

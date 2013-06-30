@@ -208,7 +208,15 @@
   (add-view remaining-view)
   (add-view progress-view)
   (add-view play-view)
-  (add-stage-view "Updating game" stage-install-color)
+  (if (eq? stage 'install-from-setup)
+      (begin
+        (add-stage-view "Setup successful!" stage-install-color)
+        (thread-start!
+          (make-thread
+            (lambda ()
+              (thread-sleep! 2.5)
+              (PostMessage (window-handle current-window) WM_USER UPDATING_GAME 0)))))
+    (add-stage-view "Updating game" stage-install-color))
   (when (neq? stage 'current-from-root)
     (set-label-title percentage-view (string-append (number->string (fxround work-percentage)) "%"))
     (set-label-title downloaded-view (string-append "Downloaded: " (number->string work-downloaded) "M"))

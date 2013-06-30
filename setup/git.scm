@@ -135,6 +135,7 @@ end-of-c-code
     #define DOWNLOAD_DONE     1
     #define CHECKOUT_PROGRESS 2
     #define CHECKOUT_DONE     3
+    #define UPDATING_GAME     5
 end-of-c-declare
 )
 
@@ -143,6 +144,7 @@ end-of-c-declare
 (c-enumerant DOWNLOAD_DONE)
 (c-enumerant CHECKOUT_PROGRESS)
 (c-enumerant CHECKOUT_DONE)
+(c-enumerant UPDATING_GAME)
 
 
 (define git-request-quit

@@ -20,7 +20,7 @@
 ;;   starting to make even the clone of Install painfully long
 ;;   - For now, simply reset to initial commit and push --force
 ;;     - Maybe we have nothing to do and GitHub cleans up dangling commits automatically!?
-;; * Replace thread-sleep! with a threaded 5s display of the message in install-from-setup!?
+;; * App doesn't respond to Windows minimize all
 ;; * Even better than a message-box, I should do like modern installers and consider setup
 ;;   done as soon as the install has been installed!
 ;;   - Abort message-box only for the setup part
