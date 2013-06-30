@@ -114,7 +114,15 @@
              (when (and return-press (not work-in-progress?))
                (return-press)))
             ((= wparam VK_ESCAPE)
-             (quit))))
+             (quit))
+            #; ;; test
+            (else
+             (let ((c (integer->char wparam)))
+               (case c
+                 ((#\1) (test1))
+                 ((#\2) (test2))
+                 ((#\3) (test3))
+                 ((#\4) (test4)))))))
     
     (define (update-cursor window)
       (let ((pos (window-cursor-position window)))
@@ -212,10 +220,10 @@
 
 
 (define stage-setup-color
-  (RGB 160 0 0))
+  (RGB 175 0 0))
 
 (define stage-install-color
-  (RGB 180 110 0))
+  (RGB 185 100 0))
 
 (define stage-ready-color
   (RGB 0 150 0))
@@ -231,6 +239,34 @@
   (set-label-title stage-view title)
   (set-label-color stage-view color)
   (set-label-font stage-view (make-font "Tahoma" 20 bold?: #t)))
+
+
+#; ( ;; test
+(define (test1)
+  (remove-view setup-view)
+  (add-view percentage-view)
+  (add-view downloaded-view)
+  (add-view status-view)
+  (add-view remaining-view)
+  (add-view progress-view)
+  (add-view play-view)
+  (add-stage-view "Setup in progress" stage-setup-color))
+
+
+(define (test2)
+  (set-label-title stage-view "Setup successful!")
+  (set-label-color stage-view stage-install-color))
+
+
+(define (test3)
+  (set-label-title stage-view "Ready to play!")
+  (set-label-color stage-view stage-ready-color))
+
+
+(define (test4)
+  (set-label-title stage-view "Setup successful!")
+  (set-label-color stage-view (RGB 200 110 0)))
+)
 
 
 ;;;
