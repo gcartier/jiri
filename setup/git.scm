@@ -129,6 +129,7 @@ end-of-c-code
 (c-declare #<<end-of-c-declare
     HANDLE ghMutex = NULL;
     HWND remoteHwnd = NULL;
+    BOOL quitRequested = FALSE;
     
     #define DOWNLOAD_PROGRESS 0
     #define DOWNLOAD_DONE     1
@@ -142,6 +143,18 @@ end-of-c-declare
 (c-enumerant DOWNLOAD_DONE)
 (c-enumerant CHECKOUT_PROGRESS)
 (c-enumerant CHECKOUT_DONE)
+
+
+(define git-request-quit
+  (c-lambda () void
+    #<<end-of-c-code
+    if (! ghMutex)
+        ghMutex = CreateMutex(NULL, FALSE, NULL);
+    WaitForSingleObject(ghMutex, INFINITE);
+    quitRequested = TRUE;
+    ReleaseMutex(ghMutex);
+end-of-c-code
+))
 
 
 ;;;
@@ -359,13 +372,21 @@ end-of-c-code
 (c-declare #<<end-of-c-declare
     int remote_download_callback(const git_transfer_progress *stats, void *payload)
     {
+        BOOL quit;
+      
         WaitForSingleObject(ghMutex, INFINITE);
+        quit = quitRequested;
         total_objects = stats->total_objects;
         received_objects = stats->received_objects;
         received_bytes = stats->received_bytes;
         ReleaseMutex(ghMutex);
-        PostMessage(remoteHwnd, WM_USER, DOWNLOAD_PROGRESS, 0);
-        return 0;
+        if (! quit)
+        {
+            PostMessage(remoteHwnd, WM_USER, DOWNLOAD_PROGRESS, 0);
+            return 0;
+        }
+        else
+            return -1;
     }
 
     DWORD WINAPI remote_download_proc(LPVOID lpParam)

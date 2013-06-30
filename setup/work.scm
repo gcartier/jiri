@@ -21,9 +21,7 @@
 ;;   - For now, simply reset to initial commit and push --force
 ;;     - Maybe we have nothing to do and GitHub cleans up dangling commits automatically!?
 ;; * Even better than a message-box, I should do like modern installers and consider setup
-;;   is done as soon as the install has been installed!
-;;   - Surely quitting hard when git is doing a threaded operation could then be dangerous
-;;     and leave a repo in a corrupted state (this can happen also during an install!)
+;;   done as soon as the install has been installed!
 ;;   - Abort message-box for first part or make it modal!?
 ;; - Installer self-verification using a checksum!?
 ;; - Invoking app directly should error
@@ -322,20 +320,6 @@
   (set-default-cursor IDC_WAIT)
   (delegate-process (app-exe))
   (quit))
-
-
-;;;
-;;;; Quit
-;;;
-
-
-(define (quit-confirm-abort title)
-  (lambda ()
-    (if (not work-in-progress?)
-        (exit)
-      (let ((code (message-box (string-append title " in progress.\n\nDo you want to abort?") type: 'question)))
-        (when (eq? code 'yes)
-          (exit))))))
 
 
 ;;;

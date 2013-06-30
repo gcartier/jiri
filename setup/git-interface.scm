@@ -51,6 +51,7 @@
                 (set-progress-pos progress-view received-objects)))))
         (set-download-done
           (lambda (lparam)
+            (safe-quit-point)
             (git-check-error lparam)
             (set! work-percentage (* mid 100.))
             (set! work-downloaded (+ work-downloaded megabytes))
@@ -68,6 +69,9 @@
                   (set-checkout-progress
                     (let ((inited? #f))
                       (lambda (lparam)
+                        ;; from a discusion on freenode, aborting a checkout could leave the worktree in an arbitrary
+                        ;; state, but the next checkout force should overwrite whatever is present in the worktree...
+                        (safe-quit-point)
                         (let ((path (git-checkout-path))
                               (completed-steps (git-checkout-completed-steps))
                               (total-steps (git-checkout-total-steps)))
@@ -84,6 +88,7 @@
                             (set-progress-pos progress-view completed-steps))))))
                   (set-checkout-done
                     (lambda (lparam)
+                      (safe-quit-point)
                       (git-check-error lparam)
                       (set! work-percentage (* tail 100.))
                       (set-progress-info progress-view (make-range mid tail) (make-range 0 10))
@@ -105,7 +110,7 @@
 
 
 ;;;
-;;;; Git
+;;;; Remote
 ;;;
 
 
@@ -161,3 +166,31 @@
           ((= wparam CHECKOUT_DONE)     (if (in-modal?)
                                             (delay-modal-user-event wparam lparam)
                                           (checkout-done lparam))))))
+
+
+;;;
+;;;; Quit
+;;;
+
+
+(define quit-requested?
+  #f)
+
+
+(define (quit-confirm-abort title)
+  (lambda ()
+    (if (not work-in-progress?)
+        (exit)
+      (let ((code (message-box (string-append title " in progress.\n\nDo you want to abort?") type: 'question)))
+        (when (eq? code 'yes)
+          (set! quit-requested? #t)
+          (git-request-quit)
+          (set-default-cursor IDC_WAIT)
+          (set-label-title status-view "Aborting...")
+          (set-view-active? minimize-view #f)
+          (set-view-active? close-view #f))))))
+
+
+(define (safe-quit-point)
+  (when quit-requested?
+    (exit)))
