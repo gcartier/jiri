@@ -43,6 +43,10 @@
     (RECT-free rect)))
 
 
+(define (update-window window)
+  (UpdateWindow (window-handle window)))
+
+
 (define (draw-views hdc)
   (for-each (lambda (view)
               (let ((draw (view-draw view)))
@@ -171,7 +175,7 @@
   (debug-background view hdc)
   (SetBkMode hdc TRANSPARENT)
   (SetTextColor hdc white-color)
-  (let ((font title-font))
+  (let ((font default-title-font))
     (SelectObject hdc font)
     (let ((rect (rect->RECT (view-rect view)))
           (title (title-title view)))
@@ -232,14 +236,16 @@
 
 (define-type-of-view label
   title
-  align)
+  align
+  color
+  font)
 
 
 (define (label-draw view hdc)
   (debug-background view hdc)
   (SetBkMode hdc TRANSPARENT)
-  (SetTextColor hdc white-color)
-  (let ((font label-font))
+  (SetTextColor hdc (or (label-color view) white-color))
+  (let ((font (or (label-font view) default-label-font)))
     (SelectObject hdc font)
     (let ((rect (rect->RECT (view-rect view)))
           (title (label-title view))
@@ -250,6 +256,16 @@
 
 (define (set-label-title view title)
   (label-title-set! view title)
+  (invalidate-view view))
+
+
+(define (set-label-color view color)
+  (label-color-set! view color)
+  (invalidate-view view))
+
+
+(define (set-label-font view font)
+  (label-font-set! view font)
   (invalidate-view view))
 
 
@@ -264,7 +280,9 @@
               #f
               #t
               title
-              align))
+              align
+              #f
+              #f))
 
 
 ;;;
@@ -282,7 +300,7 @@
   (let ((active? (view-active? view)))
     (SetBkMode hdc TRANSPARENT)
     (SetTextColor hdc (if active? white-color (RGB 160 160 160)))
-    (let ((font button-font))
+    (let ((font default-button-font))
       (SelectObject hdc font)
       (let ((rect (view-rect view)))
         (let ((left (rect-left rect))
@@ -467,8 +485,10 @@
           (let ((head (if (not bounds) 0 (fxfloor (* (range-start bounds) width))))
                 (tail (if (not bounds) width (fxceiling (* (range-end bounds) width))))
                 (where (/ (fixnum->flonum (- pos start)) (fixnum->flonum (- end start)))))
-            (let ((h (fxceiling (* (- tail head) where))))
-              (DrawGradient hdc left top (+ left head h) bottom (RGB 150 0 0) (RGB 220 0 0) 'horizontal))))))))
+            (let ((h (fxceiling (* (- tail head) where)))
+                  (from (RGB 150 0 0))
+                  (to (RGB 220 0 0)))
+              (DrawGradient hdc left top (+ left head h) bottom from to 'horizontal))))))))
 
 
 (define (set-progress-info view bounds range)

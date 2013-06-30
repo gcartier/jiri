@@ -112,6 +112,8 @@
 
 
 (define (install-done)
+  (set-label-title stage-view "Ready to play!")
+  (set-label-color stage-view stage-done-color)
   (set-label-title status-view "Done")
   (set-view-active? play-view #t)
   (set-default-cursor IDC_ARROW)
@@ -206,6 +208,7 @@
   (add-view remaining-view)
   (add-view progress-view)
   (add-view play-view)
+  (add-stage-view "Updating game")
   (when (neq? stage 'current-from-root)
     (set-label-title percentage-view (string-append (number->string (fxround work-percentage)) "%"))
     (set-label-title downloaded-view (string-append "Downloaded: " (number->string work-downloaded) "M"))

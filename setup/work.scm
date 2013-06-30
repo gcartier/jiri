@@ -207,6 +207,30 @@
 
 
 ;;;
+;;;; Stage
+;;;
+
+
+(define stage-work-color
+  (RGB 155 0 0))
+
+(define stage-done-color
+  (RGB 0 120 0))
+
+
+(define stage-view
+  (new-label (make-rect 50 410 265 440)
+             ""))
+
+
+(define (add-stage-view title)
+  (add-view stage-view)
+  (set-label-title stage-view title)
+  (set-label-color stage-view stage-work-color)
+  (set-label-font stage-view (make-font "Tahoma" 20 bold?: #t)))
+
+
+;;;
 ;;;; Percentage
 ;;;
 
