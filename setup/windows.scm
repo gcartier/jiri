@@ -1121,7 +1121,7 @@ end-of-c-code
         0,
         g_szClassName,
         title,
-        WS_POPUP,
+        WS_POPUP | WS_MINIMIZEBOX,
         xCtr, yCtr, width, height,
         NULL, NULL, hInstance, NULL);
     
