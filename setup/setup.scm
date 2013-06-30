@@ -38,7 +38,7 @@
         (add-view remaining-view)
         (add-view progress-view)
         (add-view play-view)
-        (add-stage-view "Setup in progress")
+        (add-stage-view "Setup in progress" stage-setup-color)
         (setup-work)))))
 
 
@@ -130,7 +130,7 @@
 
 (define (setup-done)
   (set-label-title stage-view "Setup successful!")
-  (set-label-color stage-view stage-done-color)
+  (set-label-color stage-view stage-install-color)
   (set-default-cursor IDC_ARROW)
   (set! work-in-progress? #f)
   (set! work-done? #t)

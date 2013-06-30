@@ -22,7 +22,7 @@
 ;;     - Maybe we have nothing to do and GitHub cleans up dangling commits automatically!?
 ;; * Even better than a message-box, I should do like modern installers and consider setup
 ;;   done as soon as the install has been installed!
-;;   - Abort message-box for first part or make it modal!?
+;;   - Abort message-box only for the setup part
 ;; - Installer self-verification using a checksum!?
 ;; - Invoking app directly should error
 
@@ -211,22 +211,25 @@
 ;;;
 
 
-(define stage-work-color
-  (RGB 155 0 0))
+(define stage-setup-color
+  (RGB 160 0 0))
 
-(define stage-done-color
-  (RGB 0 120 0))
+(define stage-install-color
+  (RGB 180 110 0))
+
+(define stage-ready-color
+  (RGB 0 150 0))
 
 
 (define stage-view
-  (new-label (make-rect 50 410 265 440)
+  (new-label (make-rect 50 420 265 450)
              ""))
 
 
-(define (add-stage-view title)
+(define (add-stage-view title color)
   (add-view stage-view)
   (set-label-title stage-view title)
-  (set-label-color stage-view stage-work-color)
+  (set-label-color stage-view color)
   (set-label-font stage-view (make-font "Tahoma" 20 bold?: #t)))
 
 
