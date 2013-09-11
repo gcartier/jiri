@@ -15,6 +15,11 @@
 ;; - Install could pass info to the app of what was the last head so that we could show
 ;;   only what changed since last time by having a what's new system indexed by commit!?
 ;; - Invoking app directly should error
+;; - On Joel's computer
+;;   - Setup doesn't select Program Files by default
+;;   - Bug that current-dir wasn't delete in install-current
+;;   - Understand why the Video Card Information is not created
+;; - Need a clean solution to an update needing to do 'setup' job like install a new shortcut
 
 ;; DEVEL
 ;; - comment out (current-exception-handler jiri-exception-handler) and launch exe with -:dar
