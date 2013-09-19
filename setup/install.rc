@@ -15,7 +15,7 @@ FONT 8, "MS Sans Serif"
 BEGIN
     GROUPBOX        "Copyright Agreement", 3,
                     6, 4, 220, 50
-    CTEXT           "Dawn of Space closed-alpha contains copyrighted data.\r\n\r\nBy installing this program you agree to not redistribute it in whole or in part, including screenshots and videos.", 4,
+    CTEXT           "Yownu closed-alpha contains copyrighted data.\r\n\r\nBy installing this program you agree to not redistribute it in whole or in part, including screenshots and videos.", 4,
                     14, 15, 200, 33
     LTEXT           "Please enter your closed-alpha password:", 5,
                     6, 62, 220, 33

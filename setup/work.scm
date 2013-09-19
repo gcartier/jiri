@@ -17,7 +17,7 @@
 ;; - Invoking app directly should error
 ;; - On Joel's computer
 ;;   - Setup doesn't select Program Files by default
-;;   - Bug that current-dir wasn't delete in install-current
+;;   - Bug that current-dir wasn't deleted in install-current
 ;;   - Understand why the Video Card Information is not created
 ;; - Need a clean solution to an update needing to do 'setup' job like install a new shortcut
 
@@ -44,24 +44,24 @@
 ;; - Install direct : incorrect
 ;; - App : incorrect but could be correct when version is validated with server
 
-;; SPACE
+;; YOWNU
 ;; - app
-;;   - space
-;;     - Space.exe
+;;   - yownu
+;;     - Yownu.exe
 ;;     - lib
-;;   - space-debug
+;;   - yownu-debug
 ;; - install
 ;;   - current
 ;;     - Install.exe
 ;;     - libgit2.dll
-;;   - space-install
+;;   - yownu-install
 ;;     - Install.exe
 ;;     - Launcher.exe
 ;;     - Uninstall.exe
 ;;     - libgit2.dll
 ;; - worlds
-;;   - space
-;; Space.exe
+;;   - yownu
+;; Yownu.exe
 
 
 (include "syntax.scm")
