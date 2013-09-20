@@ -182,13 +182,13 @@
 
 
 ;;;
-;;;; Title
+;;;; Invite
 ;;;
 
 
-(define title-view
+(define invite-view
   (new-title (make-rect 20 18 440 100)
-             jiri-title))
+             jiri-invite))
 
 
 ;;;

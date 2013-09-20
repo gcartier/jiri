@@ -108,7 +108,7 @@
 
 (define (layout)
   (add-view root-view)
-  (add-view title-view)
+  (add-view invite-view)
   (add-view close-view)
   (add-view minimize-view)
   (add-view uninstall-view)
