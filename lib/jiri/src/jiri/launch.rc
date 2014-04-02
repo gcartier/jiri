@@ -1,0 +1,4 @@
+#include "winuser.h"
+
+1          RT_MANIFEST launch.manifest
+app        ICON        launch.ico

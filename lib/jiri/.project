@@ -9,13 +9,18 @@
 (data jazz.ide.data.project
 
 
-(import (jazz.editor.jazz))
+(import (jazz.project)
+        (jazz.editor.jazz))
 
 
 (form
-  (<Project>               name: jiri
-    (<*>                                 tag-reference: {File :context "jiri.project"})
-    (<Project-Directory>                 directory: {Directory :context "src"}
-      (<Project-Directory>               directory: {Directory :context "src" "jiri"}
-        (<Jazz-File>       name: install source: {File :context "src" "jiri" "install.jazz"})
-        (<Jazz-File>       name: run     source: {File :context "src" "jiri" "run.jazz"}))))))
+  (<Project>                 name: jiri description-file: {File :context ".package"}
+    (<*>                                tag-reference: {File :context "jiri.project"})
+    (<Project-Directory>                directory: {Directory :context "src"}
+      (<Project-Directory>              directory: {Directory :context "src" "jiri"}
+        
+        (<Project-File>                 source: {File :context "src" "jiri" "product.scm"})
+        (<Project-File>                 source: {File :context "src" "jiri" "load-install.scm"})
+        (<Project-File>                 source: {File :context "src" "jiri" "load-setup.scm"})
+        (<Project-File>                 source: {File :context "src" "jiri" "load-launch.scm"})
+        (<Project-File>                 source: {File :context "src" "jiri" "load-uninstall.scm"}))))))

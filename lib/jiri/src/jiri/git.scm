@@ -35,6 +35,9 @@
 ;;;  See www.jazzscheme.org for details.
 
 
+(unit jiri.git
+
+
 (include "syntax.scm")
 (include "foreign.scm")
 
@@ -453,4 +456,4 @@ end-of-c-code
 (git-external (git-repository-init (out git_repository*) char-string unsigned-int) :error "git_repository_init")
 (git-external (git-repository-open (out git_repository*) char-string) :error "git_repository_open")
 (git-external (git-repository-free git_repository*) void "git_repository_free")
-(git-external (git-repository-set-head git_repository* char-string) :error "git_repository_set_head")
+(git-external (git-repository-set-head git_repository* char-string) :error "git_repository_set_head"))

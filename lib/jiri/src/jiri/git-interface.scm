@@ -35,6 +35,9 @@
 ;;;  See www.jazzscheme.org for details.
 
 
+(unit jiri.git-interface
+
+
 (include "syntax.scm")
 
 
@@ -235,4 +238,4 @@
 
 (define (safe-quit-point)
   (when quit-requested?
-    (exit)))
+    (exit))))

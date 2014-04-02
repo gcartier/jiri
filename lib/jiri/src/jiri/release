@@ -63,7 +63,7 @@ gsc -c -o $BUILD $ABS/work
 gsc -c -o $BUILD $ABS/setup
 gsc -c -o $BUILD $ABS/install
 gsc -c -o $BUILD $ABS/uninstall
-gsc -c -o $BUILD $ABS/launcher
+gsc -c -o $BUILD $ABS/launch
 
 # Setup
 windres --input $ABS/setup.rc --output $BUILD/setup.res --output-format=coff
@@ -89,8 +89,8 @@ gsc -link -o $BUILD $CVIEW $BUILD/uninstall.c
 gsc -cc-options "$CCOPT" -obj $CVIEW $BUILD/uninstall.c $BUILD/uninstall_.c
 gcc -L$GAMBIT/lib $OVIEW $BUILD/uninstall.o $BUILD/uninstall_.o $BUILD/uninstall.res -mwindows $LBASE -o $INSTALL/Uninstall
 
-# Launcher
-windres --input $ABS/launcher.rc --output $BUILD/launcher.res --output-format=coff
-gsc -link -o $BUILD $CBASE $BUILD/launcher.c
-gsc -cc-options "$CCOPT" -obj $CBASE $BUILD/launcher.c $BUILD/launcher_.c
-gcc -L$GAMBIT/lib $OBASE $BUILD/launcher.o $BUILD/launcher_.o $BUILD/launcher.res -mwindows $LBASE -o $INSTALL/Launcher
+# Launch
+windres --input $ABS/launch.rc --output $BUILD/launch.res --output-format=coff
+gsc -link -o $BUILD $CBASE $BUILD/launch.c
+gsc -cc-options "$CCOPT" -obj $CBASE $BUILD/launch.c $BUILD/launch_.c
+gcc -L$GAMBIT/lib $OBASE $BUILD/launch.o $BUILD/launch_.o $BUILD/launch.res -mwindows $LBASE -o $INSTALL/Launch

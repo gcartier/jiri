@@ -35,6 +35,9 @@
 ;;;  See www.jazzscheme.org for details.
 
 
+(unit jiri.uninstall
+
+
 (include "syntax.scm")
 
 
@@ -154,4 +157,4 @@
 ;;;
 
 
-(main)
+(main))

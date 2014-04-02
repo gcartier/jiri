@@ -35,6 +35,9 @@
 ;;;  See www.jazzscheme.org for details.
 
 
+(unit jiri.work
+
+
 ;; TODO
 ;; - When Marc has fixed the FFI error problem, replace the global error-handler by a catcher
 ;;   to ward against recursive errors
@@ -65,8 +68,8 @@
 
 ;; SCENARIO
 ;; - Setup : clone install, delegate Install
-;; - Root : delegate Current
-;; - Current from Root : pull install, if newer delegate Install else pull app/world
+;; - Launch : delegate Current
+;; - Current from Launch : pull install, if newer delegate Install else pull app/world
 ;; - Current direct : incorrect
 ;; - Install from Setup : clone app/world
 ;; - Install from Current : pull app/world
@@ -85,7 +88,7 @@
 ;;     - libgit2.dll
 ;;   - yownu-install
 ;;     - Install.exe
-;;     - Launcher.exe
+;;     - Launch.exe
 ;;     - Uninstall.exe
 ;;     - libgit2.dll
 ;; - worlds
@@ -483,4 +486,4 @@
 (define (main #!optional (start #f))
   (prepare)
   (layout)
-  (run start))
+  (run start)))

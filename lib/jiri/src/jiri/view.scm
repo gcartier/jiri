@@ -35,6 +35,9 @@
 ;;;  See www.jazzscheme.org for details.
 
 
+(unit jiri.view
+
+
 (include "syntax.scm")
 
 
@@ -544,4 +547,4 @@
                  #t
                  #f
                  range
-                 pos))
+                 pos)))

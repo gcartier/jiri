@@ -35,6 +35,9 @@
 ;;;  See www.jazzscheme.org for details.
 
 
+(unit jiri.draw
+
+
 (include "syntax.scm")
 
 
@@ -72,4 +75,4 @@
                  (RECT-free rectFill)
                  (DeleteObject brush))))
            (when (< i 256)
-             (loop (+ i 1)))))))
+             (loop (+ i 1))))))))

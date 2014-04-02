@@ -2,7 +2,7 @@
 ;;;  JazzScheme
 ;;;==============
 ;;;
-;;;; Window
+;;;; Install
 ;;;
 ;;;  The contents of this file are subject to the Mozilla Public License Version
 ;;;  1.1 (the "License"); you may not use this file except in compliance with
@@ -35,11 +35,22 @@
 ;;;  See www.jazzscheme.org for details.
 
 
-(define-type window
-  handle
-  draw
-  key-down
-  update-cursor
-  mouse-move
-  mouse-down
-  mouse-up)
+(unit jiri.load-install
+
+
+(require jiri.windows
+         jiri.git
+         jiri.git-interface
+         jiri.base
+         jiri.geometry
+         jiri.color
+         jiri.font
+         jiri.window
+         jiri.draw
+         jiri.view
+         jiri.structure
+         jiri.work
+         jiri.install)
+
+
+(pp 'welcome-to-install))

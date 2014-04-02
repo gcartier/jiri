@@ -35,6 +35,9 @@
 ;;;  See www.jazzscheme.org for details.
 
 
+(unit jiri.install
+
+
 (include "syntax.scm")
 
 
@@ -100,7 +103,7 @@
 
 
 (define (current-from-root-work)
-  (pull-repository "launcher" jiri-install-remote jiri-install-branch closed-beta-password (install-dir) 1 6 0. .05 .1
+  (pull-repository "launch" jiri-install-remote jiri-install-branch closed-beta-password (install-dir) 1 6 0. .05 .1
     (lambda (new-content?)
       (if new-content?
           (delegate-install current-root-dir closed-beta-password "current")
@@ -174,7 +177,7 @@
 
 
 (define (install-root)
-  (let ((from (launcher-exe))
+  (let ((from (launch-exe))
         (to (root-exe)))
     ;; danger
     (when (file-exists? to)
@@ -279,4 +282,4 @@
 
 
 (prepare-stage)
-(main install)
+(main install))

@@ -35,6 +35,9 @@
 ;;;  See www.jazzscheme.org for details.
 
 
+(unit jiri.structure
+
+
 (include "syntax.scm")
 
 
@@ -46,11 +49,17 @@
 (define current-root-dir
   #f)
 
+(set! current-root-dir #f)
+
 (define closed-beta-password
   #f)
 
+(set! closed-beta-password #f)
+
 (define called-from
   #f)
+
+(set! called-from #f)
 
 
 (define (app-dir)
@@ -80,8 +89,8 @@
 (define (install-exe)
   (add-extension (string-append (install-dir) "Install") executable-extension))
 
-(define (launcher-exe)
-  (add-extension (string-append (install-dir) "Launcher") executable-extension))
+(define (launch-exe)
+  (add-extension (string-append (install-dir) "Launch") executable-extension))
 
 
 ;;;
@@ -109,4 +118,4 @@
   (delegate-process (install-exe))
   ;; wait for install window to cover our own window
   (thread-sleep! .5)
-  (exit))
+  (exit)))

@@ -35,6 +35,9 @@
 ;;;  See www.jazzscheme.org for details.
 
 
+(unit jiri.base
+
+
 (include "syntax.scm")
 
 
@@ -291,4 +294,4 @@
     thunk))
 
 
-(current-exception-handler jiri-exception-handler)
+(current-exception-handler jiri-exception-handler))

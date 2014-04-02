@@ -2,7 +2,7 @@
 ;;;  JazzScheme
 ;;;==============
 ;;;
-;;;; Font
+;;;; Launch
 ;;;
 ;;;  The contents of this file are subject to the Mozilla Public License Version
 ;;;  1.1 (the "License"); you may not use this file except in compliance with
@@ -35,18 +35,22 @@
 ;;;  See www.jazzscheme.org for details.
 
 
-(define (make-font name size #!key (bold? #f))
-  (CreateFont
-    size 0 0 0 (if bold? FW_BOLD FW_DONTCARE) FALSE FALSE FALSE
-    DEFAULT_CHARSET OUT_DEFAULT_PRECIS CLIP_DEFAULT_PRECIS
-    ANTIALIASED_QUALITY FF_DONTCARE name))
+(unit jiri.load-launch
 
 
-(define default-title-font
-  (make-font "Tahoma" 72))
+(require jiri.windows
+         jiri.git
+         jiri.git-interface
+         jiri.base
+         jiri.geometry
+         jiri.color
+         jiri.font
+         jiri.window
+         jiri.draw
+         jiri.view
+         jiri.structure
+         jiri.work
+         jiri.launch)
 
-(define default-label-font
-  (make-font "Tahoma" 12))
 
-(define default-button-font
-  (make-font "Tahoma" 24))
+(pp 'welcome-to-launch))

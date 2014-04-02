@@ -2,8 +2,24 @@
   
   (root "src")
   (products (jiri (title "Jiri")
-                  (run jiri.run)
-                  (update jiri.run)
-                  (build (jiri resources: "resources"))
-                  (dependencies jazz)))
+                  (unit jiri.product)
+                  (update jiri.load-install
+                          jiri.load-setup
+                          jiri.setup.base
+                          jiri.setup.color
+                          jiri.setup.draw
+                          jiri.setup.font
+                          jiri.setup.geometry
+                          jiri.setup.git
+                          jiri.setup.git-interface
+                          jiri.setup.install
+                          jiri.setup.launch
+                          jiri.setup.setup
+                          jiri.setup.structure
+                          jiri.setup.uninstall
+                          jiri.setup.view
+                          jiri.setup.window
+                          jiri.setup.windows
+                          jiri.setup.work)
+                  (dependencies)))
   (project ".project"))
