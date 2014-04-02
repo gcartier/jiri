@@ -3,23 +3,25 @@
   (root "src")
   (products (jiri (title "Jiri")
                   (unit jiri.product)
-                  (update jiri.load-install
+                  (update jiri.load-launch
+                          jiri.load-install
                           jiri.load-setup
-                          jiri.setup.base
-                          jiri.setup.color
-                          jiri.setup.draw
-                          jiri.setup.font
-                          jiri.setup.geometry
-                          jiri.setup.git
-                          jiri.setup.git-interface
-                          jiri.setup.install
-                          jiri.setup.launch
-                          jiri.setup.setup
-                          jiri.setup.structure
-                          jiri.setup.uninstall
-                          jiri.setup.view
-                          jiri.setup.window
-                          jiri.setup.windows
-                          jiri.setup.work)
+                          jiri.load-uninstall
+                          jiri.base
+                          jiri.color
+                          jiri.draw
+                          jiri.font
+                          jiri.geometry
+                          jiri.git
+                          jiri.git-interface
+                          jiri.install
+                          jiri.launch
+                          jiri.setup
+                          jiri.structure
+                          jiri.uninstall
+                          jiri.view
+                          jiri.window
+                          jiri.windows
+                          jiri.work)
                   (dependencies)))
   (project ".project"))
