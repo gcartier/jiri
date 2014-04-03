@@ -50,7 +50,4 @@
          jiri.view
          jiri.structure
          jiri.work
-         jiri.uninstall)
-
-
-(pp 'welcome-to-uninstall))
+         jiri.uninstall))

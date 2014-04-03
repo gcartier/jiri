@@ -38,6 +38,20 @@
 (unit jiri.setup
 
 
+(require jiri.windows
+         jiri.git
+         jiri.git-interface
+         jiri.base
+         jiri.geometry
+         jiri.color
+         jiri.font
+         jiri.window
+         jiri.draw
+         jiri.view
+         jiri.structure
+         jiri.work)
+
+
 (include "syntax.scm")
 
 

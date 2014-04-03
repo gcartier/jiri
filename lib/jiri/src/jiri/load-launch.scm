@@ -50,7 +50,4 @@
          jiri.view
          jiri.structure
          jiri.work
-         jiri.launch)
-
-
-(pp 'welcome-to-launch))
+         jiri.launch))

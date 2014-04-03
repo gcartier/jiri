@@ -50,7 +50,4 @@
          jiri.view
          jiri.structure
          jiri.work
-         jiri.install)
-
-
-(pp 'welcome-to-install))
+         jiri.install))
