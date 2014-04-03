@@ -54,7 +54,9 @@
         (define (source-file path)
           (string-append source path))
         
-        (jazz:copy-file (source-file "foreign/libgit2/lib/windows/libgit2.dll") (build-file "libgit2.dll") feedback: jazz:feedback))))
+        (jazz:copy-file (source-file "foreign/libgit2/lib/windows/libgit2.dll") (build-file "libgit2.dll") feedback: jazz:feedback)
+        (jazz:copy-file (source-file "foreign/openssl/lib/windows/libeay32.dll") (build-file "libeay32.dll") feedback: jazz:feedback)
+        (jazz:copy-file (source-file "foreign/openssl/lib/windows/ssleay32.dll") (build-file "ssleay32.dll") feedback: jazz:feedback))))
   (else
     (define (jazz:copy-jiri-files)
       #f)))
