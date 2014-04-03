@@ -3,11 +3,7 @@
   (root "src")
   (products (jiri (title "Jiri")
                   (unit jiri.product)
-                  (update jiri.load-launch
-                          jiri.load-install
-                          jiri.load-setup
-                          jiri.load-uninstall
-                          jiri.base
+                  (update jiri.base
                           jiri.color
                           jiri.draw
                           jiri.font
