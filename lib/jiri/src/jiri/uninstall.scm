@@ -38,7 +38,8 @@
 (unit jiri.uninstall
 
 
-(require jiri.windows
+(require jiri.settings
+         jiri.windows
          jiri.git
          jiri.git-interface
          jiri.base

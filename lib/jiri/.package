@@ -12,6 +12,7 @@
                           jiri.git-interface
                           jiri.install
                           jiri.launch
+                          jiri.settings
                           jiri.setup
                           jiri.structure
                           jiri.uninstall

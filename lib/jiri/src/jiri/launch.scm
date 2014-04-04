@@ -38,7 +38,8 @@
 (unit jiri.launch
 
 
-(require jiri.base
+(require jiri.settings
+         jiri.base
          jiri.structure
          jiri.work)
 

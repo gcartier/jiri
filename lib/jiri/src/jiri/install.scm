@@ -38,7 +38,8 @@
 (unit jiri.install
 
 
-(require jiri.windows
+(require jiri.settings
+         jiri.windows
          jiri.git
          jiri.git-interface
          jiri.base
@@ -179,6 +180,11 @@
             (to (string-append current-dir "/" filename)))
         (copy-file from to)))
     
+    (define (copy-dir dirname)
+      (let ((from (string-append install-dir "/" dirname))
+            (to (string-append current-dir "/" dirname)))
+        (copy-directory from to)))
+    
     ;; danger
     (remove-directory current-dir)
     (create-directory current-dir)
@@ -187,7 +193,9 @@
     (copy "Uninstall.exe")
     (copy "libgit2.dll")
     (copy "libeay32.dll")
-    (copy "ssleay32.dll")))
+    (copy "ssleay32.dll")
+    (copy ".repository")
+    (copy-dir "lib")))
 
 
 (define (install-root)
