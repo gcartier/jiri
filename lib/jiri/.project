@@ -39,4 +39,5 @@
         (<Project-File>               source: {File :context "src" "jiri" "view.scm"})
         (<Project-File>               source: {File :context "src" "jiri" "window.scm"})
         (<Project-File>               source: {File :context "src" "jiri" "windows.scm"})
-        (<Project-File>               source: {File :context "src" "jiri" "work.scm"}))))))
+        (<Project-File>               source: {File :context "src" "jiri" "work.scm"})
+        (<Project-File>               source: {File :context "src" "jiri" "devel.scm"}))))))

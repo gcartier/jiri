@@ -38,11 +38,11 @@
 (unit jiri.setup
 
 
-(require jiri.settings
-         jiri.windows
+(require jiri.windows
          jiri.git
          jiri.git-interface
          jiri.base
+         jiri.devel
          jiri.geometry
          jiri.color
          jiri.font

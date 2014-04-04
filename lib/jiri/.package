@@ -5,6 +5,7 @@
                   (unit jiri.product)
                   (update jiri.base
                           jiri.color
+                          jiri.devel
                           jiri.draw
                           jiri.font
                           jiri.geometry
@@ -12,7 +13,6 @@
                           jiri.git-interface
                           jiri.install
                           jiri.launch
-                          jiri.settings
                           jiri.setup
                           jiri.structure
                           jiri.uninstall
