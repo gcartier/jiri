@@ -23,7 +23,6 @@
         (<Project-File>               source: {File :context "src" "jiri" "color.scm"})
         (<Project-File>               source: {File :context "src" "jiri" "crash.scm"})
         (<Project-File>               source: {File :context "src" "jiri" "draw.scm"})
-        (<Project-File>               source: {File :context "src" "jiri" "features.scm"})
         (<Project-File>               source: {File :context "src" "jiri" "font.scm"})
         (<Project-File>               source: {File :context "src" "jiri" "foreign.scm"})
         (<Project-File>               source: {File :context "src" "jiri" "geometry.scm"})

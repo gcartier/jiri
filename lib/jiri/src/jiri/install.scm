@@ -39,6 +39,7 @@
 
 
 (require jiri.windows
+         jiri.crash
          jiri.git
          jiri.git-interface
          jiri.base

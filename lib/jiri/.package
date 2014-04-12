@@ -5,6 +5,7 @@
                   (unit jiri.product)
                   (update jiri.base
                           jiri.color
+                          jiri.crash
                           jiri.devel
                           jiri.draw
                           jiri.font

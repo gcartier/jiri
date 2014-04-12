@@ -35,7 +35,7 @@
 ;;;  See www.jazzscheme.org for details.
 
 
-(include "features.scm")
+(unit jiri.crash
 
 
 (define (call-with-bug-report proc)
@@ -168,4 +168,4 @@ END-OF-DECLARES
 
    (define crash-process
      (c-lambda () void
-       "raise(SIGSEGV);"))))
+       "raise(SIGSEGV);")))))
