@@ -277,7 +277,7 @@ end-of-c-code
     OSVERSIONINFO info;
     info.dwOSVersionInfoSize = sizeof(OSVERSIONINFO);
     GetVersionEx(&info);
-    ___SCMOBJ version = ___EXT(___make_pair) (___FIX(info.dwMajorVersion), ___FIX(info.dwMinorVersion), ___STILL);
+    ___SCMOBJ version = ___EXT(___make_pair) (___ps, ___FIX(info.dwMajorVersion), ___FIX(info.dwMinorVersion));
     ___result = version;
 end-of-c-code
 ))

@@ -38,6 +38,13 @@
 (unit jiri.devel
 
 
+(define (local-repository? url)
+  (and (jazz:string-starts-with? url "~/")
+       (not (jazz:string-ends-with? url ".git"))))
+
+
 (if jiri-development?
     (let ((dir (executable-directory)))
-      (pp dir))))
+      (let ((settings (string-append dir "devel.settings")))
+        (if (file-exists? settings)
+            (load settings))))))

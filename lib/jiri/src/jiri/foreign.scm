@@ -132,7 +132,7 @@
                                "if (result == 0)\n"
                                "{\n"
                                "    ___SCMOBJ foreign;\n"
-                               "    ___EXT(___POINTER_to_SCMOBJ)(out, ___FAL, NULL, &foreign, ___RETURN_POS);\n"
+                               "    ___EXT(___POINTER_to_SCMOBJ)(___ps, out, ___FAL, NULL, &foreign, ___RETURN_POS);\n"
                                "    ___result = foreign;\n"
                                "}\n"
                                (if (eq? type ':lookup)

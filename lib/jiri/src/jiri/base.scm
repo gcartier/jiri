@@ -294,4 +294,5 @@
     thunk))
 
 
-(current-exception-handler jiri-exception-handler))
+(if (not jiri-development?)
+    (current-exception-handler jiri-exception-handler)))

@@ -147,7 +147,7 @@
     #<<end-of-c-code
     int major, minor, rev;
     git_libgit2_version(&major, &minor, &rev);
-    ___SCMOBJ version = ___EXT(___make_pair) (___FIX(major), ___FIX(minor), ___STILL);
+    ___SCMOBJ version = ___EXT(___make_pair) (___ps, ___FIX(major), ___FIX(minor));
     ___result = version;
 end-of-c-code
 ))
@@ -322,7 +322,7 @@ end-of-c-code
     else
     {
         ___SCMOBJ foreign;
-        ___EXT(___POINTER_to_SCMOBJ)(oid, ___FAL, NULL, &foreign, ___RETURN_POS);
+        ___EXT(___POINTER_to_SCMOBJ)(___ps, oid, ___FAL, NULL, &foreign, ___RETURN_POS);
         ___result = foreign;
     }
 end-of-c-code
@@ -345,6 +345,8 @@ end-of-c-code
 (git-external (git-remote-load (out git_remote*) git_repository* char-string) :error "git_remote_load")
 (git-external (git-remote-save git_remote*) :error "git_remote_save")
 (git-external (git-remote-check-cert git_remote* int) void "git_remote_check_cert")
+(git-external (git-remote-name git_remote*) char-string "git_remote_name")
+(git-external (git-remote-url git_remote*) char-string "git_remote_url")
 
 
 (c-define (cred-acquire-procedure proc) (scheme-object) git_cred* "cred_acquire_procedure" ""

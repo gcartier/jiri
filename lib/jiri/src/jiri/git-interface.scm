@@ -173,11 +173,16 @@
             (lambda (exc)
               (if (error-exception? exc)
                   (let ((err (->string (car (error-exception-parameters exc)))))
+                    (define (debug-info)
+                      (if jiri-development?
+                          (string-append " (" (git-remote-url remote) ")")
+                        ""))
+                    
                     (cond ((string-ends-with? err "401")
                            (message-box "Incorrect password")
                            (loop (+ try 1)))
                           (else
-                           (message-box (string-append "Unable to connect to server:\n\n" err))
+                           (message-box (string-append "Unable to connect to server" (debug-info) ":\n\n" err))
                            (cancel-connection))))
                 (raise exc)))
             (lambda ()
