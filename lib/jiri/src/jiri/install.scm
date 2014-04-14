@@ -182,9 +182,9 @@
         (copy-file from to)))
     
     (define (copy-dir dirname)
-      (let ((from (string-append install-dir "/" dirname))
-            (to (string-append current-dir "/" dirname)))
-        (copy-directory from to)))
+      (let ((from (string-append install-dir "/" dirname "/"))
+            (to (string-append current-dir "/" dirname "/")))
+        (jazz:copy-directory from to)))
     
     ;; danger
     (remove-directory current-dir)

@@ -38,11 +38,11 @@
 (unit jiri.launch
 
 
-(require jiri.crash
+(require jiri.windows
+         jiri.crash
          jiri.base
          jiri.devel
-         jiri.structure
-         jiri.work)
+         jiri.structure)
 
 
 (include "syntax.scm")
