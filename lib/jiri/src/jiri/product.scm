@@ -54,9 +54,9 @@
         (define (source-file path)
           (string-append source path))
         
-        (jazz:copy-file (source-file "foreign/libgit2/lib/windows/libgit2.dll") (build-file "libgit2.dll") feedback: jazz:feedback)
-        (jazz:copy-file (source-file "foreign/openssl/lib/windows/libeay32.dll") (build-file "libeay32.dll") feedback: jazz:feedback)
-        (jazz:copy-file (source-file "foreign/openssl/lib/windows/ssleay32.dll") (build-file "ssleay32.dll") feedback: jazz:feedback))))
+        (jazz:copy-file (source-file "foreign/windows/libgit2/lib/libgit2.dll") (build-file "libgit2.dll") feedback: jazz:feedback)
+        (jazz:copy-file (source-file "foreign/windows/openssl/lib/libeay32.dll") (build-file "libeay32.dll") feedback: jazz:feedback)
+        (jazz:copy-file (source-file "foreign/windows/openssl/lib/ssleay32.dll") (build-file "ssleay32.dll") feedback: jazz:feedback))))
   (else
     (define (jazz:copy-jiri-files)
       #f)))
@@ -65,8 +65,8 @@
 (cond-expand
   (windows
     (define jazz:jiri-units
-      (let ((libgit2-include-path (jazz:quote-jazz-pathname "foreign/libgit2/include"))
-            (libgit2-lib-path     (jazz:quote-jazz-pathname "foreign/libgit2/lib/windows")))
+      (let ((libgit2-include-path (jazz:quote-jazz-pathname "foreign/windows/libgit2/include"))
+            (libgit2-lib-path     (jazz:quote-jazz-pathname "foreign/windows/libgit2/lib")))
         `((jiri.windows cc-options: "-DUNICODE -D_WIN32_WINNT=0x0502 -D_WIN32_IE=0x0400" ld-options: "-lgdi32 -lole32 -luuid")
           (jiri.git     cc-options: ,(string-append "-I" libgit2-include-path) ld-options: ,(string-append "-L" libgit2-lib-path " -lgit2"))))))
   (else
