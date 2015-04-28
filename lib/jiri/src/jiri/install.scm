@@ -201,11 +201,14 @@
 
 (define (install-root)
   (let ((from (launch-exe))
-        (to (root-exe)))
+        (from-lib (launch-lib))
+        (to (root-exe))
+        (to-lib (root-lib)))
     ;; danger
     (when (file-exists? to)
       (delete-file to))
-    (copy-file from to)))
+    (copy-file from to)
+    (jazz:copy-directory from-lib to-lib)))
 
 
 (define (install-desktop)
