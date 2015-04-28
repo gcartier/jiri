@@ -78,7 +78,7 @@
   (add-extension (string-append current-root-dir jiri-application) executable-extension))
 
 (define (root-lib)
-  (string-append current-root-dir "lib"))
+  (string-append current-root-dir "lib/"))
 
 (define (app-exe)
   (add-extension (string-append (app-dir) jiri-application) executable-extension))
@@ -96,7 +96,7 @@
   (add-extension (string-append (install-dir) "Launch") executable-extension))
 
 (define (launch-lib)
-  (string-append (install-dir) "lib"))
+  (string-append (install-dir) "lib/"))
 
 
 ;;;
