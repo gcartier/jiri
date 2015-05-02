@@ -2,7 +2,7 @@
 ;;;  JazzScheme
 ;;;==============
 ;;;
-;;;; Window
+;;;; Font
 ;;;
 ;;;  The contents of this file are subject to the Mozilla Public License Version
 ;;;  1.1 (the "License"); you may not use this file except in compliance with
@@ -35,14 +35,28 @@
 ;;;  See www.jazzscheme.org for details.
 
 
-(unit jiri.window
+(module jiri.font jazz
 
 
-(define-type window
-  handle
-  draw
-  key-down
-  update-cursor
-  mouse-move
-  mouse-down
-  mouse-up))
+(import (jazz.graphic))
+
+
+(cond-expand
+  (windows
+   (definition public default-title-font
+     {Font font-name: "Tahoma" point-size: 72})
+   
+   (definition public default-label-font
+     {Font font-name: "Tahoma" point-size: 12})
+   
+   (definition public default-button-font
+     {Font font-name: "Tahoma" point-size: 24}))
+  (else
+   (definition public default-title-font
+     {Font font-name: tahoma point-size: 60})
+   
+   (definition public default-label-font
+     {Font font-name: tahoma point-size: 12})
+   
+   (definition public default-button-font
+     {Font font-name: tahoma point-size: 24}))))

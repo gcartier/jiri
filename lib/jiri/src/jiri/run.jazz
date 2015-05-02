@@ -2,7 +2,7 @@
 ;;;  JazzScheme
 ;;;==============
 ;;;
-;;;; Color
+;;;; Jiri Run
 ;;;
 ;;;  The contents of this file are subject to the Mozilla Public License Version
 ;;;  1.1 (the "License"); you may not use this file except in compliance with
@@ -35,8 +35,12 @@
 ;;;  See www.jazzscheme.org for details.
 
 
-(unit jiri.color
+(module jiri.run jazz
 
 
-(define white-color
-  (RGB 255 255 255)))
+(import (jiri.appl))
+
+
+(register-product-run 'jiri
+  (lambda (descriptor)
+    (boot-environment~ (new Jiri-Application)))))

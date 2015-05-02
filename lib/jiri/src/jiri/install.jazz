@@ -35,53 +35,48 @@
 ;;;  See www.jazzscheme.org for details.
 
 
-(unit jiri.install
+(module jiri.install jazz
 
 
-(require jiri.windows
-         jiri.crash
-         jiri.git
-         jiri.git-interface
-         jiri.base
-         jiri.devel
-         jiri.geometry
-         jiri.color
-         jiri.font
-         jiri.window
-         jiri.draw
-         jiri.view
-         jiri.structure
-         jiri.work)
+(import (jazz.ui)
+        (jazz.ui.view)
+        (jazz.ui.window)
+        (jiri.base)
+        (jiri.devel)
+        (jiri.git)
+        (jiri.view)
+        (jiri.settings)
+        (jiri.structure)
+        (jiri.work))
 
 
-(include "syntax.scm")
-
-
+@convert (
 (define stage
   #f)
 
 
 (define (prepare-stage)
-  (set! current-root-dir (getenv-default "root-dir"))
-  (set! closed-beta-password (getenv-default "closed-beta-password"))
-  (set! called-from (getenv-default "called-from"))
-  (set! stage (cond ((and current-root-dir
-                          (equal? called-from "setup"))
+  (current-root-dir (getenv-default "root-dir"))
+  (closed-beta-password (getenv-default "closed-beta-password"))
+  (called-from (getenv-default "called-from"))
+  (set! stage (cond ((and (current-root-dir)
+                          (equal? (called-from) "setup"))
                      'install-from-setup)
-                    ((and current-root-dir
-                          (equal? called-from "root"))
+                    ((and (current-root-dir)
+                          (equal? (called-from) "root"))
                      'current-from-root)
-                    ((and current-root-dir
-                          (equal? called-from "current"))
+                    ((and (current-root-dir)
+                          (equal? (called-from) "current"))
                      'install-from-current)
                     (else
                      (message-box "It is incorrect to launch this application")
                      (exit 1))))
   (when (neq? stage 'current-from-root)
-    (set! work-percentage (string->number (getenv-default "work-percentage" "0.")))
-    (set! work-downloaded (string->number (getenv-default "work-downloaded" "0")))
+    (set-work-percentage (string->number (getenv-default "work-percentage" "0.")))
+    (set-work-downloaded (string->number (getenv-default "work-downloaded" "0")))
+    @convert (
     (set! window-h (string->number (getenv-default "window-h" "-1")))
-    (set! window-v (string->number (getenv-default "window-v" "-1")))))
+    (set! window-v (string->number (getenv-default "window-v" "-1"))))))
 
 
 ;;;
@@ -119,10 +114,10 @@
 
 
 (define (current-from-root-work)
-  (pull-repository "launch" jiri-install-remote jiri-install-branch closed-beta-password (install-dir) 1 6 0. .05 .1
+  (pull-repository "launch" jiri-install-remote jiri-install-branch (closed-beta-password) (install-dir) 1 6 0. .05 .1
     (lambda (new-content?)
       (if new-content?
-          (delegate-install current-root-dir closed-beta-password "current")
+          (delegate-install (current-root-dir) (closed-beta-password) "current")
         (begin
           (update-start-menu)
           (rewind-start-menu)
@@ -152,9 +147,9 @@
 
 
 (define (install-application/world cont)
-  (pull-repository "application" jiri-app-remote jiri-app-branch closed-beta-password (app-dir) 3 6 .1 .2 .4
+  (pull-repository "application" jiri-app-remote jiri-app-branch (closed-beta-password) (app-dir) 3 6 .1 .2 .4
     (lambda (new-content?)
-      (pull-repository "world" jiri-world-remote jiri-world-branch closed-beta-password (world-dir) 5 6 .4 .85 1.
+      (pull-repository "world" jiri-world-remote jiri-world-branch (closed-beta-password) (world-dir) 5 6 .4 .85 1.
         cont))))
 
 
@@ -164,13 +159,13 @@
 
 
 (define (install-done)
-  (set-label-title stage-view "Ready to play!")
-  (set-label-color stage-view stage-ready-color)
-  (set-label-title status-view "Done")
-  (set-view-active? play-view #t)
-  (set-default-cursor IDC_ARROW)
-  (set! work-in-progress? #f)
-  (set! work-done? #t))
+  (set-title~ stage-view "Ready to play!")
+  (set-color~ stage-view stage-ready-color)
+  (set-title~ status-view "Done")
+  (set-enabled?~ play-view #t)
+  (set-cursor :arrow)
+  (set-work-in-progress? #f)
+  (set-work-done? #t))
 
 
 (define (install-current)
@@ -214,7 +209,7 @@
 (define (install-desktop)
   (let ((path (root-exe))
         (shortcut (desktop-shortcut)))
-    (let ((hr (create-shortcut path #f shortcut jiri-title)))
+    (let ((hr (create-shortcut path #f shortcut (jiri-title))))
       (when (< hr 0)
         (error "Unable to create desktop shortcut (0x" (number->string hr 16) ")")))))
 
@@ -227,7 +222,7 @@
       (remove-directory appdir))
     (create-directory appdir)
     (let ((shortcut (start-menu-shortcut appdir)))
-      (let ((hr (create-shortcut root #f shortcut jiri-title)))
+      (let ((hr (create-shortcut root #f shortcut (jiri-title))))
         (when (< hr 0)
           (error "Unable to create start menu shortcut (0x" (number->string hr 16) ")"))))))
 
@@ -252,12 +247,12 @@
 
 (define (install-uninstall)
   (let ((key (registry-create-key (HKEY_CURRENT_USER) (uninstall-subkey))))
-    (registry-set-string key "DisplayName" jiri-title)
+    (registry-set-string key "DisplayName" (jiri-title))
     (registry-set-string key "DisplayIcon" (pathname-platformize (root-exe)))
     (registry-set-string key "DisplayVersion" jiri-version)
     (registry-set-string key "Publisher" jiri-company)
     (registry-set-string key "InstallDate" (get-local-date))
-    (registry-set-string key "InstallLocation" (pathname-platformize current-root-dir))
+    (registry-set-string key "InstallLocation" (pathname-platformize (current-root-dir)))
     (registry-set-string key "UninstallString" (string-append (pathname-platformize (root-exe)) " -uninstall"))
     (registry-set-int key "EstimatedSize" jiri-size)
     (registry-set-int key "NoModify" 1)
@@ -273,8 +268,10 @@
 (define (layout)
   (add-view root-view)
   (add-view invite-view)
-  (add-view close-view)
-  (add-view minimize-view)
+  (when close-view
+    (add-view close-view))
+  (when minimize-view
+    (add-view minimize-view))
   (add-view percentage-view)
   (add-view downloaded-view)
   (add-view status-view)
@@ -291,10 +288,10 @@
               (PostMessage (window-handle current-window) WM_USER UPDATING_GAME 0)))))
     (add-stage-view "Updating game" stage-install-color))
   (when (neq? stage 'current-from-root)
-    (set-label-title percentage-view (string-append (number->string (fxround work-percentage)) "%"))
-    (set-label-title downloaded-view (string-append "Downloaded: " (number->string work-downloaded) "M"))
-    (set-label-title status-view (downloading-title "application" 3 6))
-    (set-progress-info progress-view (make-range .1 .4) (make-range 0 10)))
+    (set-title~ percentage-view (string-append (number->string (fxround work-percentage)) "%"))
+    (set-title~ downloaded-view (string-append "Downloaded: " (number->string work-downloaded) "M"))
+    (set-title~ status-view (downloading-title "application" 3 6))
+    (set-info~ progress-view (new Range .1 .4) (new Range 0 10)))
   (set-return-press
     (lambda ()
       (when work-done?
@@ -307,5 +304,6 @@
 ;;;
 
 
+@convert (
 (prepare-stage)
-(main install))
+(main install))))

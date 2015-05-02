@@ -3,23 +3,22 @@
   (root "src")
   (products (jiri (title "Jiri")
                   (unit jiri.product)
-                  (update jiri.base
-                          jiri.color
-                          jiri.crash
+                  (update jiri.appl
+                          jiri.base
                           jiri.devel
-                          jiri.draw
                           jiri.font
-                          jiri.geometry
                           jiri.git
-                          jiri.git-interface
                           jiri.install
                           jiri.launch
+                          jiri.pane
+                          jiri.product
+                          jiri.run
+                          jiri.settings
                           jiri.setup
                           jiri.structure
                           jiri.uninstall
                           jiri.view
                           jiri.window
-                          jiri.windows
                           jiri.work)
                   (dependencies)))
   (project ".project"))

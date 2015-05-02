@@ -1,0 +1,435 @@
+;;;==============
+;;;  JazzScheme
+;;;==============
+;;;
+;;;; Work
+;;;
+;;;  The contents of this file are subject to the Mozilla Public License Version
+;;;  1.1 (the "License"); you may not use this file except in compliance with
+;;;  the License. You may obtain a copy of the License at
+;;;  http://www.mozilla.org/MPL/
+;;;
+;;;  Software distributed under the License is distributed on an "AS IS" basis,
+;;;  WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
+;;;  for the specific language governing rights and limitations under the
+;;;  License.
+;;;
+;;;  The Original Code is JazzScheme.
+;;;
+;;;  The Initial Developer of the Original Code is Guillaume Cartier.
+;;;  Portions created by the Initial Developer are Copyright (C) 1996-2014
+;;;  the Initial Developer. All Rights Reserved.
+;;;
+;;;  Contributor(s):
+;;;
+;;;  Alternatively, the contents of this file may be used under the terms of
+;;;  the GNU General Public License Version 2 or later (the "GPL"), in which
+;;;  case the provisions of the GPL are applicable instead of those above. If
+;;;  you wish to allow use of your version of this file only under the terms of
+;;;  the GPL, and not to allow others to use your version of this file under the
+;;;  terms of the MPL, indicate your decision by deleting the provisions above
+;;;  and replace them with the notice and other provisions required by the GPL.
+;;;  If you do not delete the provisions above, a recipient may use your version
+;;;  of this file under the terms of any one of the MPL or the GPL.
+;;;
+;;;  See www.jazzscheme.org for details.
+
+
+(module jiri.work jazz
+
+
+(import (jazz.graphic)
+        (jazz.ui)
+        (jiri.settings)
+        (jiri.view)
+        (jiri.window))
+
+
+;; TODO
+;; - When Marc has fixed the FFI error problem, replace the global error-handler by a catcher
+;;   to ward against recursive errors
+;; - A potential problem can occur when I push a new release because pushing to both app and
+;;   world is not atomic. This can be alleviated a bit by a script to push a release pushing
+;;   both repositories rapidly maybe even in parallel
+;; - Install could pass info to the app of what was the last head so that we could show
+;;   only what changed since last time by having a what's new system indexed by commit!?
+;; - Invoking app directly should error
+;; - On Joel's computer
+;;   - Setup doesn't select Program Files by default
+;;   - Bug that current-dir wasn't deleted in install-current
+;;   - Understand why the Video Card Information is not created
+;; - Need a clean solution to an update needing to do 'setup' job like install a new shortcut
+
+;; DEVEL
+;; - comment out (current-exception-handler jiri-exception-handler) and launch exe with -:dar
+
+;; RELEASE
+;; Install
+;;   - b
+;;   - cd release/install
+;;   - commit and push changes
+;; Setup
+;;   - i
+;;   - m
+;;   - publish setup
+
+;; SCENARIO
+;; - Setup : clone install, delegate Install
+;; - Launch : delegate Current
+;; - Current from Launch : pull install, if newer delegate Install else pull app/world
+;; - Current direct : incorrect
+;; - Install from Setup : clone app/world
+;; - Install from Current : pull app/world
+;; - Install direct : incorrect
+;; - App : incorrect but could be correct when version is validated with server
+
+;; YOWNU
+;; - app
+;;   - yownu
+;;     - Yownu.exe
+;;     - lib
+;;   - yownu-debug
+;; - install
+;;   - current
+;;     - Install.exe
+;;     - libgit2.dll
+;;   - yownu-install
+;;     - Install.exe
+;;     - Launch.exe
+;;     - Uninstall.exe
+;;     - libgit2.dll
+;; - worlds
+;;   - yownu
+;; Yownu.exe
+
+
+;;;
+;;;; Window
+;;;
+
+
+@convert (
+(define return-press
+  #f)
+
+(define (set-return-press callback)
+  (set! return-press callback)))
+
+
+;;;
+;;;; Root
+;;;
+
+
+(definition public root-view
+  (new Jiri-Root
+    position: (new Point 0 0)
+    size: (new Dimension 850 550)))
+
+
+;;;
+;;;; Invite
+;;;
+
+
+(definition public invite-view
+  (new Jiri-Title
+    title: (jiri-invite)
+    position: (new Point 20 18)
+    size: (new Dimension 420 82)))
+
+
+;;;
+;;;; Minimize
+;;;
+
+
+(cond-expand
+  (windows
+   (definition public minimize-view
+     (new Jiri-Minimize
+       position: (new Point 796 13)
+       size: (new Dimension 14 14))))
+  (else
+   (definition public minimize-view
+     #f)))
+
+
+;;;
+;;;; Close
+;;;
+
+
+(cond-expand
+  (windows
+   (definition public close-view
+     (new Jiri-Close
+       position: (new Point 823 13)
+       size: (new Dimension 14 14))))
+  (else
+   (definition public close-view
+     #f)))
+
+
+;;;
+;;;; Stage
+;;;
+
+
+(definition public stage-setup-color
+  {Color red: 175 green: 0 blue: 0})
+
+(definition public stage-install-color
+  {Color red: 185 green: 100 blue: 0})
+
+(definition public stage-ready-color
+  {Color red: 0 green: 150 blue: 0})
+
+
+(definition public stage-view
+  (new Jiri-Label
+    title: ""
+    position: (new Point 50 420)
+    size: (new Dimension 215 30)))
+
+
+(definition public (add-stage-view title color)
+  (add-view stage-view)
+  (set-title~ stage-view title)
+  (set-color~ stage-view color)
+  (set-font~ stage-view {Font font-name: "Tahoma" point-size: 20 bold?: #t}))
+
+
+#; ( ;; test
+(define (test1)
+  (remove-view setup-view)
+  (add-view percentage-view)
+  (add-view downloaded-view)
+  (add-view status-view)
+  (add-view remaining-view)
+  (add-view progress-view)
+  (add-view play-view)
+  (add-stage-view "Setup in progress" stage-setup-color))
+
+
+(define (test2)
+  (set-title~ stage-view "Setup successful!")
+  (set-color~ stage-view stage-install-color))
+
+
+(define (test3)
+  (set-title~ stage-view "Ready to play!")
+  (set-color~ stage-view stage-ready-color))
+
+
+(define (test4)
+  (set-title~ stage-view "Setup successful!")
+  (set-color~ stage-view {Color red: 200 green: 110 blue: 0}))
+)
+
+
+;;;
+;;;; Percentage
+;;;
+
+
+(definition public percentage-view
+  (new Jiri-Label
+    title: "0%"
+    position: (new Point 50 450)
+    size: (new Dimension 115 20)))
+
+
+;;;
+;;;; Downloaded
+;;;
+
+
+(definition public downloaded-view
+  (new Jiri-Label
+    title: "Downloaded: "
+    position: (new Point 175 450)
+    size: (new Dimension 165 20)))
+
+
+;;;
+;;;; Status
+;;;
+
+
+(definition public status-view
+  (new Jiri-Label
+    title: ""
+    position: (new Point 350 450)
+    size: (new Dimension 140 20)
+    justification: 'tail))
+
+
+;;;
+;;;; Remaining
+;;;
+
+
+(definition public remaining-view
+  (new Jiri-Label
+    title: "Remaining: "
+    position: (new Point 500 450)
+    size: (new Dimension 150 20)
+    justification: 'tail))
+
+
+;;;
+;;;; Progress
+;;;
+
+
+(definition public progress-view
+  (new Jiri-Progress
+    position: (new Point 50 470)
+    size: (new Dimension 600 20)
+    range: (new Range 0 10)
+    pos: 0))
+
+
+;;;
+;;;; Play
+;;;
+
+
+(definition public play-view
+  (new Jiri-Button
+    title: "Play"
+    position: (new Point 680 450)
+    size: (new Dimension 135 40)
+    enabled?: #f
+    action-handler: (lambda (view)
+                      (play))))
+
+
+;;;
+;;;; Work
+;;;
+
+
+(definition public work-in-progress?
+  #f)
+
+(definition public (set-work-in-progress? value)
+  (set! work-in-progress? value))
+
+
+(definition public work-done?
+  #f)
+
+(definition public (set-work-done? value)
+  (set! work-done? value))
+
+
+(definition public work-percentage
+  0.)
+
+(definition public (set-work-percentage value)
+  (set! work-percentage value))
+
+
+(definition public work-downloaded
+  0)
+
+(definition public (set-work-downloaded value)
+  (set! work-downloaded value))
+
+
+
+;;;
+;;;; Installation
+;;;
+
+
+(cond-expand
+  (windows
+   (define (uninstall-subkey)
+     (string-append "Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\" (jiri-title)))
+   
+   
+   (define (desktop-shortcut)
+     (let ((desktop (get-special-folder CSIDL_DESKTOPDIRECTORY)))
+       (string-append desktop "/" (jiri-title) ".lnk")))
+   
+   
+   (define (start-menu-appdir)
+     (let ((startdir (get-special-folder CSIDL_STARTMENU)))
+       (string-append startdir "/Programs/" (jiri-title))))
+   
+   
+   (define (start-menu-shortcut appdir)
+     (string-append appdir "/" (jiri-title) ".lnk")))
+  (else))
+
+
+;;;
+;;;; Play
+;;;
+
+
+(definition public (play)
+  @convert (
+  (set-cursor :wait)
+  (delegate-process (app-exe))
+  (quit)))
+
+
+;;;
+;;;; Callback
+;;;
+
+
+(definition public download-progress
+  #f)
+
+(definition public (set-download-progress proc)
+  (set! download-progress proc))
+
+
+(definition public download-done
+  #f)
+
+(definition public (set-download-done proc)
+  (set! download-done proc))
+
+
+(definition public checkout-progress
+  #f)
+
+(definition public (set-checkout-progress proc)
+  (set! checkout-progress proc))
+
+
+(definition public checkout-done
+  #f)
+
+(definition public (set-checkout-done proc)
+  (set! checkout-done proc))
+
+
+;;;
+;;;; Prepare
+;;;
+
+
+@convert
+(define (prepare)
+  (initialize-windows)
+  (prepare-bitmap)
+  (set-current-window window))
+
+
+;;;
+;;;; Main
+;;;
+
+
+@convert
+(define (main #!optional (start #f))
+  (prepare)
+  (layout)
+  (run start)))

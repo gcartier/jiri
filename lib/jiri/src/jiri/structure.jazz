@@ -35,10 +35,13 @@
 ;;;  See www.jazzscheme.org for details.
 
 
-(unit jiri.structure
+(module jiri.structure jazz
 
 
-(include "syntax.scm")
+(import (jazz.library)
+        (jiri.base)
+        (jiri.settings)
+        (jiri.work))
 
 
 ;;;
@@ -46,56 +49,50 @@
 ;;;
 
 
-(define current-root-dir
+(define-setting current-root-dir
   #f)
 
-(set! current-root-dir #f)
-
-(define closed-beta-password
+(define-setting closed-beta-password
   #f)
 
-(set! closed-beta-password #f)
-
-(define called-from
+(define-setting called-from
   #f)
 
-(set! called-from #f)
 
+(definition public (app-dir)
+  (string-append (current-root-dir) (normalize-directory jiri-app-dir)))
 
-(define (app-dir)
-  (string-append current-root-dir (normalize-directory jiri-app-dir)))
+(definition public (install-dir)
+  (string-append (current-root-dir) (normalize-directory jiri-install-dir)))
 
-(define (install-dir)
-  (string-append current-root-dir (normalize-directory jiri-install-dir)))
+(definition public (current-dir)
+  (string-append (current-root-dir) (normalize-directory jiri-current-dir)))
 
-(define (current-dir)
-  (string-append current-root-dir (normalize-directory jiri-current-dir)))
+(definition public (world-dir)
+  (string-append (current-root-dir) (normalize-directory jiri-world-dir)))
 
-(define (world-dir)
-  (string-append current-root-dir (normalize-directory jiri-world-dir)))
+(definition public (root-exe)
+  (add-extension (string-append (current-root-dir) jiri-application) executable-extension))
 
-(define (root-exe)
-  (add-extension (string-append current-root-dir jiri-application) executable-extension))
+(definition public (root-lib)
+  (string-append (current-root-dir) "lib/"))
 
-(define (root-lib)
-  (string-append current-root-dir "lib/"))
-
-(define (app-exe)
+(definition public (app-exe)
   (add-extension (string-append (app-dir) jiri-application) executable-extension))
 
-(define (current-exe)
+(definition public (current-exe)
   (add-extension (string-append (current-dir) "Install") executable-extension))
 
-(define (uninstall-exe)
+(definition public (uninstall-exe)
   (add-extension (string-append (current-dir) "Uninstall") executable-extension))
 
-(define (install-exe)
+(definition public (install-exe)
   (add-extension (string-append (install-dir) "Install") executable-extension))
 
-(define (launch-exe)
+(definition public (launch-exe)
   (add-extension (string-append (install-dir) "Launch") executable-extension))
 
-(define (launch-lib)
+(definition public (launch-lib)
   (string-append (install-dir) "lib/"))
 
 
@@ -104,7 +101,7 @@
 ;;;
 
 
-(define (delegate-current root-dir closed-beta-password called-from)
+(definition public (delegate-current root-dir closed-beta-password called-from)
   (setenv "root-dir" root-dir)
   (setenv "closed-beta-password" (or closed-beta-password ""))
   (setenv "called-from" called-from)
@@ -112,12 +109,13 @@
   (exit))
 
 
-(define (delegate-install root-dir closed-beta-password called-from)
+(definition public (delegate-install root-dir closed-beta-password called-from)
   (setenv "root-dir" root-dir)
   (setenv "closed-beta-password" (or closed-beta-password ""))
   (setenv "called-from" called-from)
   (setenv "work-percentage" (number->string work-percentage))
   (setenv "work-downloaded" (number->string work-downloaded))
+  @convert
   (let ((pos (get-window-position current-window)))
     (setenv "window-h" (number->string (point-h pos)))
     (setenv "window-v" (number->string (point-v pos))))

@@ -1,0 +1,362 @@
+;;;==============
+;;;  JazzScheme
+;;;==============
+;;;
+;;;; View
+;;;
+;;;  The contents of this file are subject to the Mozilla Public License Version
+;;;  1.1 (the "License"); you may not use this file except in compliance with
+;;;  the License. You may obtain a copy of the License at
+;;;  http://www.mozilla.org/MPL/
+;;;
+;;;  Software distributed under the License is distributed on an "AS IS" basis,
+;;;  WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
+;;;  for the specific language governing rights and limitations under the
+;;;  License.
+;;;
+;;;  The Original Code is JazzScheme.
+;;;
+;;;  The Initial Developer of the Original Code is Guillaume Cartier.
+;;;  Portions created by the Initial Developer are Copyright (C) 1996-2014
+;;;  the Initial Developer. All Rights Reserved.
+;;;
+;;;  Contributor(s):
+;;;
+;;;  Alternatively, the contents of this file may be used under the terms of
+;;;  the GNU General Public License Version 2 or later (the "GPL"), in which
+;;;  case the provisions of the GPL are applicable instead of those above. If
+;;;  you wish to allow use of your version of this file only under the terms of
+;;;  the GPL, and not to allow others to use your version of this file under the
+;;;  terms of the MPL, indicate your decision by deleting the provisions above
+;;;  and replace them with the notice and other provisions required by the GPL.
+;;;  If you do not delete the provisions above, a recipient may use your version
+;;;  of this file under the terms of any one of the MPL or the GPL.
+;;;
+;;;  See www.jazzscheme.org for details.
+
+
+(module jiri.view jazz
+
+
+(import (jazz.graphic)
+        (jazz.graphic.image)
+        (jazz.platform.cairo)
+        (jazz.ui)
+        (jazz.ui.view)
+        (jazz.ui.window)
+        (jiri.font)
+        (jiri.settings)
+        (jiri.window))
+
+
+(definition public (add-view view)
+  (set-parent~ view (first-child~ (current-stage)))
+  (invalidate-view~ view))
+
+
+(definition public (remove-view view)
+  (set-parent~ view #f)
+  (invalidate-view~ view))
+  
+
+;;;
+;;;; Background
+;;;
+
+
+(definition cached-background
+  #f)
+
+
+(definition public (cache-background)
+  (when (not cached-background)
+    (let ((background (jiri-background)))
+      (assert background
+        (set! cached-background (load-image background)))))
+  cached-background)
+
+
+(definition public (cache-background-size)
+  (let ((background (cache-background)))
+    (new Dimension
+      (cairo_image_surface_get_width background)
+      (cairo_image_surface_get_height background))))
+
+
+;;;
+;;;; Root
+;;;
+
+
+(class Jiri-Root extends View
+  
+  
+  (method override (draw surface context)
+    (draw-surface~ surface (cache-background) 0 0))
+  
+  
+  (method override (cursor-update evt)
+    (set-cursor :default)))
+
+
+;;;
+;;;; Title
+;;;
+
+
+(class Jiri-Title extends View
+  
+  
+  (cond-expand
+    (windows
+     (slot moving? initialize #f getter generate))
+    (else))
+  
+  
+  (method override (draw surface context)
+    (set-font~ surface default-title-font)
+    (draw-text~ surface 0 0 title {Color White}))
+  
+  
+  (cond-expand
+    (windows
+     (method override (cursor-update evt)
+       (set-cursor :all))
+     
+     @convert
+     (method override (mouse-move evt)
+       (when (title-moving? view)
+         (let ((current (cursor-position)))
+           (let ((delta (point- current (title-cursor-pos view))))
+             (let ((pos (point+ (title-window-pos view) delta))
+                   (size (title-window-size view)))
+               (move-window current-window pos size))))))
+
+     @convert
+     (method override (mouse-down evt)
+       (title-cursor-pos-set! view (cursor-position))
+       (title-window-pos-set! view (get-window-position current-window))
+       (title-window-size-set! view (get-window-size current-window))
+       (title-moving?-set! view #t)
+       (SetCapture (window-handle current-window))
+       (set-captured-view view)
+       (set-lose-capture-callback
+         (lambda ()
+           (title-moving?-set! view #f))))
+
+     @convert
+     (method override (mouse-up evt)
+       (release-captured-view)))
+    (else)))
+
+
+;;;
+;;;; Label
+;;;
+
+
+(class Jiri-Label extends Label-View
+  
+  
+  (method override (draw surface context)
+    (set-font~ surface (or font default-label-font))
+    (draw-text~ surface 0 0 title (or color {Color White})))
+
+
+  @convert
+  (method override (draw surface context)
+    (SetBkMode hdc TRANSPARENT)
+    (SetTextColor hdc (or (label-color view) {Color White}))
+    (let ((font (or (label-font view) default-label-font)))
+      (SelectObject hdc font)
+      (let ((rect (rect->RECT (view-rect view)))
+            (title (label-title view))
+            (align (label-align view)))
+        (DrawText hdc title -1 rect (bitwise-ior align DT_NOCLIP))
+        (RECT-free rect)))))
+
+
+;;;
+;;;; Button
+;;;
+
+
+(class Jiri-Button extends View
+  
+  
+  (property action initialize #f accessors generate)
+  
+  
+  (method override (draw surface context)
+    (let ((bounds (get-bounds)))
+      (if (eq? self (mouse-view))
+          (fill-rect~ surface bounds {Color red: 230 green: 0 blue: 0})
+        (gradient-fill~ surface bounds
+          (list (list 0 (if enabled? {Color red: 150 green: 0 blue: 0} {Color White}))
+                (list 1 (if enabled? {Color red: 220 green: 0 blue: 0} {Color White})))
+          direction: 'horizontal)))
+    (set-font~ surface default-button-font)
+    (draw-text~ surface 10 5 title (if enabled? {Color White} {Color red: 160 green: 160 blue: 160})))
+
+
+  @convert
+  (method override (draw surface context)
+    (SetBkMode hdc TRANSPARENT)
+    (SetTextColor hdc (if enabled? {Color White} {Color red: 160 green: 160 blue: 160}))
+    (let ((font default-button-font))
+      (SelectObject hdc font)
+      (let ((rect (view-rect view)))
+        (let ((left (rect-left rect))
+              (top (rect-top rect))
+              (right (rect-right rect))
+              (bottom (rect-bottom rect)))
+          (if (eq? view (mouse-view))
+              (let ((rect (rect->RECT rect))
+                    (brush (CreateSolidBrush {Color red: 230 green: 0 blue: 0})))
+                (FillRect hdc rect brush)
+                (RECT-free rect)
+                (DeleteObject brush))
+            (DrawGradient hdc left top right bottom (if enabled? {Color red: 150 green: 0 blue: 0} {Color White}) (if enabled? {Color red: 220 green: 0 blue: 0} {Color White}) 'horizontal))
+          (let ((textRect (rect->RECT (new Rect left (+ top 7) right (+ bottom 7))))
+                (title (button-title view)))
+            (DrawText hdc title -1 textRect (bitwise-ior DT_CENTER DT_NOCLIP))
+            (RECT-free textRect))))))
+  
+  
+  (method override (cursor-update evt)
+    (set-cursor :arrow))
+  
+  
+  (method override (mouse-enter)
+    (invalidate-view))
+  
+  
+  (method override (mouse-leave)
+    (invalidate-view))
+  
+  
+  (method override (mouse-down evt)
+    #f)
+  
+  
+  (method override (mouse-up evt)
+    (process-action self)))
+
+
+;;;
+;;;; Close
+;;;
+
+
+(class Jiri-Close extends Jiri-Button
+  
+  
+  @convert
+  (method override (draw surface context)
+    (let ((rect (view-rect view))
+          (gray (CreatePen PS_SOLID 4 {Color red: 150 green: 150 blue: 150}))
+          (white (CreatePen PS_SOLID 2 (if (eq? view (mouse-view)) {Color red: 200 green: 0 blue: 0} {Color red: 255 green: 255 blue: 255}))))
+      (let ((left (+ (rect-left rect) 2))
+            (top (+ (rect-top rect) 2))
+            (right (- (rect-right rect) 2))
+            (bottom (- (rect-bottom rect) 2)))
+        (define (draw-x pen)
+          (SelectObject hdc pen)
+          (MoveToEx hdc left top #f)
+          (LineTo hdc right bottom)
+          (MoveToEx hdc right top #f)
+          (LineTo hdc left bottom))
+        
+        (draw-x gray)
+        (draw-x white))
+      (DeleteObject gray)
+      (DeleteObject white)))
+  
+  
+  (method override (process-action sender (properties (action-properties)))
+    (quit)))
+
+
+;;;
+;;;; Minimize
+;;;
+
+
+(class Jiri-Minimize extends Jiri-Button
+  
+  
+  @convert
+  (method override (draw surface context)
+    (let ((rect (view-rect view))
+          (gray (CreatePen PS_SOLID 4 {Color red: 150 green: 150 blue: 150}))
+          (white (CreatePen PS_SOLID 2 (if (eq? view (mouse-view)) {Color red: 200 green: 0 blue: 0} {Color red: 255 green: 255 blue: 255}))))
+      (let ((left (+ (rect-left rect) 2))
+            (top (+ (rect-top rect) 2))
+            (right (- (rect-right rect) 2))
+            (bottom (- (rect-bottom rect) 2)))
+        (define (draw-line pen)
+          (SelectObject hdc pen)
+          (MoveToEx hdc left bottom #f)
+          (LineTo hdc right bottom))
+        
+        (draw-line gray)
+        (draw-line white))
+      (DeleteObject gray)
+      (DeleteObject white)))
+  
+  
+  (method override (process-action sender (properties (action-properties)))
+    @convert (
+    (ShowWindow (window-handle current-window) SW_MINIMIZE))))
+
+
+;;;
+;;;; Progress
+;;;
+
+
+(class Jiri-Progress extends View
+
+
+  (property limits initialize #f accessors generate)
+  (property range  initialize #f accessors generate)
+  (property pos    initialize #f getter generate setter explicit)
+  
+  
+  @convert
+  (method override (draw surface context)
+    (let ((rect (view-rect view)))
+      (let ((left (rect-left rect))
+            (top (rect-top rect))
+            (right (rect-right rect))
+            (bottom (rect-bottom rect)))
+        (let ((rect (rect->RECT rect))
+              (brush (CreateSolidBrush {Color White})))
+          (FillRect hdc rect brush)
+          (RECT-free rect)
+          (DeleteObject brush))
+        (let ((limits (progress-limits view))
+              (range (progress-range view))
+              (pos (progress-pos view)))
+          (let ((start (range-start range))
+                (end (range-end range))
+                (width (rect-width rect)))
+            (let ((head (if (not limits) 0 (fxfloor (* (range-start limits) width))))
+                  (tail (if (not limits) width (fxceiling (* (range-end limits) width))))
+                  (where (/ (fixnum->flonum (- pos start)) (fixnum->flonum (- end start)))))
+              (let ((h (fxceiling (* (- tail head) where)))
+                    (from {Color red: 150 green: 0 blue: 0})
+                    (to {Color red: 220 green: 0 blue: 0}))
+                (DrawGradient hdc left top (+ left head h) bottom from to 'horizontal))))))))
+  
+  
+  (method (set-info limits range)
+    (set! limits~self limits)
+    (set! range~self range)
+    (set! pos~self (get-start~ range))
+    (invalidate-view))
+  
+  
+  (method (set-pos pos)
+    (set! pos~self pos)
+    (invalidate-view))))

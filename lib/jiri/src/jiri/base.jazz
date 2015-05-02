@@ -2,7 +2,7 @@
 ;;;  JazzScheme
 ;;;==============
 ;;;
-;;;; Launch
+;;;; Base
 ;;;
 ;;;  The contents of this file are subject to the Mozilla Public License Version
 ;;;  1.1 (the "License"); you may not use this file except in compliance with
@@ -35,88 +35,52 @@
 ;;;  See www.jazzscheme.org for details.
 
 
-(unit jiri.launch
+(module jiri.base jazz
 
 
-(require jiri.windows
-         jiri.crash
-         jiri.base
-         jiri.devel
-         jiri.structure)
-
-
-(include "syntax.scm")
+(native unbound-os-environment-variable-exception?)
 
 
 ;;;
-;;;; Launch
+;;;; Environment
 ;;;
 
 
-(define (launch)
-  (set! current-root-dir (executable-directory))
-  (let ((args (command-arguments)))
-    (cond ((equal? args '("-information"))
-           (launch-information))
-          ((equal? args '("-uninstall"))
-           (launch-uninstall))
-          ((equal? args '())
-           (launch-current))
-          (else
-           (message-box (string-append "Invalid command arguments: " (->string args)))
-           (exit 1)))))
+(definition public (getenv-default name #!optional (default #f))
+  (with-exception-catcher
+    (lambda (exc)
+      (if (unbound-os-environment-variable-exception? exc)
+          default
+        (raise exc)))
+    (lambda ()
+      (getenv name))))
 
 
 ;;;
-;;;; Information
+;;;; Directory
 ;;;
 
 
-(define (launch-information)
-  (cond ((file-exists? (app-exe))
-         (delegate-process (app-exe) arguments: '("-glinformation" "true"))
-         (exit))
-        (else
-         (message-box "Incorrect installation")
-         (exit 1))))
+(definition public (normalize-directory directory)
+  (if (ends-with? directory "/")
+      directory
+    (string-append directory "/")))
 
 
 ;;;
-;;;; Current
+;;;; Process
 ;;;
 
 
-(define (launch-current)
-  (cond ((file-exists? (current-exe))
-         (delegate-current current-root-dir closed-beta-password "root"))
-        (else
-         (message-box "Incorrect installation")
-         (exit 1))))
+(definition public (command-arguments)
+  (cdr (command-line)))
 
 
-;;;
-;;;; Uninstall
-;;;
-
-
-(define (launch-uninstall)
-  (let ((uninstall (uninstall-exe)))
-    (cond ((file-exists? uninstall)
-           (delegate-uninstall uninstall))
-          (else
-           (message-box "Incorrect installation")
-           (exit 1)))))
-
-
-(define (delegate-uninstall uninstall)
-  (let ((uninstall-temp (get-temporary-file (string-append jiri-title " uninstall") "exe")))
-    (copy-file uninstall uninstall-temp)
-    (delegate-process uninstall-temp)))
-
-
-;;;
-;;;; Main
-;;;
-
-
-(launch))
+(definition public (delegate-process path (arguments: arguments '()))
+  (open-process (list
+                  path: path
+                  arguments: arguments
+                  stdin-redirection: #f
+                  stdout-redirection: #f
+                  stderr-redirection: #f
+                  show-console: #f))))

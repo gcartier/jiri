@@ -35,26 +35,15 @@
 ;;;  See www.jazzscheme.org for details.
 
 
-(unit jiri.uninstall
+(module jiri.uninstall jazz
 
 
-(require jiri.windows
-         jiri.crash
-         jiri.git
-         jiri.git-interface
-         jiri.base
-         jiri.devel
-         jiri.geometry
-         jiri.color
-         jiri.font
-         jiri.window
-         jiri.draw
-         jiri.view
-         jiri.structure
-         jiri.work)
-
-
-(include "syntax.scm")
+(import (jazz.ui)
+        (jiri.devel)
+        (jiri.view)
+        (jiri.structure)
+        (jiri.view)
+        (jiri.work))
 
 
 ;;;
@@ -62,11 +51,14 @@
 ;;;
 
 
+@convert (
 (define uninstall-view
-  (new-button (make-rect 50 450 390 490)
-              (string-append "Uninstall " jiri-title)
-              (lambda (view)
-                (uninstall))))
+  (new Jiri-Button
+    title: (string-append "Uninstall " (jiri-title))
+    position: (new Point 50 450)
+    size: (new Dimension 340 40)
+    action-handler: (lambda (view)
+                      (uninstall))))
 
 
 ;;;
@@ -76,8 +68,8 @@
 
 (define (uninstall)
   (define (not-found)
-    (message-box (string-append jiri-title " was not found on this computer.")
-                 title: (string-append jiri-title " Uninstall")
+    (message-box (string-append (jiri-title) " was not found on this computer.")
+                 title: (string-append (jiri-title) " Uninstall")
                  type: 'problem))
   
   (let ((key (registry-open-key (HKEY_CURRENT_USER) (uninstall-subkey))))
@@ -87,18 +79,18 @@
         (registry-close-key key)
         (if (not install-dir)
             (not-found)
-          (let ((code (message-box (string-append "Remove " jiri-title " and all of its components?")
-                                   title: (string-append jiri-title " Uninstall")
+          (let ((code (message-box (string-append "Remove " (jiri-title) " and all of its components?")
+                                   title: (string-append (jiri-title) " Uninstall")
                                    type: 'question)))
             (when (eq? code 'yes)
-              (set-default-cursor IDC_WAIT)
+              (set-cursor :wait)
               (uninstall-desktop-shortcut)
               (uninstall-start-menu)
               (uninstall-uninstall)
               (uninstall-install install-dir)
-              (set-default-cursor IDC_ARROW)
-              (message-box (string-append jiri-title " was successfully removed from your computer.")
-                           title: (string-append jiri-title " Uninstall"))
+              (set-cursor :arrow)
+              (message-box (string-append (jiri-title) " was successfully removed from your computer.")
+                           title: (string-append (jiri-title) " Uninstall"))
               (seppuku-exit))))))))
 
 
@@ -143,7 +135,7 @@
         (force-output output))))
   
   (let ((uninstall (executable-path))
-        (remove (get-temporary-file (string-append jiri-title " remove") "bat")))
+        (remove (get-temporary-file (string-append (jiri-title) " remove") "bat")))
     (generate-remover uninstall remove)
     (create-console-process (string-append "cmd /c \"" remove "\""))
     (exit)))
@@ -157,8 +149,10 @@
 (define (layout)
   (add-view root-view)
   (add-view invite-view)
-  (add-view close-view)
-  (add-view minimize-view)
+  (when close-view
+    (add-view close-view))
+  (when minimize-view
+    (add-view minimize-view))
   (add-view uninstall-view)
   (set-return-press
     (lambda ()
@@ -173,4 +167,5 @@
 ;;;
 
 
-(main))
+@convert
+(main)))

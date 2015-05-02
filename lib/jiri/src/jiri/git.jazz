@@ -35,10 +35,15 @@
 ;;;  See www.jazzscheme.org for details.
 
 
-(unit jiri.git-interface
+(module jiri.git jazz
 
 
-(include "syntax.scm")
+(import (jazz.git.foreign)
+        (jazz.ui)
+        (jazz.ui.view)
+        (jazz.ui.window)
+        (jiri.view)
+        (jiri.work))
 
 
 ;;;
@@ -46,10 +51,11 @@
 ;;;
 
 
-(define (pull-repository title url branch password dir step of head mid tail cont)
-  (set-default-cursor IDC_WAIT)
-  (set! work-in-progress? #t)
-  (set-label-title status-view (downloading-title title step of))
+(definition public (pull-repository title url branch password dir step of head mid tail cont)
+  @convert (
+  (set-cursor :wait)
+  (set-work-in-progress? #t)
+  (set-title~ status-view (downloading-title title step of))
   (let ((existing? (file-exists? dir)))
     (let ((repo (if existing?
                     (git-repository-open dir)
@@ -73,23 +79,23 @@
                       (downloaded (fxfloor (/ (exact->inexact received-bytes) (* 1024. 1024.))))
                       (remaining (- total-objects received-objects)))
                   (let ((effective-percentage (fxround (+ work-percentage percentage))))
-                    (set-label-title percentage-view (string-append (number->string effective-percentage) "%"))
-                    (set-label-title downloaded-view (string-append "Downloaded: " (number->string (+ work-downloaded downloaded)) "M"))
-                    (set-label-title remaining-view (string-append "Remaining: " (number->string remaining)))
+                    (set-title~ percentage-view (string-append (number->string effective-percentage) "%"))
+                    (set-title~ downloaded-view (string-append "Downloaded: " (number->string (+ work-downloaded downloaded)) "M"))
+                    (set-title~ remaining-view (string-append "Remaining: " (number->string remaining)))
                     (set! megabytes downloaded)))
                 (when (not inited?)
-                  (set-progress-info progress-view (make-range head mid) (make-range 0 total-objects))
+                  (set-info~ progress-view (new Range head mid) (new Range 0 total-objects))
                   (set! inited? #t))
-                (set-progress-pos progress-view received-objects)))))
+                (set-pos~ progress-view received-objects)))))
         (set-download-done
           (lambda (lparam)
             (safe-quit-point)
             (git-check-error lparam)
             (set! work-percentage (* mid 100.))
             (set! work-downloaded (+ work-downloaded megabytes))
-            (set-label-title status-view (installing-title title step of))
-            (set-progress-info progress-view (make-range head mid) (make-range 0 10))
-            (set-progress-pos progress-view 10)
+            (set-title~ status-view (installing-title title step of))
+            (set-info~ progress-view (new Range head mid) (new Range 0 10))
+            (set-pos~ progress-view 10)
             (git-remote-disconnect remote)
             (git-remote-update-tips remote)
             (git-remote-free remote)
@@ -112,25 +118,25 @@
                             (let ((percentage (* (percentage completed-steps total-steps) (- tail mid)))
                                   (remaining (- total-steps completed-steps)))
                               (let ((effective-percentage (fxround (+ work-percentage percentage))))
-                                (set-label-title percentage-view (string-append (number->string effective-percentage) "%"))
-                                (set-label-title remaining-view (string-append "Remaining: " (number->string remaining)))))
+                                (set-title~ percentage-view (string-append (number->string effective-percentage) "%"))
+                                (set-title~ remaining-view (string-append "Remaining: " (number->string remaining)))))
                             (when (not inited?)
-                              (set-progress-info progress-view (make-range mid tail) (make-range 0 total-steps))
+                              (set-info~ progress-view (new Range mid tail) (new Range 0 total-steps))
                               (set! inited? #t))
-                            (set-progress-pos progress-view completed-steps))))))
+                            (set-pos~ progress-view completed-steps))))))
                   (set-checkout-done
                     (lambda (lparam)
                       (safe-quit-point)
                       (git-check-error lparam)
                       (set! work-percentage (* tail 100.))
-                      (set-progress-info progress-view (make-range mid tail) (make-range 0 10))
-                      (set-progress-pos progress-view 10)
+                      (set-info~ progress-view (new Range mid tail) (new Range 0 10))
+                      (set-pos~ progress-view 10)
                       (git-reference-free upstream)
                       (git-object-free commit)
                       (git-repository-free repo)
                       (cont new-content?)))
                 (git-checkout-head-force-threaded repo (window-handle current-window)))))))
-        (git-remote-download-threaded remote (window-handle current-window))))))
+        (git-remote-download-threaded remote (window-handle current-window)))))))
 
 
 (define (downloading-title title step of)
@@ -146,7 +152,8 @@
 ;;;
 
 
-(define (git-remote-connect-with-retries remote cancel)
+(definition public (git-remote-connect-with-retries remote cancel)
+  @convert (
   (let ((password #f))
     (define (ask-password)
       (set! password (or closed-beta-password (dialog-box (window-handle current-window))))
@@ -156,7 +163,7 @@
     (define (cancel-connection)
       (if cancel
           (begin
-            (set-default-cursor IDC_ARROW)
+            (set-cursor :arrow)
             (set! work-in-progress? #f)
             (continuation-return cancel))
         (exit 1)))
@@ -187,7 +194,7 @@
                 (raise exc)))
             (lambda ()
               (git-remote-connect remote GIT_DIRECTION_FETCH)
-              (set! closed-beta-password password))))))))
+              (set! closed-beta-password password)))))))))
 
 
 ;;;
@@ -195,6 +202,7 @@
 ;;;
 
 
+@convert
 (set-user-callback
   (lambda (wparam lparam)
     (cond ((= wparam DOWNLOAD_PROGRESS) (download-progress lparam))
@@ -204,7 +212,7 @@
                                             (delay-modal-user-event wparam lparam)
                                           (checkout-done lparam)))
           ((= wparam UPDATING_GAME)     (unless work-done?
-                                          (set-label-title stage-view "Updating game"))))))
+                                          (set-title~ stage-view "Updating game"))))))
 
 
 ;;;
@@ -234,11 +242,14 @@
 
 (define (request-quit title)
   (set! quit-requested? #t)
+  @convert
   (git-request-quit)
-  (set-default-cursor IDC_WAIT)
-  (set-label-title status-view title)
-  (set-view-active? minimize-view #f)
-  (set-view-active? close-view #f))
+  (set-cursor :wait)
+  (set-title~ status-view title)
+  (when minimize-view
+    (set-enabled?~ minimize-view #f))
+  (when close-view
+    (set-enabled?~ close-view #f)))
 
 
 (define (safe-quit-point)

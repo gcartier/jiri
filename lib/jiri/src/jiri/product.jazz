@@ -35,7 +35,7 @@
 ;;;  See www.jazzscheme.org for details.
 
 
-(unit jiri.product
+(module jiri.product jazz
 
 
 ;;;
@@ -43,6 +43,7 @@
 ;;;
 
 
+@convert
 (cond-expand
   (windows
     (define (jazz:copy-jiri-files)
@@ -74,11 +75,16 @@
       '())))
 
 
-(define (jazz:build-jiri descriptor #!key (unit #f) (force? #f))
+@convert
+(define (build descriptor #!key (unit #f) (force? #f))
   (let ((unit-specs jazz:jiri-units))
     (jazz:custom-compile/build unit-specs pre-build: jazz:copy-jiri-files unit: unit force?: force?)
     (if (or (not unit) (not (assq unit unit-specs)))
         (jazz:build-product-descriptor descriptor unit: unit force?: force?))))
+
+
+(definition (build descriptor (unit: unit #f) (force?: force? #f))
+  (build-product-descriptor descriptor unit: unit force?: force?))
 
 
 ;;;
@@ -86,5 +92,5 @@
 ;;;
 
 
-(jazz:register-product 'jiri
-  build: jazz:build-jiri))
+(register-product 'jiri
+  build: build))

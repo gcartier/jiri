@@ -2,7 +2,7 @@
 ;;;  JazzScheme
 ;;;==============
 ;;;
-;;;; Syntax
+;;;; Jiri Application
 ;;;
 ;;;  The contents of this file are subject to the Mozilla Public License Version
 ;;;  1.1 (the "License"); you may not use this file except in compliance with
@@ -35,15 +35,51 @@
 ;;;  See www.jazzscheme.org for details.
 
 
-(define-macro (when test . body)
-  `(if ,test
-       (begin
-         ,@body)
-     #f))
+(module jiri.appl jazz
 
 
-(define-macro (unless test . body)
-  `(if (not ,test)
-       (begin
-         ,@body)
-     #f))
+(import (jazz.graphic)
+        (jazz.jml)
+        (jazz.system)
+        (jazz.system.application)
+        (jazz.ui)
+        (jazz.ui.view)
+        (jiri.pane)
+        (jiri.view)
+        (jiri.window))
+
+
+;;;
+;;;; Application
+;;;
+
+
+(class Jiri-Application extends Application
+  
+  
+  (method override (process-name)
+    "Jiri")
+
+
+  (method override (new-toplevel)
+    (new Jiri-Toplevel))
+  
+  
+  (method override (finish-process)
+    (nextmethod)
+    (set-size~ (get-toplevel) (cache-background-size))
+    (maximize~ (current-stage))
+    (new-frame Jiri-Pane)
+    (startup)))
+
+
+;;;
+;;;; Toplevel
+;;;
+
+
+(class Jiri-Toplevel extends Toplevel
+
+
+  (form
+    (<install> caption-base: "Jiri" position: {Point 100 100} size: {Dimension 800 625}))))

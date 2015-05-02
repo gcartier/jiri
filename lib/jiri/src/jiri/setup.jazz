@@ -35,26 +35,22 @@
 ;;;  See www.jazzscheme.org for details.
 
 
-(unit jiri.setup
+(module jiri.setup jazz
 
 
-(require jiri.windows
-         jiri.crash
-         jiri.git
-         jiri.git-interface
-         jiri.base
-         jiri.devel
-         jiri.geometry
-         jiri.color
-         jiri.font
-         jiri.window
-         jiri.draw
-         jiri.view
-         jiri.structure
-         jiri.work)
-
-
-(include "syntax.scm")
+(import (jazz.geometry)
+        (jazz.graphic)
+        (jazz.git.interface)
+        (jazz.ui)
+        (jazz.ui.view)
+        (jazz.ui.window)
+        (jiri.devel)
+        (jiri.git)
+        (jiri.settings)
+        (jiri.structure)
+        (jiri.view)
+        (jiri.window)
+        (jiri.work))
 
 
 ;;;
@@ -63,10 +59,12 @@
 
 
 (define setup-view
-  (new-button (make-rect 50 450 390 490)
-              (string-append "Install " jiri-title)
-              (lambda (view)
-                (setup))))
+  (new Jiri-Button
+    title: (string-append "Install " (jiri-title))
+    position: (new Point 50 450)
+    size: (new Dimension 340 40)
+    action-handler: (lambda (view)
+                      (setup))))
 
 
 ;;;
@@ -100,6 +98,7 @@
 
 
 (define (setup-root)
+  @convert (
   (define (choose-dir)
     (let ((dir (choose-directory (window-handle current-window) "Please select the installation folder" (or choosen-dir (get-special-folder CSIDL_PROGRAM_FILESX86)))))
       (unless (equal? dir "")
@@ -108,30 +107,30 @@
   
   (let ((dir (choose-dir)))
     (when dir
-      (let ((root-dir (normalize-directory (string-append dir jiri-title))))
+      (let ((root-dir (normalize-directory (string-append dir (jiri-title)))))
         (if (not (file-exists? root-dir))
             (begin
               (create-directory-with-acl root-dir)
-              (set! current-root-dir root-dir)
+              (current-root-dir root-dir)
               root-dir)
-          (let ((code (if current-root-dir
+          (let ((code (if (current-root-dir)
                           'yes
                         (message-box (string-append "Installation folder already exists: " root-dir "\n\nDo you want to replace?") type: 'confirmation))))
             (when (eq? code 'yes)
-              (set-default-cursor IDC_WAIT)
-              (set! work-in-progress? #t)
+              (set-cursor :wait)
+              (set-work-in-progress? #t)
               ;; danger
               (let ((code (remove-directory root-dir)))
                 (if (= code 0)
                     (begin
                       (create-directory-with-acl root-dir)
-                      (set! current-root-dir root-dir)
+                      (current-root-dir root-dir)
                       root-dir)
                   (begin
-                    (set-default-cursor IDC_ARROW)
-                    (set! work-in-progress? #f)
+                    (set-cursor :arrow)
+                    (set-work-in-progress? #f)
                     (message-box (string-append "Unable to delete folder (0x" (number->string code 16) ")"))
-                    #f))))))))))
+                    #f)))))))))))
 
 
 ;;;
@@ -140,7 +139,8 @@
 
 
 (define (validate-password cancel)
-  (or closed-beta-password
+  @convert (
+  (or (closed-beta-password)
       (let ((repo #f)
             (remote #f)
             (successful? #f)
@@ -157,7 +157,7 @@
                 (git-remote-disconnect remote))
               (git-remote-free remote))
             (when repo
-              (git-repository-free repo)))))))
+              (git-repository-free repo))))))))
 
 
 ;;;
@@ -166,7 +166,7 @@
 
 
 (define (setup-work)
-  (pull-repository "launch" jiri-install-remote jiri-install-branch closed-beta-password (install-dir) 1 6 0. .05 .1
+  (pull-repository "launch" jiri-install-remote jiri-install-branch (closed-beta-password) (install-dir) 1 6 0. .05 .1
     (lambda (new-content?)
       (setup-done))))
 
@@ -177,12 +177,12 @@
 
 
 (define (setup-done)
-  (set-label-title stage-view "Setup successful!")
-  (set-label-color stage-view stage-install-color)
-  (set-default-cursor IDC_ARROW)
-  (set! work-in-progress? #f)
-  (set! work-done? #t)
-  (delegate-install current-root-dir closed-beta-password "setup"))
+  (set-title~ stage-view "Setup successful!")
+  (set-color~ stage-view stage-install-color)
+  (set-cursor :arrow)
+  (set-work-in-progress? #f)
+  (set-work-done? #t)
+  (delegate-install (current-root-dir) (closed-beta-password) "setup"))
 
 
 ;;;
@@ -193,19 +193,29 @@
 (define (layout)
   (add-view root-view)
   (add-view invite-view)
-  (add-view close-view)
-  (add-view minimize-view)
+  (when close-view
+    (add-view close-view))
+  (when minimize-view
+    (add-view minimize-view))
   (add-view setup-view)
+  @convert
   (set-return-press
     (lambda ()
       (unless work-done?
         (setup))))
+  @convert
   (set-quit (quit-confirm-abort "Setup")))
 
 
 ;;;
-;;;; Main
+;;;; Startup
 ;;;
 
 
-(main))
+(set-startup
+  (lambda ()
+    @convert
+    (prepare)
+    (layout)
+    @convert
+    (run start))))

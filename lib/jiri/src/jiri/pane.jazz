@@ -2,7 +2,7 @@
 ;;;  JazzScheme
 ;;;==============
 ;;;
-;;;; Development
+;;;; Jiri Pane
 ;;;
 ;;;  The contents of this file are subject to the Mozilla Public License Version
 ;;;  1.1 (the "License"); you may not use this file except in compliance with
@@ -35,16 +35,32 @@
 ;;;  See www.jazzscheme.org for details.
 
 
-(unit jiri.devel
+(module jiri.pane jazz
 
 
-(define (local-repository? url)
-  (and (jazz:string-starts-with? url "~/")
-       (not (jazz:string-ends-with? url ".git"))))
+(import (jazz.graphic)
+        (jazz.ui)
+        (jiri.settings)
+        (jiri.window))
 
 
-(if jiri-development?
-    (let ((dir (executable-directory)))
-      (let ((settings (string-append dir "devel.settings")))
-        (if (file-exists? settings)
-            (load settings))))))
+(class Jiri-Pane extends View
+  
+  
+  (method override (key-press evt)
+    (case (get-key~ evt)
+      ((#\v) (explore-views~ (jazz.debuggee:current-view-debugger))))
+    @convert
+    (cond ((= wparam VK_RETURN)
+           (when (and return-press (not work-in-progress?))
+             (return-press)))
+          ((= wparam VK_ESCAPE)
+           (quit))
+          #; ;; test
+          (else
+           (let ((c (integer->char wparam)))
+             (case c
+               ((#\1) (test1))
+               ((#\2) (test2))
+               ((#\3) (test3))
+               ((#\4) (test4)))))))))
