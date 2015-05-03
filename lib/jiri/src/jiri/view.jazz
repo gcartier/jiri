@@ -40,6 +40,7 @@
 
 (import (jazz.graphic)
         (jazz.graphic.image)
+        (jazz.jml)
         (jazz.platform.cairo)
         (jazz.ui)
         (jazz.ui.view)
@@ -122,15 +123,6 @@
     (windows
      (method override (cursor-update evt)
        (set-cursor :all))
-     
-     @convert
-     (method override (mouse-move evt)
-       (when (title-moving? view)
-         (let ((current (cursor-position)))
-           (let ((delta (point- current (title-cursor-pos view))))
-             (let ((pos (point+ (title-window-pos view) delta))
-                   (size (title-window-size view)))
-               (move-window current-window pos size))))))
 
      @convert
      (method override (mouse-down evt)
@@ -143,6 +135,15 @@
        (set-lose-capture-callback
          (lambda ()
            (title-moving?-set! view #f))))
+     
+     @convert
+     (method override (mouse-move evt)
+       (when (title-moving? view)
+         (let ((current (cursor-position)))
+           (let ((delta (point- current (title-cursor-pos view))))
+             (let ((pos (point+ (title-window-pos view) delta))
+                   (size (title-window-size view)))
+               (move-window current-window pos size))))))
 
      @convert
      (method override (mouse-up evt)
@@ -158,9 +159,13 @@
 (class Jiri-Label extends Label-View
   
   
+  (form
+    (<install> color: {Color White}))
+  
+  
   (method override (draw surface context)
     (set-font~ surface (or font default-label-font))
-    (draw-text~ surface 0 0 title (or color {Color White})))
+    (draw-text~ surface 0 0 title color))
 
 
   @convert

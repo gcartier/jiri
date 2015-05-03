@@ -139,7 +139,6 @@
 
 
 (define (validate-password cancel)
-  @convert (
   (or (closed-beta-password)
       (let ((repo #f)
             (remote #f)
@@ -157,7 +156,7 @@
                 (git-remote-disconnect remote))
               (git-remote-free remote))
             (when repo
-              (git-repository-free repo))))))))
+              (git-repository-free repo)))))))
 
 
 ;;;

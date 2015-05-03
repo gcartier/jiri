@@ -34,4 +34,5 @@
         (<Jazz-File>       name: base      source: {File :context "src" "jiri" "base.jazz"})
         (<Jazz-File>       name: window    source: {File :context "src" "jiri" "window.jazz"})
         (<Jazz-File>       name: git       source: {File :context "src" "jiri" "git.jazz"})
-        (<Jazz-File>       name: font      source: {File :context "src" "jiri" "font.jazz"}))))))
+        (<Jazz-File>       name: font      source: {File :context "src" "jiri" "font.jazz"})
+        (<Jazz-File>       name: update    source: {File :context "src" "jiri" "update.jazz"}))))))

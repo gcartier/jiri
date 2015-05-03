@@ -17,6 +17,7 @@
                           jiri.setup
                           jiri.structure
                           jiri.uninstall
+                          jiri.update
                           jiri.view
                           jiri.window
                           jiri.work)

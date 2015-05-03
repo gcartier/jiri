@@ -153,7 +153,6 @@
 
 
 (definition public (git-remote-connect-with-retries remote cancel)
-  @convert (
   (let ((password #f))
     (define (ask-password)
       (set! password (or closed-beta-password (dialog-box (window-handle current-window))))
@@ -194,7 +193,7 @@
                 (raise exc)))
             (lambda ()
               (git-remote-connect remote GIT_DIRECTION_FETCH)
-              (set! closed-beta-password password)))))))))
+              (set! closed-beta-password password))))))))
 
 
 ;;;
