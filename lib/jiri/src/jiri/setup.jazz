@@ -41,11 +41,16 @@
 (import (jazz.geometry)
         (jazz.graphic)
         (jazz.git.interface)
+        (jazz.io)
         (jazz.ui)
+        (jazz.ui.dialog)
         (jazz.ui.view)
         (jazz.ui.window)
+        (jiri.base)
         (jiri.devel)
         (jiri.git)
+        (jiri.git-interface)
+        (jiri.platform)
         (jiri.settings)
         (jiri.structure)
         (jiri.view)
@@ -98,12 +103,11 @@
 
 
 (define (setup-root)
-  @convert (
   (define (choose-dir)
-    (let ((dir (choose-directory (window-handle current-window) "Please select the installation folder" (or choosen-dir (get-special-folder CSIDL_PROGRAM_FILESX86)))))
+    (let ((dir (parse~ {Directory Home "aaa"} @test (choose-directory title: "Please select the installation folder" directory: (make-directory (or choosen-dir (get-special-folder CSIDL_PROGRAM_FILESX86)))))))
       (unless (equal? dir "")
         (set! choosen-dir dir)
-        (normalize-directory (pathname-standardize dir)))))
+        (normalize-directory (standardize-directory dir)))))
   
   (let ((dir (choose-dir)))
     (when dir
@@ -121,6 +125,8 @@
               (set-work-in-progress? #t)
               ;; danger
               (let ((code (remove-directory root-dir)))
+                ;; convert windows specific
+                (set! code 0)
                 (if (= code 0)
                     (begin
                       (create-directory-with-acl root-dir)
@@ -130,7 +136,7 @@
                     (set-cursor :arrow)
                     (set-work-in-progress? #f)
                     (message-box (string-append "Unable to delete folder (0x" (number->string code 16) ")"))
-                    #f)))))))))))
+                    #f))))))))))
 
 
 ;;;
@@ -146,8 +152,8 @@
             (dir (install-dir)))
         (dynamic-wind
           (lambda ()
-            (set! repo (git-repository-init dir 0))
-            (set! remote (git-remote-create repo "origin" jiri-install-remote)))
+            (set! repo (git-repository-init dir))
+            (set! remote (git-remote-create repo "origin" (jiri-install-remote))))
           (lambda ()
             (git-remote-connect-with-retries remote cancel))
           (lambda ()
@@ -165,7 +171,7 @@
 
 
 (define (setup-work)
-  (pull-repository "launch" jiri-install-remote jiri-install-branch (closed-beta-password) (install-dir) 1 6 0. .05 .1
+  (pull-repository "launch" (jiri-install-remote) (jiri-install-branch) (closed-beta-password) (install-dir) 1 6 0. .05 .1
     (lambda (new-content?)
       (setup-done))))
 
@@ -197,13 +203,12 @@
   (when minimize-view
     (add-view minimize-view))
   (add-view setup-view)
-  @convert
-  (set-return-press
+  (set-return-callback
     (lambda ()
       (unless work-done?
         (setup))))
-  @convert
-  (set-quit (quit-confirm-abort "Setup")))
+  (set-quit-callback
+    (quit-confirm-abort "Setup")))
 
 
 ;;;
@@ -213,8 +218,5 @@
 
 (set-startup
   (lambda ()
-    @convert
-    (prepare)
-    (layout)
-    @convert
-    (run start))))
+    ;(trace-git? #t)
+    (layout))))

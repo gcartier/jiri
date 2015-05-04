@@ -38,7 +38,8 @@
 (module jiri.view jazz
 
 
-(import (jazz.graphic)
+(import (jazz.geometry)
+        (jazz.graphic)
         (jazz.graphic.image)
         (jazz.jml)
         (jazz.platform.cairo)
@@ -97,7 +98,7 @@
   
   
   (method override (cursor-update evt)
-    (set-cursor :default)))
+    (set-cursor :arrow)))
 
 
 ;;;
@@ -121,6 +122,7 @@
   
   (cond-expand
     (windows
+     @convert
      (method override (cursor-update evt)
        (set-cursor :all))
 
@@ -201,7 +203,8 @@
                 (list 1 (if enabled? {Color red: 220 green: 0 blue: 0} {Color White})))
           direction: 'horizontal)))
     (set-font~ surface default-button-font)
-    (draw-text~ surface 10 5 title (if enabled? {Color White} {Color red: 160 green: 160 blue: 160})))
+    (when title
+    (draw-text~ surface 10 5 title (if enabled? {Color White} {Color red: 160 green: 160 blue: 160}))))
 
 
   @convert
@@ -279,7 +282,7 @@
   
   
   (method override (process-action sender (properties (action-properties)))
-    (quit)))
+    (quit-callback)))
 
 
 ;;;
@@ -326,6 +329,28 @@
   (property limits initialize #f accessors generate)
   (property range  initialize #f accessors generate)
   (property pos    initialize #f getter generate setter explicit)
+  
+  
+  (method override (draw surface context)
+    (let ((rect (get-bounds)))
+      (let ((left (get-left~ rect))
+            (top (get-top~ rect))
+            (right (get-right~ rect))
+            (bottom (get-bottom~ rect)))
+        (fill-rect~ surface rect {Color White})
+        (let ((start (get-start~ range))
+              (end (get-end~ range))
+              (width (rect-width rect)))
+          (let ((head (if (not limits) 0 (fxfloor (* (get-start~ limits) width))))
+                (tail (if (not limits) width (fxceiling (* (get-end~ limits) width))))
+                (where (/ (fixnum->flonum (- pos start)) (fixnum->flonum (- end start)))))
+            (let ((h (fxceiling (* (- tail head) where)))
+                  (from {Color red: 150 green: 0 blue: 0})
+                  (to {Color red: 220 green: 0 blue: 0}))
+              (gradient-fill~ surface (new Rect left top (+ left head h) bottom)
+                (list (list 0 from)
+                      (list 1 to))
+                direction: 'horizontal)))))))
   
   
   @convert

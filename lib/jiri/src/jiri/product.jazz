@@ -43,10 +43,10 @@
 ;;;
 
 
-@convert
 (cond-expand
   (windows
-    (define (jazz:copy-jiri-files)
+    (define (copy-jiri-files)
+      @convert
       (let ((build (%%get-repository-directory jazz:Build-Repository))
             (source jazz:kernel-source))
         (define (build-file path)
@@ -59,32 +59,28 @@
         (jazz:copy-file (source-file "foreign/windows/openssl/lib/libeay32.dll") (build-file "libeay32.dll") feedback: jazz:feedback)
         (jazz:copy-file (source-file "foreign/windows/openssl/lib/ssleay32.dll") (build-file "ssleay32.dll") feedback: jazz:feedback))))
   (else
-    (define (jazz:copy-jiri-files)
-      #f)))
+    (define (copy-jiri-files)
+      )))
 
 
 (cond-expand
   (windows
-    (define jazz:jiri-units
-      (let ((libgit2-include-path (jazz:quote-jazz-pathname "foreign/windows/libgit2/include"))
-            (libgit2-lib-path     (jazz:quote-jazz-pathname "foreign/windows/libgit2/lib")))
+    (define jiri-units
+      (let ((libgit2-include-path (quote-jazz-pathname "foreign/windows/libgit2/include"))
+            (libgit2-lib-path     (quote-jazz-pathname "foreign/windows/libgit2/lib")))
         `((jiri.windows cc-options: "-DUNICODE -D_WIN32_WINNT=0x0502 -D_WIN32_IE=0x0400" ld-options: "-lgdi32 -lole32 -luuid")
           (jiri.git     cc-options: ,(string-append "-I" libgit2-include-path) ld-options: ,(string-append "-L" libgit2-lib-path " -lgit2"))))))
   (else
-    (define jazz:jiri-units
+    (define jiri-units
       '())))
 
 
-@convert
-(define (build descriptor #!key (unit #f) (force? #f))
-  (let ((unit-specs jazz:jiri-units))
-    (jazz:custom-compile/build unit-specs pre-build: jazz:copy-jiri-files unit: unit force?: force?)
-    (if (or (not unit) (not (assq unit unit-specs)))
-        (jazz:build-product-descriptor descriptor unit: unit force?: force?))))
-
-
 (definition (build descriptor (unit: unit #f) (force?: force? #f))
-  (build-product-descriptor descriptor unit: unit force?: force?))
+  (let ((unit-specs jiri-units))
+    (if (or (not unit) (assq unit unit-specs))
+        (custom-compile/build unit-specs unit: unit pre-build: copy-jiri-files force?: force?))
+    (if (or (not unit) (not (assq unit unit-specs)))
+        (build-product-descriptor descriptor unit: unit force?: force?))))
 
 
 ;;;

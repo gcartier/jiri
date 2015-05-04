@@ -40,8 +40,7 @@
 
 (import (jazz.library)
         (jiri.base)
-        (jiri.settings)
-        (jiri.work))
+        (jiri.settings))
 
 
 ;;;
@@ -60,40 +59,73 @@
 
 
 (definition public (app-dir)
-  (string-append (current-root-dir) (normalize-directory jiri-app-dir)))
+  (string-append (current-root-dir) (normalize-directory (jiri-app-dir))))
 
 (definition public (install-dir)
-  (string-append (current-root-dir) (normalize-directory jiri-install-dir)))
+  (string-append (current-root-dir) (normalize-directory (jiri-install-dir))))
 
 (definition public (current-dir)
-  (string-append (current-root-dir) (normalize-directory jiri-current-dir)))
+  (string-append (current-root-dir) (normalize-directory (jiri-current-dir))))
 
 (definition public (world-dir)
-  (string-append (current-root-dir) (normalize-directory jiri-world-dir)))
+  (string-append (current-root-dir) (normalize-directory (jiri-world-dir))))
 
 (definition public (root-exe)
-  (add-extension (string-append (current-root-dir) jiri-application) executable-extension))
+  (add-extension (string-append (current-root-dir) (jiri-application)) (executable-extension kernel-platform)))
 
 (definition public (root-lib)
   (string-append (current-root-dir) "lib/"))
 
 (definition public (app-exe)
-  (add-extension (string-append (app-dir) jiri-application) executable-extension))
+  (add-extension (string-append (app-dir) (jiri-application)) (executable-extension kernel-platform)))
 
 (definition public (current-exe)
-  (add-extension (string-append (current-dir) "Install") executable-extension))
+  (add-extension (string-append (current-dir) "Install") (executable-extension kernel-platform)))
 
 (definition public (uninstall-exe)
-  (add-extension (string-append (current-dir) "Uninstall") executable-extension))
+  (add-extension (string-append (current-dir) "Uninstall") (executable-extension kernel-platform)))
 
 (definition public (install-exe)
-  (add-extension (string-append (install-dir) "Install") executable-extension))
+  (add-extension (string-append (install-dir) "Install") (executable-extension kernel-platform)))
 
 (definition public (launch-exe)
-  (add-extension (string-append (install-dir) "Launch") executable-extension))
+  (add-extension (string-append (install-dir) "Launch") (executable-extension kernel-platform)))
 
 (definition public (launch-lib)
   (string-append (install-dir) "lib/"))
+
+
+;;;
+;;;; Work
+;;;
+
+
+(definition public work-in-progress?
+  #f)
+
+(definition public (set-work-in-progress? value)
+  (set! work-in-progress? value))
+
+
+(definition public work-done?
+  #f)
+
+(definition public (set-work-done? value)
+  (set! work-done? value))
+
+
+(definition public work-percentage
+  0.)
+
+(definition public (set-work-percentage value)
+  (set! work-percentage value))
+
+
+(definition public work-downloaded
+  0)
+
+(definition public (set-work-downloaded value)
+  (set! work-downloaded value))
 
 
 ;;;

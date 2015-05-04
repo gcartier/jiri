@@ -8,9 +8,11 @@
                           jiri.devel
                           jiri.font
                           jiri.git
+                          jiri.git-interface
                           jiri.install
                           jiri.launch
                           jiri.pane
+                          jiri.platform
                           jiri.product
                           jiri.run
                           jiri.settings
@@ -20,6 +22,7 @@
                           jiri.update
                           jiri.view
                           jiri.window
+                          jiri.windows
                           jiri.work)
                   (dependencies)))
   (project ".project"))

@@ -38,6 +38,9 @@
 (module jiri.base jazz
 
 
+(import (jazz.io))
+
+
 (native unbound-os-environment-variable-exception?)
 
 
@@ -61,10 +64,18 @@
 ;;;
 
 
+(definition public (make-directory dirname)
+  (new Directory (list dirname)))
+
+
 (definition public (normalize-directory directory)
   (if (ends-with? directory "/")
       directory
     (string-append directory "/")))
+
+
+(definition public (standardize-directory path)
+  (substitute #\\ #\/ path))
 
 
 ;;;

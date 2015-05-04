@@ -38,6 +38,10 @@
 (module jiri.window jazz
 
 
+(import (jazz.platform)
+        (jazz.system))
+
+
 ;;;
 ;;;; Startup
 ;;;
@@ -63,12 +67,58 @@
 
 
 ;;;
+;;;; Modal
+;;;
+
+
+(define delayed-modal-user-event
+  #f)
+
+(definition public (delay-modal-user-event wparam lparam)
+  (set! delayed-modal-user-event (cons wparam lparam)))
+
+
+(definition public (with-modal thunk)
+  (let ((code (thunk)))
+    (when delayed-modal-user-event
+      (let ((wparam (car delayed-modal-user-event))
+            (lparam (cdr delayed-modal-user-event)))
+        (set! delayed-modal-user-event #f)
+        (PostMessage (get-handle~ (get-toplevel)) WM_USER wparam lparam)))
+    code))
+
+
+;;;
+;;;; User
+;;;
+
+
+(definition public user-callback
+  #f)
+
+(definition public (set-user-callback callback)
+  (set! user-callback callback))
+
+
+;;;
+;;;; Return
+;;;
+
+
+(definition public return-callback
+  #f)
+
+(definition public (set-return-callback callback)
+  (set! return-callback callback))
+
+
+;;;
 ;;;; Quit
 ;;;
 
 
-(definition public quit
+(definition public quit-callback
   #f)
 
-(definition public (set-quit callback)
-  (set! quit callback)))
+(definition public (set-quit-callback callback)
+  (set! quit-callback callback)))

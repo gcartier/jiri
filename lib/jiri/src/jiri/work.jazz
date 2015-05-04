@@ -40,7 +40,11 @@
 
 (import (jazz.graphic)
         (jazz.ui)
+        (jazz.ui.window)
+        (jiri.base)
+        (jiri.platform)
         (jiri.settings)
+        (jiri.structure)
         (jiri.view)
         (jiri.window))
 
@@ -107,43 +111,6 @@
 ;;     - .git
 ;; Yownu.exe
 ;; lib
-
-;; MAC
-;; Contents
-;; - Info.plist
-;; - Apps
-;;   - yownu.app
-;;     - Contents
-;;       - MacOS
-;;         - .git
-;;         - Yownu
-;;         - lib
-;;   - install.app
-;;     - Contents
-;;       - MacOS
-;;         - .git
-;;         - Install
-;;         - lib
-;; - MacOS
-;;   - Install
-;;   - lib
-;; - Resources
-;; - Worlds
-;;   - yownu
-;;     - .git
-
-
-;;;
-;;;; Window
-;;;
-
-
-@convert (
-(define return-press
-  #f)
-
-(define (set-return-press callback)
-  (set! return-press callback)))
 
 
 ;;;
@@ -230,34 +197,6 @@
   (set-font~ stage-view {Font font-name: "Tahoma" point-size: 20 bold?: #t}))
 
 
-#; ( ;; test
-(define (test1)
-  (remove-view setup-view)
-  (add-view percentage-view)
-  (add-view downloaded-view)
-  (add-view status-view)
-  (add-view remaining-view)
-  (add-view progress-view)
-  (add-view play-view)
-  (add-stage-view "Setup in progress" stage-setup-color))
-
-
-(define (test2)
-  (set-title~ stage-view "Setup successful!")
-  (set-color~ stage-view stage-install-color))
-
-
-(define (test3)
-  (set-title~ stage-view "Ready to play!")
-  (set-color~ stage-view stage-ready-color))
-
-
-(define (test4)
-  (set-title~ stage-view "Setup successful!")
-  (set-color~ stage-view {Color red: 200 green: 110 blue: 0}))
-)
-
-
 ;;;
 ;;;; Percentage
 ;;;
@@ -336,39 +275,6 @@
                       (play))))
 
 
-;;;
-;;;; Work
-;;;
-
-
-(definition public work-in-progress?
-  #f)
-
-(definition public (set-work-in-progress? value)
-  (set! work-in-progress? value))
-
-
-(definition public work-done?
-  #f)
-
-(definition public (set-work-done? value)
-  (set! work-done? value))
-
-
-(definition public work-percentage
-  0.)
-
-(definition public (set-work-percentage value)
-  (set! work-percentage value))
-
-
-(definition public work-downloaded
-  0)
-
-(definition public (set-work-downloaded value)
-  (set! work-downloaded value))
-
-
 
 ;;;
 ;;;; Installation
@@ -402,10 +308,9 @@
 
 
 (definition public (play)
-  @convert (
   (set-cursor :wait)
   (delegate-process (app-exe))
-  (quit)))
+  (quit-callback))
 
 
 ;;;
@@ -438,28 +343,4 @@
   #f)
 
 (definition public (set-checkout-done proc)
-  (set! checkout-done proc))
-
-
-;;;
-;;;; Prepare
-;;;
-
-
-@convert
-(define (prepare)
-  (initialize-windows)
-  (prepare-bitmap)
-  (set-current-window window))
-
-
-;;;
-;;;; Main
-;;;
-
-
-@convert
-(define (main #!optional (start #f))
-  (prepare)
-  (layout)
-  (run start)))
+  (set! checkout-done proc)))

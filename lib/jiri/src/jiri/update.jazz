@@ -44,11 +44,36 @@
         (jiri.base)
         (jiri.devel)
         (jiri.git)
+        (jiri.git-interface)
         (jiri.view)
         (jiri.settings)
         (jiri.structure)
         (jiri.window)
         (jiri.work))
+
+;; MAC
+;; Contents
+;; - Info.plist
+;; - Apps
+;;   - yownu.app
+;;     - Contents
+;;       - MacOS
+;;         - .git
+;;         - Yownu
+;;         - lib
+;;   - install.app
+;;     - Contents
+;;       - MacOS
+;;         - .git
+;;         - Install
+;;         - lib
+;; - MacOS
+;;   - Install
+;;   - lib
+;; - Resources
+;; - Worlds
+;;   - yownu
+;;     - .git
 
 
 @convert (
@@ -115,7 +140,7 @@
 
 
 (define (current-from-root-work)
-  (pull-repository "launch" jiri-install-remote jiri-install-branch (closed-beta-password) (install-dir) 1 6 0. .05 .1
+  (pull-repository "launch" (jiri-install-remote) (jiri-install-branch) (closed-beta-password) (install-dir) 1 6 0. .05 .1
     (lambda (new-content?)
       (if new-content?
           (delegate-install (current-root-dir) (closed-beta-password) "current")
@@ -148,9 +173,9 @@
 
 
 (define (install-application/world cont)
-  (pull-repository "application" jiri-app-remote jiri-app-branch (closed-beta-password) (app-dir) 3 6 .1 .2 .4
+  (pull-repository "application" (jiri-app-remote) (jiri-app-branch) (closed-beta-password) (app-dir) 3 6 .1 .2 .4
     (lambda (new-content?)
-      (pull-repository "world" jiri-world-remote jiri-world-branch (closed-beta-password) (world-dir) 5 6 .4 .85 1.
+      (pull-repository "world" (jiri-world-remote) (jiri-world-branch) (closed-beta-password) (world-dir) 5 6 .4 .85 1.
         cont))))
 
 
@@ -250,12 +275,12 @@
   (let ((key (registry-create-key (HKEY_CURRENT_USER) (uninstall-subkey))))
     (registry-set-string key "DisplayName" (jiri-title))
     (registry-set-string key "DisplayIcon" (pathname-platformize (root-exe)))
-    (registry-set-string key "DisplayVersion" jiri-version)
-    (registry-set-string key "Publisher" jiri-company)
+    (registry-set-string key "DisplayVersion" (jiri-version))
+    (registry-set-string key "Publisher" (jiri-company))
     (registry-set-string key "InstallDate" (get-local-date))
     (registry-set-string key "InstallLocation" (pathname-platformize (current-root-dir)))
     (registry-set-string key "UninstallString" (string-append (pathname-platformize (root-exe)) " -uninstall"))
-    (registry-set-int key "EstimatedSize" jiri-size)
+    (registry-set-int key "EstimatedSize" (jiri-size))
     (registry-set-int key "NoModify" 1)
     (registry-set-int key "NoRepair" 1)
     (registry-close-key key))))
@@ -295,13 +320,12 @@
     (set-title~ downloaded-view (string-append "Downloaded: " (number->string work-downloaded) "M"))
     (set-title~ status-view (downloading-title "application" 3 6))
     (set-info~ progress-view (new Range .1 .4) (new Range 0 10)))
-  @convert
-  (set-return-press
+  (set-return-callback
     (lambda ()
       (when work-done?
         (play))))
-  @convert
-  (set-quit (quit-safely)))
+  (set-quit-callback
+    (quit-safely)))
 
 
 ;;;

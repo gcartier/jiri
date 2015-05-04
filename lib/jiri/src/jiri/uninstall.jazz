@@ -154,10 +154,10 @@
   (when minimize-view
     (add-view minimize-view))
   (add-view uninstall-view)
-  (set-return-press
+  (set-return-callback
     (lambda ()
       (uninstall)))
-  (set-quit
+  (set-quit-callback
     (lambda ()
       (seppuku-exit))))
 
