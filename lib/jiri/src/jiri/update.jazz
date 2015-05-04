@@ -38,7 +38,8 @@
 (module jiri.update jazz
 
 
-(import (jazz.ui)
+(import (jazz.git.foreign)
+        (jazz.ui)
         (jazz.ui.view)
         (jazz.ui.window)
         (jiri.base)
@@ -50,6 +51,7 @@
         (jiri.structure)
         (jiri.window)
         (jiri.work))
+
 
 ;; MAC
 ;; Contents
@@ -338,6 +340,29 @@
 (main install))
 
 
+(define (test-work)
+  (current-root-dir "/Users/cartier/Devel/aaa/Dawn")
+  (jiri-install-remote "https://github.com/gcartier/personal.git")
+  (debug "launch")
+  (debug (jiri-install-remote))
+  (debug (jiri-install-branch))
+  (debug (closed-beta-password))
+  (debug (install-dir))
+  (pull-repository "launch" (jiri-install-remote) (jiri-install-branch) (closed-beta-password) (install-dir) 1 6 0. .05 .1
+    (lambda (new-content?)
+      (test-done))))
+
+
+(define (test-done)
+  (set-title~ stage-view "Setup successful!")
+  (set-color~ stage-view stage-install-color)
+  (set-cursor :arrow)
+  (set-work-in-progress? #f)
+  (set-work-done? #t)
+  @w
+  (delegate-install (current-root-dir) (closed-beta-password) "setup"))
+
+
 ;;;
 ;;;; Startup
 ;;;
@@ -345,4 +370,9 @@
 
 (set-startup
   (lambda ()
-    (layout))))
+    (trace-git? #t)
+    (layout)
+    (set-enabled?~ play-view #t)
+    (set-action-handler~ play-view
+      (lambda (view)
+        (test-work))))))

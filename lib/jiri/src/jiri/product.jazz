@@ -66,10 +66,17 @@
 (cond-expand
   (windows
     (define jiri-units
-      (let ((libgit2-include-path (quote-jazz-pathname "foreign/windows/libgit2/include"))
-            (libgit2-lib-path     (quote-jazz-pathname "foreign/windows/libgit2/lib")))
+      (let ((git-include-path (quote-jazz-pathname "foreign/windows/libgit2/include"))
+            (git-lib-path     (quote-jazz-pathname "foreign/windows/libgit2/lib")))
         `((jiri.windows cc-options: "-DUNICODE -D_WIN32_WINNT=0x0502 -D_WIN32_IE=0x0400" ld-options: "-lgdi32 -lole32 -luuid")
-          (jiri.git     cc-options: ,(string-append "-I" libgit2-include-path) ld-options: ,(string-append "-L" libgit2-lib-path " -lgit2"))))))
+          (jiri.git     cc-options: ,(string-append "-I" git-include-path) ld-options: ,(string-append "-L" git-lib-path " -lgit2"))))))
+  (cocoa
+    (define jiri-units
+      (let ((git-include-path (jazz:quote-jazz-pathname "foreign/mac/libgit2/include"))
+            (git-lib-path     (jazz:quote-jazz-pathname "foreign/mac/libgit2/lib")))
+        `((jiri.git
+            cc-options: ,(string-append "-I" git-include-path)
+            ld-options: ,(string-append "-L" git-lib-path " -lgit2.22"))))))
   (else
     (define jiri-units
       '())))

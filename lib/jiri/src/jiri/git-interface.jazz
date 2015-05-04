@@ -78,9 +78,11 @@
         
         ;; try non-threaded
         (terminal 'download...)
-        @w
         (git-remote-setup-callbacks remote
           (new Git-Callbacks
+            credentials-callback: (lambda ()
+                                    (terminal 'credentials)
+                                    (git-cred-userpass-plaintext-new (jiri-username) (closed-beta-password)))
             download-callback: (lambda (total_objects indexed_objects received_objects received_bytes)
                                  (terminal 'download total_objects indexed_objects received_objects received_bytes))))
         (git-remote-fetch remote)
@@ -190,7 +192,7 @@
 (definition public (git-remote-connect-with-retries remote cancel)
   (let ((password #f))
     (define (ask-password)
-      (set! password (or closed-beta-password (message-box "Yownu closed-alpha contains copyrighted data.\r\n\r\nBy installing this program you agree to not redistribute it in whole or in part, including screenshots and videos.")))
+      (set! password (or (closed-beta-password) (message-box "Yownu closed-alpha contains copyrighted data.\r\n\r\nBy installing this program you agree to not redistribute it in whole or in part, including screenshots and videos.")))
       (or password
           (cancel-connection)))
     
@@ -233,6 +235,8 @@
 ;;;
 
 
+(cond-expand
+  (windows
 (set-user-callback
   (lambda (wparam lparam)
     (cond ((= wparam DOWNLOAD_PROGRESS) (download-progress lparam))
@@ -242,7 +246,8 @@
                                             (delay-modal-user-event wparam lparam)
                                           (checkout-done lparam)))
           ((= wparam UPDATING_GAME)     (unless work-done?
-                                          (set-title~ stage-view "Updating game"))))))
+                                          (set-title~ stage-view "Updating game")))))))
+  (else))
 
 
 ;;;
@@ -272,7 +277,7 @@
 
 (define (request-quit title)
   (set! quit-requested? #t)
-  (git-request-quit)
+  @convert (git-request-quit)
   (set-cursor :wait)
   (set-title~ status-view title)
   (when minimize-view

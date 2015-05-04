@@ -78,14 +78,19 @@
   (set! delayed-modal-user-event (cons wparam lparam)))
 
 
-(definition public (with-modal thunk)
-  (let ((code (thunk)))
-    (when delayed-modal-user-event
-      (let ((wparam (car delayed-modal-user-event))
-            (lparam (cdr delayed-modal-user-event)))
-        (set! delayed-modal-user-event #f)
-        (PostMessage (get-handle~ (get-toplevel)) WM_USER wparam lparam)))
-    code))
+(cond-expand
+  (windows
+    (definition public (with-modal thunk)
+      (let ((code (thunk)))
+        (when delayed-modal-user-event
+          (let ((wparam (car delayed-modal-user-event))
+                (lparam (cdr delayed-modal-user-event)))
+            (set! delayed-modal-user-event #f)
+            (PostMessage (get-handle~ (get-toplevel)) WM_USER wparam lparam)))
+        code)))
+  (else
+    (definition public (with-modal thunk)
+      (thunk))))
 
 
 ;;;

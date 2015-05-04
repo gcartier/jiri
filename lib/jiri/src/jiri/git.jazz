@@ -66,6 +66,8 @@
 ;;;
 
 
+(cond-expand
+  (windows
 (c-declare jiri.git #/C/
     HANDLE ghMutex = NULL;
     HWND remoteHwnd = NULL;
@@ -76,16 +78,22 @@
     #define CHECKOUT_PROGRESS 2
     #define CHECKOUT_DONE     3
     #define UPDATING_GAME     5
-//#)
+//#))
+  (else))
 
 
+(cond-expand
+  (windows
 (c-enumerant DOWNLOAD_PROGRESS)
 (c-enumerant DOWNLOAD_DONE)
 (c-enumerant CHECKOUT_PROGRESS)
 (c-enumerant CHECKOUT_DONE)
-(c-enumerant UPDATING_GAME)
+(c-enumerant UPDATING_GAME))
+  (else))
 
 
+(cond-expand
+  (windows
 (git-external (git-request-quit) void
   #/C/
     if (! ghMutex)
@@ -93,7 +101,8 @@
     WaitForSingleObject(ghMutex, INFINITE);
     quitRequested = TRUE;
     ReleaseMutex(ghMutex);
-//#)
+//#))
+  (else))
 
 
 ;;;
@@ -101,6 +110,8 @@
 ;;;
 
 
+(cond-expand
+  (windows
 (c-declare jiri.git #/C/
     git_repository* checkout_repository = NULL;
     git_tree* checkout_tree = NULL;
@@ -229,4 +240,4 @@
         ghMutex = CreateMutex(NULL, FALSE, NULL);
     remoteHwnd = ___arg2;
     ___result = CreateThread(NULL, 0, &remote_download_proc, ___arg1, 0, NULL);
-//#))
+//#)) (else)))
