@@ -38,4 +38,4 @@
 (module jiri.platform jazz
 
 
-(export (jiri.windows (cond windows))))
+(export (jiri.platform.windows (cond windows))))
