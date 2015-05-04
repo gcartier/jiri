@@ -14,28 +14,29 @@
 
 
 (form
-  (<Project>               name: jiri          description-file: {File :context ".package"}
-    (<*>                                       tag-reference: {File :context "jiri.project"})
-    (<Project-Directory>                       directory: {Directory :context "src"}
-      (<Project-Directory>                     directory: {Directory :context "src" "jiri"}
-        (<Jazz-File>       name: devel         source: {File :context "src" "jiri" "devel.jazz"})
-        (<Jazz-File>       name: install       source: {File :context "src" "jiri" "install.jazz"})
-        (<Jazz-File>       name: launch        source: {File :context "src" "jiri" "launch.jazz"})
-        (<Jazz-File>       name: product       source: {File :context "src" "jiri" "product.jazz"})
-        (<Jazz-File>       name: setup         source: {File :context "src" "jiri" "setup.jazz"})
-        (<Jazz-File>       name: structure     source: {File :context "src" "jiri" "structure.jazz"})
-        (<Jazz-File>       name: uninstall     source: {File :context "src" "jiri" "uninstall.jazz"})
-        (<Jazz-File>       name: work          source: {File :context "src" "jiri" "work.jazz"})
-        (<Jazz-File>       name: view          source: {File :context "src" "jiri" "view.jazz"})
-        (<Jazz-File>       name: appl          source: {File :context "src" "jiri" "appl.jazz"})
-        (<Jazz-File>       name: pane          source: {File :context "src" "jiri" "pane.jazz"})
-        (<Jazz-File>       name: run           source: {File :context "src" "jiri" "run.jazz"})
-        (<Jazz-File>       name: settings      source: {File :context "src" "jiri" "settings.jazz"})
-        (<Jazz-File>       name: base          source: {File :context "src" "jiri" "base.jazz"})
-        (<Jazz-File>       name: window        source: {File :context "src" "jiri" "window.jazz"})
-        (<Jazz-File>       name: git           source: {File :context "src" "jiri" "git.jazz"})
-        (<Jazz-File>       name: font          source: {File :context "src" "jiri" "font.jazz"})
-        (<Jazz-File>       name: windows       source: {File :context "src" "jiri" "windows.jazz"})
-        (<Jazz-File>       name: update        source: {File :context "src" "jiri" "update.jazz"})
-        (<Jazz-File>       name: git-interface source: {File :context "src" "jiri" "git-interface.jazz"})
-        (<Jazz-File>       name: platform      source: {File :context "src" "jiri" "platform.jazz"}))))))
+  (<Project>                 name: jiri          description-file: {File :context ".package"}
+    (<*>                                         tag-reference: {File :context "jiri.project"})
+    (<Project-Directory>                         directory: {Directory :context "src"}
+      (<Project-Directory>                       directory: {Directory :context "src" "jiri"}
+        (<Jazz-File>         name: devel         source: {File :context "src" "jiri" "devel.jazz"})
+        (<Jazz-File>         name: install       source: {File :context "src" "jiri" "install.jazz"})
+        (<Jazz-File>         name: launch        source: {File :context "src" "jiri" "launch.jazz"})
+        (<Jazz-File>         name: product       source: {File :context "src" "jiri" "product.jazz"})
+        (<Jazz-File>         name: setup         source: {File :context "src" "jiri" "setup.jazz"})
+        (<Jazz-File>         name: structure     source: {File :context "src" "jiri" "structure.jazz"})
+        (<Jazz-File>         name: uninstall     source: {File :context "src" "jiri" "uninstall.jazz"})
+        (<Jazz-File>         name: work          source: {File :context "src" "jiri" "work.jazz"})
+        (<Jazz-File>         name: view          source: {File :context "src" "jiri" "view.jazz"})
+        (<Jazz-File>         name: appl          source: {File :context "src" "jiri" "appl.jazz"})
+        (<Jazz-File>         name: pane          source: {File :context "src" "jiri" "pane.jazz"})
+        (<Jazz-File>         name: run           source: {File :context "src" "jiri" "run.jazz"})
+        (<Jazz-File>         name: settings      source: {File :context "src" "jiri" "settings.jazz"})
+        (<Jazz-File>         name: base          source: {File :context "src" "jiri" "base.jazz"})
+        (<Jazz-File>         name: window        source: {File :context "src" "jiri" "window.jazz"})
+        (<Jazz-File>         name: git           source: {File :context "src" "jiri" "git.jazz"})
+        (<Jazz-File>         name: font          source: {File :context "src" "jiri" "font.jazz"})
+        (<Jazz-File>         name: update        source: {File :context "src" "jiri" "update.jazz"})
+        (<Jazz-File>         name: git-interface source: {File :context "src" "jiri" "git-interface.jazz"})
+        (<Project-Directory>                     directory: {Directory :context "src" "jiri" "platform"}
+          (<Jazz-File>       name: _platform     source: {File :context "src" "jiri" "platform" "_platform.jazz"})
+          (<Jazz-File>       name: windows       source: {File :context "src" "jiri" "platform" "windows.jazz"})))))))
