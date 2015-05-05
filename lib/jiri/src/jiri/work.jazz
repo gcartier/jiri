@@ -194,7 +194,7 @@
   (add-view stage-view)
   (set-title~ stage-view title)
   (set-color~ stage-view color)
-  (set-font~ stage-view {Font font-name: "Tahoma" point-size: 20 bold?: #t}))
+  (set-font~ stage-view {Font font-name: vera-sans point-size: 20 bold?: #t}))
 
 
 ;;;

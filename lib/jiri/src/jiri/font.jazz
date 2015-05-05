@@ -41,22 +41,11 @@
 (import (jazz.graphic))
 
 
-(cond-expand
-  (windows
-   (definition public default-title-font
-     {Font font-name: "Tahoma" point-size: 72})
-   
-   (definition public default-label-font
-     {Font font-name: "Tahoma" point-size: 12})
-   
-   (definition public default-button-font
-     {Font font-name: "Tahoma" point-size: 24}))
-  (else
-   (definition public default-title-font
-     {Font font-name: tahoma point-size: 60})
-   
-   (definition public default-label-font
-     {Font font-name: tahoma point-size: 12})
-   
-   (definition public default-button-font
-     {Font font-name: tahoma point-size: 24}))))
+(definition public default-title-font
+  {Font font-name: vera-sans point-size: 60})
+
+(definition public default-label-font
+  {Font font-name: vera-sans point-size: 12})
+
+(definition public default-button-font
+  {Font font-name: vera-sans point-size: 24}))
