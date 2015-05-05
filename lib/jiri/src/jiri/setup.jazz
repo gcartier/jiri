@@ -220,6 +220,5 @@
 
 (set-startup
   (lambda ()
-    ;(trace-git? #t)
     (layout))))
   (else)))

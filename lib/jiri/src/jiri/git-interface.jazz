@@ -75,37 +75,6 @@
     (lambda (repo remote)
       (let ((megabytes 0))
         (git-remote-connect-with-retries remote #f)
-        
-        ;; try non-threaded
-        (terminal 'download...)
-        (git-remote-setup-callbacks remote
-          (new Git-Callbacks
-            credentials-callback: (lambda ()
-                                    (terminal 'credentials)
-                                    (git-cred-userpass-plaintext-new (jiri-username) (closed-beta-password)))
-            download-callback: (lambda (total_objects indexed_objects received_objects received_bytes)
-                                 (terminal 'download total_objects indexed_objects received_objects received_bytes))))
-        (git-remote-fetch remote)
-        (terminal 'checkout...)
-        (let ((upstream (git-reference-lookup repo "refs/remotes/origin/master"))
-              (local (git-branch-lookup repo "master" GIT_BRANCH_LOCAL)))
-          (if (and local (not (git-graph-fast-forward? repo (git-reference->id repo local) (git-reference->id repo upstream))))
-              (error "not-fast-forward")
-            (if (not (git-workdir-clean? repo))
-                (error "workdir-not-clean")
-              (let ((commit (git-object-lookup repo (git-reference->id repo upstream) GIT_OBJ_COMMIT)))
-                (git-reset-hard repo commit
-                  (new Git-Callbacks
-                    checkout-callback: (lambda (path completed_steps total_steps)
-                                         (terminal 'checkout path completed_steps total_steps)))))
-              #f)))
-        ;(git-checkout-head-force repo)
-        (git-remote-free remote)
-        (git-repository-free repo)
-        (terminal 'done!)
-        (cont #t)
-        
-        @convert (
         (set-download-progress
           (let ((inited? #f))
             (lambda (lparam)
@@ -173,7 +142,7 @@
                       (git-repository-free repo)
                       (cont new-content?)))
                 (git-checkout-head-force-threaded repo (get-handle~ (get-toplevel))))))))
-        (git-remote-download-threaded remote (get-handle~ (get-toplevel))))))))
+        (git-remote-download-threaded remote (get-handle~ (get-toplevel)))))))
 
 
 (define (downloading-title title step of)

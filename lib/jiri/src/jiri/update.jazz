@@ -370,7 +370,6 @@
 
 (set-startup
   (lambda ()
-    (trace-git? #t)
     (layout)
     (set-enabled?~ play-view #t)
     (set-action-handler~ play-view
