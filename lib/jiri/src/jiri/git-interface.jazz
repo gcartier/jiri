@@ -202,7 +202,7 @@
 ;;;
 
 
-(set-user-callback
+(set-notification-callback
   (lambda (what result)
     (cond ((= what DOWNLOAD_PROGRESS) (download-progress result))
           ((= what DOWNLOAD_DONE)     (download-done     result))

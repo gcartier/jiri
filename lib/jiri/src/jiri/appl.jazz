@@ -86,5 +86,5 @@
   
   
   (method override (user-notification what result)
-    (when user-callback
-      (user-callback what result)))))
+    (when notification-callback
+      (notification-callback what result)))))

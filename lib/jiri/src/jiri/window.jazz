@@ -94,15 +94,15 @@
 
 
 ;;;
-;;;; User
+;;;; Notification
 ;;;
 
 
-(definition public user-callback
+(definition public notification-callback
   #f)
 
-(definition public (set-user-callback callback)
-  (set! user-callback callback))
+(definition public (set-notification-callback callback)
+  (set! notification-callback callback))
 
 
 ;;;
