@@ -42,10 +42,10 @@
 
 
 (definition public default-title-font
-  {Font font-name: vera-sans point-size: 60})
+  {Font font-name: tahoma point-size: 60})
 
 (definition public default-label-font
-  {Font font-name: vera-sans point-size: 12})
+  {Font font-name: tahoma point-size: 11})
 
 (definition public default-button-font
-  {Font font-name: vera-sans point-size: 24}))
+  {Font font-name: tahoma point-size: 22}))
