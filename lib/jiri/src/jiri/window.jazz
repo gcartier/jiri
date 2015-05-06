@@ -74,8 +74,8 @@
 (define delayed-modal-user-event
   #f)
 
-(definition public (delay-modal-user-event step param)
-  (set! delayed-modal-user-event (cons step param)))
+(definition public (delay-modal-user-event what result)
+  (set! delayed-modal-user-event (cons what result)))
 
 
 (cond-expand
@@ -83,10 +83,10 @@
     (definition public (with-modal thunk)
       (let ((code (thunk)))
         (when delayed-modal-user-event
-          (let ((step (car delayed-modal-user-event))
-                (param (cdr delayed-modal-user-event)))
+          (let ((what (car delayed-modal-user-event))
+                (result (cdr delayed-modal-user-event)))
             (set! delayed-modal-user-event #f)
-            (PostMessage (get-handle~ (get-toplevel)) WM_USER step param)))
+            (PostMessage (get-handle~ (get-toplevel)) WM_USER what result)))
         code)))
   (else
     (definition public (with-modal thunk)

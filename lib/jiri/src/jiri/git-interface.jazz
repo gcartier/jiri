@@ -71,13 +71,14 @@
   (set-cursor :wait)
   (set-work-in-progress? #t)
   (set-title~ status-view (downloading-title title step of))
+  (git-callback-hwnd (get-handle~ (get-toplevel)))
   (open/init-repository
     (lambda (repo remote)
       (let ((megabytes 0))
         (git-remote-connect-with-retries remote #f)
         (set-download-progress
           (let ((inited? #f))
-            (lambda (param)
+            (lambda (result)
               (git-download-state
                 (lambda (total-objects received-objects received-bytes)
                   (let ((percentage (* (percentage received-objects total-objects) (- mid head)))
@@ -93,9 +94,9 @@
                     (set! inited? #t))
                   (set-pos~ progress-view received-objects))))))
         (set-download-done
-          (lambda (param)
+          (lambda (result)
             (safe-quit-point)
-            (git-check-error param)
+            (git-check-error result)
             (set-work-percentage (* mid 100.))
             (set-work-downloaded (+ work-downloaded megabytes))
             (set-title~ status-view (installing-title title step of))
@@ -105,14 +106,13 @@
             (git-remote-update-tips remote)
             (git-remote-free remote)
             (git-repository-set-head repo (string-append "refs/heads/" branch))
-            (git-set-hwnd (get-handle~ (get-toplevel)))
             (let ((upstream (git-reference-lookup repo (string-append "refs/remotes/origin/" branch))))
               (let ((commit (git-object-lookup repo (git-reference->id repo upstream) GIT_OBJ_COMMIT)))
                 (git-branch-create repo branch commit 1)
                 (let ((new-content? #f))
                   (set-checkout-progress
                     (let ((inited? #f))
-                      (lambda (param)
+                      (lambda (result)
                         ;; from a discusion on freenode, aborting a checkout could leave the worktree in an arbitrary
                         ;; state, but the next checkout force should overwrite whatever is present in the worktree...
                         (safe-quit-point)
@@ -130,9 +130,9 @@
                                 (set! inited? #t))
                               (set-pos~ progress-view completed-steps)))))))
                   (set-checkout-done
-                    (lambda (param)
+                    (lambda (result)
                       (safe-quit-point)
-                      (git-check-error param)
+                      (git-check-error result)
                       (set-work-percentage (* tail 100.))
                       (set-info~ progress-view (new Range mid tail) (new Range 0 10))
                       (set-pos~ progress-view 10)
@@ -175,7 +175,6 @@
     (git-remote-setup-callbacks remote
       (new Git-Callbacks
         credentials-callback: (lambda ()
-                                (terminal 'credentials)
                                 (git-cred-userpass-plaintext-new (jiri-username) (ask-password)))))
     (let ((max-tries 3))
       (let loop ((try 1))
@@ -204,14 +203,14 @@
 
 
 (set-user-callback
-  (lambda (step param)
-    (cond ((= step DOWNLOAD_PROGRESS) (download-progress param))
-          ((= step DOWNLOAD_DONE)     (download-done     param))
-          ((= step CHECKOUT_PROGRESS) (checkout-progress param))
-          ((= step CHECKOUT_DONE)     (if (in-modal?)
-                                          (delay-modal-user-event step param)
-                                        (checkout-done param)))
-          ((= step UPDATING_GAME)     (unless work-done?
+  (lambda (what result)
+    (cond ((= what DOWNLOAD_PROGRESS) (download-progress result))
+          ((= what DOWNLOAD_DONE)     (download-done     result))
+          ((= what CHECKOUT_PROGRESS) (checkout-progress result))
+          ((= what CHECKOUT_DONE)     (if (in-modal?)
+                                          (delay-modal-user-event what result)
+                                        (checkout-done result)))
+          ((= what UPDATING_GAME)     (unless work-done?
                                         (set-title~ stage-view "Updating game"))))))
 
 

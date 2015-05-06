@@ -99,7 +99,7 @@
     }
 //#)
 
-(c-external (git-set-hwnd HWND) void
+(c-external (git-callback-hwnd HWND) void
   #/C/
     hwnd = ___arg1;
 //#))
@@ -151,7 +151,7 @@
     }
 //#)
 
-(c-external (git-set-hwnd scheme-object) void
+(c-external (git-callback-hwnd scheme-object) void
   #/C/
 //#)))
 

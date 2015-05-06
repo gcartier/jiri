@@ -85,6 +85,6 @@
     (<install> caption-base: "Jiri" position: {Point 100 100} size: {Dimension 800 625}))
   
   
-  (method override (user-notification step param)
+  (method override (user-notification what result)
     (when user-callback
-      (user-callback step param)))))
+      (user-callback what result)))))
