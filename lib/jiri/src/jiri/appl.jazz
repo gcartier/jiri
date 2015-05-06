@@ -44,6 +44,7 @@
         (jazz.system.application)
         (jazz.ui)
         (jazz.ui.view)
+        (jazz.ui.window)
         (jiri.pane)
         (jiri.view)
         (jiri.window))
@@ -87,4 +88,8 @@
   
   (method override (user-notification what result)
     (when notification-callback
-      (notification-callback what result)))))
+      (notification-callback what result))))
+
+
+(specific (window-resizable? (<Jiri-Toplevel> window) rest)
+  #f))
