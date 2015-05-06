@@ -23,5 +23,21 @@
                           jiri.view
                           jiri.window
                           jiri.work)
-                  (dependencies)))
+                  (dependencies jazz
+                                jazz.debuggee
+                                jazz.debuggee.jazz
+                                jazz.designer
+                                jazz.editor.jazz
+                                jazz.git
+                                jazz.graphic
+                                jazz.io
+                                jazz.jml
+                                jazz.jrm
+                                jazz.library
+                                jazz.network
+                                jazz.platform
+                                jazz.profile
+                                jazz.system
+                                jazz.ui
+                                srfi-19)))
   (project ".project"))
