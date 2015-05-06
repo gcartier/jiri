@@ -69,6 +69,8 @@
 (cond-expand
   (windows
 (c-declare jiri.git #/C/
+    #include <stdbool.h>
+    
     HANDLE mutex = NULL;
     HWND hwnd = NULL;
     
