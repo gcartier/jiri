@@ -69,40 +69,126 @@
 (cond-expand
   (windows
 (c-declare jiri.git #/C/
-    HANDLE ghMutex = NULL;
-    HWND remoteHwnd = NULL;
-    BOOL quitRequested = FALSE;
+    HANDLE mutex = NULL;
+    HWND hwnd = NULL;
+    
+    #define THREADPROC(name, payload) DWORD WINAPI name(LPVOID payload)
+    
+    void create_thread(LPTHREAD_START_ROUTINE proc, void* payload)
+    {
+        CreateThread(NULL, 0, proc, payload, 0, NULL);
+    }
+    
+    void lock_mutex()
+    {
+        if (! mutex)
+            mutex = CreateMutex(NULL, FALSE, NULL);
+        WaitForSingleObject(mutex, INFINITE);
+    }
+    
+    void unlock_mutex()
+    {
+        ReleaseMutex(mutex);
+    }
+    
+    void post_notification(int what, int result)
+    {
+        PostMessage(hwnd, WM_USER, what, result);
+    }
+//#)
+
+(c-external (git-set-hwnd HWND) void
+  #/C/
+    hwnd = ___arg1;
+//#))
+  (else
+(c-declare jiri.git #/C/
+    #import <Cocoa/Cocoa.h>
+    #include <pthread.h>
+    
+    pthread_mutex_t mutex;
+    bool mutexInited = false;
+    
+    #define THREADPROC(name, payload) void* name(void* payload)
+    
+    typedef void*(*threadproc)(void*);
+    
+    void create_thread(threadproc proc, void* payload)
+    {
+        pthread_t thread;
+        pthread_create(&thread, NULL, proc, payload);
+    }
+    
+    void lock_mutex()
+    {
+        if (! mutexInited)
+        {
+            pthread_mutex_init(&mutex, NULL);
+            mutexInited = true;
+        }
+        pthread_mutex_lock(&mutex);
+    }
+    
+    void unlock_mutex()
+    {
+        pthread_mutex_unlock(&mutex);
+    }
+    
+    void post_notification(int what, int result)
+    {
+        NSEvent* event = [NSEvent otherEventWithType:NSApplicationDefined
+                                            location:NSMakePoint(0, 0)
+                                       modifierFlags:0
+                                           timestamp:0
+                                        windowNumber:0
+                                             context:nil
+                                             subtype:0
+                                               data1:what
+                                               data2:result];
+        [NSApp postEvent:event atStart:YES];
+    }
+//#)
+
+(c-external (git-set-hwnd scheme-object) void
+  #/C/
+//#)))
+
+
+(c-declare jiri.git #/C/
+    bool quitRequested = false;
     
     #define DOWNLOAD_PROGRESS 0
     #define DOWNLOAD_DONE     1
     #define CHECKOUT_PROGRESS 2
     #define CHECKOUT_DONE     3
     #define UPDATING_GAME     5
-//#))
-  (else))
+//#)
 
 
-(cond-expand
-  (windows
 (c-enumerant DOWNLOAD_PROGRESS)
 (c-enumerant DOWNLOAD_DONE)
 (c-enumerant CHECKOUT_PROGRESS)
 (c-enumerant CHECKOUT_DONE)
-(c-enumerant UPDATING_GAME))
-  (else))
+(c-enumerant UPDATING_GAME)
 
 
-(cond-expand
-  (windows
+(c-external (git-lock-mutex) void
+  #/C/
+    lock_mutex();
+//#)
+
+(c-external (git-unlock-mutex) void
+  #/C/
+    unlock_mutex();
+//#)
+
+
 (git-external (git-request-quit) void
   #/C/
-    if (! ghMutex)
-        ghMutex = CreateMutex(NULL, FALSE, NULL);
-    WaitForSingleObject(ghMutex, INFINITE);
-    quitRequested = TRUE;
-    ReleaseMutex(ghMutex);
-//#))
-  (else))
+    lock_mutex();
+    quitRequested = true;
+    unlock_mutex();
+//#)
 
 
 ;;;
@@ -110,11 +196,8 @@
 ;;;
 
 
-(cond-expand
-  (windows
 (c-declare jiri.git #/C/
     git_repository* checkout_repository = NULL;
-    git_tree* checkout_tree = NULL;
     
     char* checkout_path = NULL;
     size_t checkout_completed_steps = 0;
@@ -123,54 +206,53 @@
 
 (git-external (git-checkout-path) char-string
   #/C/
-    WaitForSingleObject(ghMutex, INFINITE);
     ___result = checkout_path;
-    ReleaseMutex(ghMutex);
 //#)
 
 (git-external (git-checkout-completed-steps) int
   #/C/
-    WaitForSingleObject(ghMutex, INFINITE);
     ___result = checkout_completed_steps;
-    ReleaseMutex(ghMutex);
 //#)
 
 (git-external (git-checkout-total-steps) int
   #/C/
-    WaitForSingleObject(ghMutex, INFINITE);
     ___result = checkout_total_steps;
-    ReleaseMutex(ghMutex);
 //#)
+
+(definition public (git-checkout-state proc)
+  (git-lock-mutex)
+  (let ((path (git-checkout-path))
+        (completed-steps (git-checkout-completed-steps))
+        (total-steps (git-checkout-total-steps)))
+    (git-unlock-mutex)
+    (proc path completed-steps total-steps)))
 
 (c-declare jiri.git #/C/
     void checkout_callback(const char *path, size_t completed_steps, size_t total_steps, void *payload)
     {
-        WaitForSingleObject(ghMutex, INFINITE);
+        lock_mutex();
         checkout_path = (char*) path;
         checkout_completed_steps = completed_steps;
         checkout_total_steps = total_steps;
-        ReleaseMutex(ghMutex);
-        PostMessage(remoteHwnd, WM_USER, CHECKOUT_PROGRESS, 0);
+        unlock_mutex();
+        post_notification(CHECKOUT_PROGRESS, 0);
     }
 
-    DWORD WINAPI checkout_head_proc(LPVOID lpParam)
+    THREADPROC(checkout_head_proc, payload)
     {
         git_checkout_options options = GIT_CHECKOUT_OPTIONS_INIT;
         options.checkout_strategy = GIT_CHECKOUT_FORCE;
         options.progress_cb = checkout_callback;
         int result = git_checkout_head(checkout_repository, &options);
-        PostMessage(remoteHwnd, WM_USER, CHECKOUT_DONE, result);
+        post_notification(CHECKOUT_DONE, result);
         return 0;
     }
 //#)
 
-(git-external (git-checkout-head-force-threaded git_repository* HWND) HANDLE
+(git-external (git-checkout-head-force-threaded git_repository*) void
   #/C/
-    if (! ghMutex)
-        ghMutex = CreateMutex(NULL, FALSE, NULL);
-    remoteHwnd = ___arg2;
     checkout_repository = ___arg1;
-    ___result = CreateThread(NULL, 0, &checkout_head_proc, 0, 0, NULL);
+    create_thread(&checkout_head_proc, NULL);
 //#)
 
 
@@ -187,61 +269,61 @@
 
 (git-external (git-remote-download-total-objects) int
   #/C/
-    WaitForSingleObject(ghMutex, INFINITE);
     ___result = total_objects;
-    ReleaseMutex(ghMutex);
 //#)
 
 (git-external (git-remote-download-received-objects) int
   #/C/
-    WaitForSingleObject(ghMutex, INFINITE);
     ___result = received_objects;
-    ReleaseMutex(ghMutex);
 //#)
 
 (git-external (git-remote-download-received-bytes) int
   #/C/
-    WaitForSingleObject(ghMutex, INFINITE);
     ___result = received_bytes;
-    ReleaseMutex(ghMutex);
 //#)
+
+(definition public (git-download-state proc)
+  (git-lock-mutex)
+  (let ((total-objects (git-remote-download-total-objects))
+        (received-objects (git-remote-download-received-objects))
+        (received-bytes (git-remote-download-received-bytes)))
+    (git-unlock-mutex)
+    (proc total-objects received-objects received-bytes)))
 
 (c-declare jiri.git #/C/
     int remote_download_callback(const git_transfer_progress *stats, void *payload)
     {
-        BOOL quit;
+        bool quit;
       
-        WaitForSingleObject(ghMutex, INFINITE);
+        lock_mutex();
         quit = quitRequested;
         total_objects = stats->total_objects;
         received_objects = stats->received_objects;
         received_bytes = stats->received_bytes;
-        ReleaseMutex(ghMutex);
+        unlock_mutex();
+        
         if (! quit)
         {
-            PostMessage(remoteHwnd, WM_USER, DOWNLOAD_PROGRESS, 0);
+            post_notification(DOWNLOAD_PROGRESS, 0);
             return 0;
         }
         else
             return -1;
     }
 
-    DWORD WINAPI remote_download_proc(LPVOID lpParam)
+    THREADPROC(remote_download_proc, payload)
     {
-        git_remote* remote = (git_remote*) lpParam;
+        git_remote* remote = (git_remote*) payload;
         git_remote_callbacks callbacks = GIT_REMOTE_CALLBACKS_INIT;
         callbacks.transfer_progress = remote_download_callback;
         git_remote_set_callbacks(remote, &callbacks);
         int result = git_remote_download(remote, NULL);
-        PostMessage(remoteHwnd, WM_USER, DOWNLOAD_DONE, result);
+        post_notification(DOWNLOAD_DONE, result);
         return 0;
     }
 //#)
 
-(git-external (git-remote-download-threaded git_remote* HWND) HANDLE
+(git-external (git-remote-download-threaded git_remote*) void
   #/C/
-    if (! ghMutex)
-        ghMutex = CreateMutex(NULL, FALSE, NULL);
-    remoteHwnd = ___arg2;
-    ___result = CreateThread(NULL, 0, &remote_download_proc, ___arg1, 0, NULL);
-//#)) (else)))
+    create_thread(&remote_download_proc, ___arg1);
+//#))

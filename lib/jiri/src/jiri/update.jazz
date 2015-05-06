@@ -342,7 +342,7 @@
 
 (define (test-work)
   (current-root-dir "/Users/cartier/Devel/aaa/Dawn")
-  (jiri-install-remote "https://github.com/gcartier/personal.git")
+  (jiri-install-remote "https://github.com/gcartier/dawn-install-windows.git")
   (debug "launch")
   (debug (jiri-install-remote))
   (debug (jiri-install-branch))

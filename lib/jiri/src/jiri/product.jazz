@@ -44,6 +44,16 @@
 
 
 (cond-expand
+  (mac
+    (define custom-cc
+      "/usr/bin/gcc")
+    
+    (define custom-cc-options
+      '("-O1" "-Wno-unused" "-Wno-write-strings" "-fno-math-errno" "-fno-strict-aliasing" "-fwrapv" "-fomit-frame-pointer" "-fPIC" "-fno-common")))
+  (else))
+
+
+(cond-expand
   (windows
     (define (copy-jiri-files)
       @convert
@@ -76,7 +86,10 @@
             (git-lib-path     (jazz:quote-jazz-pathname "foreign/mac/libgit2/lib")))
         `((jiri.git
             cc-options: ,(string-append "-I" git-include-path)
-            ld-options: ,(string-append "-L" git-lib-path " -lgit2.22"))))))
+            ld-options: ,(string-append "-L" git-lib-path " -framework Cocoa -lgit2.22")
+            custom-cc: ,custom-cc
+            custom-cc-options: ,custom-cc-options
+            output-language: objc)))))
   (else
     (define jiri-units
       '())))
