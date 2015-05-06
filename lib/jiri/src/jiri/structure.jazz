@@ -39,6 +39,7 @@
 
 
 (import (jazz.library)
+        (jazz.system)
         (jiri.base)
         (jiri.settings))
 
@@ -147,10 +148,9 @@
   (setenv "called-from" called-from)
   (setenv "work-percentage" (number->string work-percentage))
   (setenv "work-downloaded" (number->string work-downloaded))
-  @convert
-  (let ((pos (get-window-position current-window)))
-    (setenv "window-h" (number->string (point-h pos)))
-    (setenv "window-v" (number->string (point-v pos))))
+  (let ((pos (get-position~ (get-toplevel))))
+    (setenv "window-h" (number->string (get-h~ pos)))
+    (setenv "window-v" (number->string (get-v~ pos))))
   (delegate-process (install-exe))
   ;; wait for install window to cover our own window
   (thread-sleep! .5)

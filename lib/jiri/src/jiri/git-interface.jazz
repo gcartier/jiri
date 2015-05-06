@@ -108,7 +108,8 @@
             (git-repository-set-head repo (string-append "refs/heads/" branch))
             (let ((upstream (git-reference-lookup repo (string-append "refs/remotes/origin/" branch))))
               (let ((commit (git-object-lookup repo (git-reference->id repo upstream) GIT_OBJ_COMMIT)))
-                (git-branch-create repo branch commit 1)
+                (unless (git-branch-lookup repo branch GIT_BRANCH_LOCAL)
+                  (git-branch-create repo branch commit 1))
                 (let ((new-content? #f))
                   (set-checkout-progress
                     (let ((inited? #f))
@@ -241,7 +242,7 @@
 
 (define (request-quit title)
   (set! quit-requested? #t)
-  @convert (git-request-quit)
+  (git-request-quit)
   (set-cursor :wait)
   (set-title~ status-view title)
   (when minimize-view

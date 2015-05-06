@@ -67,10 +67,10 @@
 ;;     - Contents
 ;;       - MacOS
 ;;         - .git
-;;         - Install
+;;         - Yownu
 ;;         - lib
 ;; - MacOS
-;;   - Install
+;;   - Yownu
 ;;   - lib
 ;; - Resources
 ;; - Worlds
@@ -102,9 +102,8 @@
   (when (neq? stage 'current-from-root)
     (set-work-percentage (string->number (getenv-default "work-percentage" "0.")))
     (set-work-downloaded (string->number (getenv-default "work-downloaded" "0")))
-    @convert (
-    (set! window-h (string->number (getenv-default "window-h" "-1")))
-    (set! window-v (string->number (getenv-default "window-v" "-1"))))))
+    (set-window-h (string->number (getenv-default "window-h" "-1")))
+    (set-window-v (string->number (getenv-default "window-v" "-1")))))
 
 
 ;;;
@@ -371,7 +370,10 @@
 (set-startup
   (lambda ()
     (layout)
-    (set-enabled?~ play-view #t)
+    ;; test
+    (begin
+      ;(trace-git? #t)
+      (set-enabled?~ play-view #t))
     (set-action-handler~ play-view
       (lambda (view)
         (test-work))))))

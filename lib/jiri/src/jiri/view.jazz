@@ -162,25 +162,7 @@
   
   
   (form
-    (<install> color: {Color White}))
-  
-  
-  (method override (draw surface context)
-    (set-font~ surface (or font default-label-font))
-    (draw-text~ surface 0 0 title color))
-
-
-  @convert
-  (method override (draw surface context)
-    (SetBkMode hdc TRANSPARENT)
-    (SetTextColor hdc (or (label-color view) {Color White}))
-    (let ((font (or (label-font view) default-label-font)))
-      (SelectObject hdc font)
-      (let ((rect (rect->RECT (view-rect view)))
-            (title (label-title view))
-            (align (label-align view)))
-        (DrawText hdc title -1 rect (bitwise-ior align DT_NOCLIP))
-        (RECT-free rect)))))
+    (<install> color: {Color White})))
 
 
 ;;;
@@ -204,31 +186,7 @@
           direction: 'horizontal)))
     (set-font~ surface default-button-font)
     (when title
-    (draw-text~ surface 10 5 title (if enabled? {Color White} {Color red: 160 green: 160 blue: 160}))))
-
-
-  @convert
-  (method override (draw surface context)
-    (SetBkMode hdc TRANSPARENT)
-    (SetTextColor hdc (if enabled? {Color White} {Color red: 160 green: 160 blue: 160}))
-    (let ((font default-button-font))
-      (SelectObject hdc font)
-      (let ((rect (view-rect view)))
-        (let ((left (rect-left rect))
-              (top (rect-top rect))
-              (right (rect-right rect))
-              (bottom (rect-bottom rect)))
-          (if (eq? view (mouse-view))
-              (let ((rect (rect->RECT rect))
-                    (brush (CreateSolidBrush {Color red: 230 green: 0 blue: 0})))
-                (FillRect hdc rect brush)
-                (RECT-free rect)
-                (DeleteObject brush))
-            (DrawGradient hdc left top right bottom (if enabled? {Color red: 150 green: 0 blue: 0} {Color White}) (if enabled? {Color red: 220 green: 0 blue: 0} {Color White}) 'horizontal))
-          (let ((textRect (rect->RECT (new Rect left (+ top 7) right (+ bottom 7))))
-                (title (button-title view)))
-            (DrawText hdc title -1 textRect (bitwise-ior DT_CENTER DT_NOCLIP))
-            (RECT-free textRect))))))
+      (draw-text~ surface 10 5 title (if enabled? {Color White} {Color red: 160 green: 160 blue: 160}))))
   
   
   (method override (cursor-update evt)
@@ -351,33 +309,6 @@
                 (list (list 0 from)
                       (list 1 to))
                 direction: 'horizontal)))))))
-  
-  
-  @convert
-  (method override (draw surface context)
-    (let ((rect (view-rect view)))
-      (let ((left (rect-left rect))
-            (top (rect-top rect))
-            (right (rect-right rect))
-            (bottom (rect-bottom rect)))
-        (let ((rect (rect->RECT rect))
-              (brush (CreateSolidBrush {Color White})))
-          (FillRect hdc rect brush)
-          (RECT-free rect)
-          (DeleteObject brush))
-        (let ((limits (progress-limits view))
-              (range (progress-range view))
-              (pos (progress-pos view)))
-          (let ((start (range-start range))
-                (end (range-end range))
-                (width (rect-width rect)))
-            (let ((head (if (not limits) 0 (fxfloor (* (range-start limits) width))))
-                  (tail (if (not limits) width (fxceiling (* (range-end limits) width))))
-                  (where (/ (fixnum->flonum (- pos start)) (fixnum->flonum (- end start)))))
-              (let ((h (fxceiling (* (- tail head) where)))
-                    (from {Color red: 150 green: 0 blue: 0})
-                    (to {Color red: 220 green: 0 blue: 0}))
-                (DrawGradient hdc left top (+ left head h) bottom from to 'horizontal))))))))
   
   
   (method (set-info limits range)

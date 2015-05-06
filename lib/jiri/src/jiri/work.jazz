@@ -42,6 +42,7 @@
         (jazz.ui)
         (jazz.ui.window)
         (jiri.base)
+        (jiri.font)
         (jiri.platform)
         (jiri.settings)
         (jiri.structure)
@@ -186,6 +187,7 @@
 (definition public stage-view
   (new Jiri-Label
     title: ""
+    font: default-label-font
     position: (new Point 50 420)
     size: (new Dimension 215 30)))
 
@@ -205,6 +207,7 @@
 (definition public percentage-view
   (new Jiri-Label
     title: "0%"
+    font: default-label-font
     position: (new Point 50 450)
     size: (new Dimension 115 20)))
 
@@ -217,6 +220,7 @@
 (definition public downloaded-view
   (new Jiri-Label
     title: "Downloaded: "
+    font: default-label-font
     position: (new Point 175 450)
     size: (new Dimension 165 20)))
 
@@ -229,6 +233,7 @@
 (definition public status-view
   (new Jiri-Label
     title: ""
+    font: default-label-font
     position: (new Point 350 450)
     size: (new Dimension 140 20)
     justification: 'tail))
@@ -242,6 +247,7 @@
 (definition public remaining-view
   (new Jiri-Label
     title: "Remaining: "
+    font: default-label-font
     position: (new Point 500 450)
     size: (new Dimension 150 20)
     justification: 'tail))

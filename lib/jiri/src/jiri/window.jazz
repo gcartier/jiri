@@ -59,11 +59,17 @@
 ;;;
 
 
-(define window-h
+(definition public window-h
   -1)
 
-(define window-v
+(definition public window-v
   -1)
+
+(definition public (set-window-h h)
+  (set! window-h h))
+
+(definition public (set-window-v v)
+  (set! window-v v))
 
 
 ;;;
