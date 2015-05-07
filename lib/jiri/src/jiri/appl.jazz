@@ -92,5 +92,8 @@
       (notification-callback what result))))
 
 
-(specific (window-resizable? (<Jiri-Toplevel> window) rest)
-  #f))
+(cond-expand
+  (cocoa
+    (specific (window-resizable? (<Jiri-Toplevel> window) rest)
+      #f))
+  (else)))

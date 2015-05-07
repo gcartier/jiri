@@ -212,10 +212,20 @@
 
 
 ;;;
+;;;; Init
+;;;
+
+
+(set-init
+  (lambda ()
+    (layout)))
+
+
+;;;
 ;;;; Startup
 ;;;
 
 
 (set-startup
   (lambda ()
-    (layout))))
+    )))
