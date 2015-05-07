@@ -56,14 +56,8 @@
 ;; MAC
 ;; Contents
 ;; - Info.plist
-;; - Apps
+;; - App
 ;;   - yownu.app
-;;     - Contents
-;;       - MacOS
-;;         - .git
-;;         - Yownu
-;;         - lib
-;;   - install.app
 ;;     - Contents
 ;;       - MacOS
 ;;         - .git
@@ -73,33 +67,36 @@
 ;;   - Yownu
 ;;   - lib
 ;; - Resources
+;; - Update
+;;   - yownu.app
+;;     - Contents
+;;       - MacOS
+;;         - .git
+;;         - Yownu
+;;         - lib
 ;; - Worlds
 ;;   - yownu
 ;;     - .git
 
 
-@convert (
 (define stage
   #f)
 
 
-(define (prepare-stage)
+(define (prepare)
   (current-root-dir (getenv-default "root-dir"))
   (closed-beta-password (getenv-default "closed-beta-password"))
   (called-from (getenv-default "called-from"))
-  (set! stage (cond ((and (current-root-dir)
-                          (equal? (called-from) "setup"))
-                     'install-from-setup)
+  (set! stage (cond ((and (not (current-root-dir))
+                          (not (called-from)))
+                     'root)
                     ((and (current-root-dir)
                           (equal? (called-from) "root"))
-                     'current-from-root)
-                    ((and (current-root-dir)
-                          (equal? (called-from) "current"))
-                     'install-from-current)
+                     'update)
                     (else
                      (message-box "It is incorrect to launch this application")
                      (exit 1))))
-  (when (neq? stage 'current-from-root)
+  (when (eq? stage 'update)
     (set-work-percentage (string->number (getenv-default "work-percentage" "0.")))
     (set-work-downloaded (string->number (getenv-default "work-downloaded" "0")))
     (set-window-h (string->number (getenv-default "window-h" "-1")))
@@ -107,65 +104,44 @@
 
 
 ;;;
-;;;; Install
+;;;; Update
 ;;;
 
 
-(define (install)
+(define (update)
   (case stage
-    ((install-from-setup) (install-from-setup-work))
-    ((current-from-root) (current-from-root-work))
-    ((install-from-current) (install-from-current-work))))
+    ((root) (update-at-root))
+    ((update) (update-at-update))))
 
 
 ;;;
-;;;; Install From Setup
+;;;; At Root
 ;;;
 
 
-(define (install-from-setup-work)
-  (install-current)
-  (install-root)
-  (install-desktop)
-  (install-start-menu)
-  (update-start-menu)
-  (install-uninstall)
-  (install-application/world
-    (lambda (new-content?)
-      (install-done))))
-
-
-;;;
-;;;; Current From Root
-;;;
-
-
-(define (current-from-root-work)
-  (pull-repository "launch" (jiri-install-remote) (jiri-install-branch) (closed-beta-password) (install-dir) 1 6 0. .05 .1
+(define (update-at-root)
+  (current-root-dir kernel-bundle-root)
+  (pull-repository "update" (jiri-install-remote) (jiri-install-branch) (closed-beta-password) (install-dir) 1 6 0. .05 .1
     (lambda (new-content?)
       (if new-content?
+          #f
+          @w
           (delegate-install (current-root-dir) (closed-beta-password) "current")
-        (begin
-          (update-start-menu)
-          (rewind-start-menu)
-          (install-application/world
-            (lambda (new-content?)
-              (install-done))))))))
+        (update-application/world
+          (lambda (new-content?)
+            (update-done)))))))
 
 
 ;;;
-;;;; Install From Current
+;;;; At Update
 ;;;
 
 
-(define (install-from-current-work)
-  (install-current)
-  (install-root)
-  (update-start-menu)
-  (rewind-start-menu)
-  (install-application/world
+(define (update-at-update)
+  (update-current)
+  (update-application/world
     (lambda (new-content?)
-      (install-done))))
+      (update-done))))
 
 
 ;;;
@@ -173,7 +149,7 @@
 ;;;
 
 
-(define (install-application/world cont)
+(define (update-application/world cont)
   (pull-repository "application" (jiri-app-remote) (jiri-app-branch) (closed-beta-password) (app-dir) 3 6 .1 .2 .4
     (lambda (new-content?)
       (pull-repository "world" (jiri-world-remote) (jiri-world-branch) (closed-beta-password) (world-dir) 5 6 .4 .85 1.
@@ -185,7 +161,7 @@
 ;;;
 
 
-(define (install-done)
+(define (update-done)
   (set-title~ stage-view "Ready to play!")
   (set-color~ stage-view stage-ready-color)
   (set-title~ status-view "Done")
@@ -195,7 +171,8 @@
   (set-work-done? #t))
 
 
-(define (install-current)
+(define (update-current)
+  @convert
   (let ((install-dir (install-dir))
         (current-dir (current-dir)))
     (define (copy filename)
@@ -221,72 +198,6 @@
     (copy-dir "lib")))
 
 
-(define (install-root)
-  (let ((from (launch-exe))
-        (from-lib (launch-lib))
-        (to (root-exe))
-        (to-lib (root-lib)))
-    ;; danger
-    (when (file-exists? to)
-      (delete-file to))
-    (copy-file from to)
-    (jazz:copy-directory from-lib to-lib)))
-
-
-(define (install-desktop)
-  (let ((path (root-exe))
-        (shortcut (desktop-shortcut)))
-    (let ((hr (create-shortcut path #f shortcut (jiri-title))))
-      (when (< hr 0)
-        (error "Unable to create desktop shortcut (0x" (number->string hr 16) ")")))))
-
-
-(define (install-start-menu)
-  (let ((root (root-exe))
-        (appdir (start-menu-appdir)))
-    (when (file-exists? appdir)
-      ;; danger
-      (remove-directory appdir))
-    (create-directory appdir)
-    (let ((shortcut (start-menu-shortcut appdir)))
-      (let ((hr (create-shortcut root #f shortcut (jiri-title))))
-        (when (< hr 0)
-          (error "Unable to create start menu shortcut (0x" (number->string hr 16) ")"))))))
-
-
-(define (update-start-menu)
-  (let ((root (root-exe))
-        (appdir (start-menu-appdir)))
-    (when (file-exists? appdir)
-      (let ((title "Video Card Information"))
-        (let ((shortcut (string-append appdir "/" title ".lnk")))
-          (let ((hr (create-shortcut root "-information" shortcut title)))
-            (when (< hr 0)
-              (error "Unable to create start menu shortcut (0x" (number->string hr 16) ")"))))))))
-
-
-;; hack around windows taking forever to remove newly installed highlight
-(define (rewind-start-menu)
-  (let ((shortcut (start-menu-shortcut (start-menu-appdir))))
-    (when (file-exists? shortcut)
-      (rewind-creation-time shortcut))))
-
-
-(define (install-uninstall)
-  (let ((key (registry-create-key (HKEY_CURRENT_USER) (uninstall-subkey))))
-    (registry-set-string key "DisplayName" (jiri-title))
-    (registry-set-string key "DisplayIcon" (pathname-platformize (root-exe)))
-    (registry-set-string key "DisplayVersion" (jiri-version))
-    (registry-set-string key "Publisher" (jiri-company))
-    (registry-set-string key "InstallDate" (get-local-date))
-    (registry-set-string key "InstallLocation" (pathname-platformize (current-root-dir)))
-    (registry-set-string key "UninstallString" (string-append (pathname-platformize (root-exe)) " -uninstall"))
-    (registry-set-int key "EstimatedSize" (jiri-size))
-    (registry-set-int key "NoModify" 1)
-    (registry-set-int key "NoRepair" 1)
-    (registry-close-key key))))
-
-
 ;;;
 ;;;; Layout
 ;;;
@@ -306,7 +217,7 @@
   (add-view progress-view)
   (add-view play-view)
   @convert
-  (if (eq? stage 'install-from-setup)
+  (if (eq? stage 'update-from-setup)
       (begin
         (add-stage-view "Setup successful!" stage-install-color)
         (thread-start!
@@ -330,36 +241,14 @@
 
 
 ;;;
-;;;; Main
+;;;; Init
 ;;;
 
 
-@convert (
-(prepare-stage)
-(main install))
-
-
-(define (test-work)
-  (current-root-dir "/Users/cartier/Devel/aaa/Dawn")
-  (jiri-install-remote "https://github.com/gcartier/dawn-install-windows.git")
-  (debug "launch")
-  (debug (jiri-install-remote))
-  (debug (jiri-install-branch))
-  (debug (closed-beta-password))
-  (debug (install-dir))
-  (pull-repository "launch" (jiri-install-remote) (jiri-install-branch) (closed-beta-password) (install-dir) 1 6 0. .05 .1
-    (lambda (new-content?)
-      (test-done))))
-
-
-(define (test-done)
-  (set-title~ stage-view "Setup successful!")
-  (set-color~ stage-view stage-install-color)
-  (set-cursor :arrow)
-  (set-work-in-progress? #f)
-  (set-work-done? #t)
-  @w
-  (delegate-install (current-root-dir) (closed-beta-password) "setup"))
+(set-init
+  (lambda ()
+    (prepare)
+    (layout)))
 
 
 ;;;
@@ -369,11 +258,4 @@
 
 (set-startup
   (lambda ()
-    (layout)
-    ;; test
-    (begin
-      ;(trace-git? #t)
-      (set-enabled?~ play-view #t))
-    (set-action-handler~ play-view
-      (lambda (view)
-        (test-work))))))
+    (update))))

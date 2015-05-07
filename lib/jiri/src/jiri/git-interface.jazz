@@ -158,10 +158,19 @@
 ;;;
 
 
+(definition (closed-beta-dialog)
+  (message-box
+    `(<span>
+       (<paragraph> "Yownu closed-alpha contains copyrighted data.")
+       (<paragraph>)
+       (<paragraph> "By installing this program you agree to not redistribute it in whole or in part, including screenshots and videos.")))
+  "")
+
+
 (definition public (git-remote-connect-with-retries remote cancel)
   (let ((password #f))
     (define (ask-password)
-      (set! password (or (closed-beta-password) (message-box "Yownu closed-alpha contains copyrighted data.\r\n\r\nBy installing this program you agree to not redistribute it in whole or in part, including screenshots and videos.")))
+      (set! password (or (closed-beta-password) (closed-beta-dialog)))
       (or password
           (cancel-connection)))
     

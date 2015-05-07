@@ -71,7 +71,8 @@
     (set-size~ (get-toplevel) (cache-background-size))
     (maximize~ (current-stage))
     (new-frame Jiri-Pane)
-    (startup)))
+    (init)
+    (delay-event startup)))
 
 
 ;;;

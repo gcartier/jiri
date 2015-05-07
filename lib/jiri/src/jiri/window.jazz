@@ -43,6 +43,18 @@
 
 
 ;;;
+;;;; Init
+;;;
+
+
+(definition public init
+  #f)
+
+(definition public (set-init thunk)
+  (set! init thunk))
+
+
+;;;
 ;;;; Startup
 ;;;
 
@@ -55,7 +67,7 @@
 
 
 ;;;
-;;;; Run
+;;;; Window
 ;;;
 
 
