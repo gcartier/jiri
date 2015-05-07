@@ -235,6 +235,28 @@
     create_thread(&checkout_head_proc, NULL);
 //#)
 
+(c-declare jiri.git #/C/
+    git_repository* reset_repository = NULL;
+    git_object* reset_commit = NULL;
+    
+    THREADPROC(reset_hard_proc, payload)
+    {
+        git_checkout_options options = GIT_CHECKOUT_OPTIONS_INIT;
+        options.checkout_strategy = GIT_CHECKOUT_FORCE;
+        options.progress_cb = checkout_callback;
+        int result = git_reset(reset_repository, reset_commit, GIT_RESET_HARD, &options);
+        post_notification(CHECKOUT_DONE, result);
+        return 0;
+    }
+//#)
+
+(git-external (git-reset-hard-threaded git_repository* git_object*) void
+  #/C/
+    reset_repository = ___arg1;
+    reset_commit = ___arg2;
+    create_thread(&reset_hard_proc, NULL);
+//#)
+
 
 ;;;
 ;;;; Remote

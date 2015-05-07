@@ -17,6 +17,8 @@
 
 
 (import (jazz.git.foreign)
+        (jazz.io)
+        (jazz.system)
         (jazz.ui)
         (jazz.ui.view)
         (jazz.ui.window)
@@ -102,12 +104,25 @@
   (pull-repository "update" (jiri-update-remote) (jiri-update-branch) (closed-beta-password) (update-dir) 1 6 0. .05 .1
     (lambda (new-content?)
       (if new-content?
-          #f
-          @w
-          (delegate-update (current-root-dir) (closed-beta-password) "current")
+          (delegate-update (current-root-dir) (closed-beta-password) "root")
         (update-application/world
           (lambda (new-content?)
             (update-done)))))))
+
+
+(definition public (delegate-update root-dir closed-beta-password called-from)
+  (setenv "root-dir" root-dir)
+  (setenv "closed-beta-password" (or closed-beta-password ""))
+  (setenv "called-from" called-from)
+  (setenv "work-percentage" (number->string work-percentage))
+  (setenv "work-downloaded" (number->string work-downloaded))
+  (let ((pos (get-position~ (get-toplevel))))
+    (setenv "window-h" (number->string (get-h~ pos)))
+    (setenv "window-v" (number->string (get-v~ pos))))
+  (delegate-process (update-exe))
+  ;; wait for delegate window to cover our own window
+  (thread-sleep! .5)
+  (exit))
 
 
 ;;;
@@ -116,10 +131,28 @@
 
 
 (define (update-at-update)
-  (update-current)
+  (update-root)
   (update-application/world
     (lambda (new-content?)
       (update-done))))
+
+
+(define (update-root)
+  (let ((update-dir (update-dir))
+        (root-dir (current-root-dir)))
+    (define (install-file filename)
+      (let ((from (string-append update-dir filename))
+            (to (string-append root-dir filename)))
+        (install-file~ (new File (list from)) (new File (list to)))))
+    
+    (define (install-directory dirname)
+      (let ((from (string-append update-dir dirname))
+            (to (string-append root-dir dirname)))
+        (install-directory~ (new Directory (list from)) (new Directory (list to)))))
+    
+    (install-file "Contents/Info.plist")
+    (install-directory "Contents/MacOS")
+    (install-directory "Contents/Resources")))
 
 
 ;;;
@@ -143,37 +176,11 @@
   (set-title~ stage-view "Ready to play!")
   (set-color~ stage-view stage-ready-color)
   (set-title~ status-view "Done")
+  (set-title~ percentage-view "100%")
   (set-enabled?~ play-view #t)
   (set-cursor :arrow)
   (set-work-in-progress? #f)
   (set-work-done? #t))
-
-
-(define (update-current)
-  @convert
-  (let ((update-dir (update-dir))
-        (current-dir (current-dir)))
-    (define (copy filename)
-      (let ((from (string-append update-dir "/" filename))
-            (to (string-append current-dir "/" filename)))
-        (copy-file from to)))
-    
-    (define (copy-dir dirname)
-      (let ((from (string-append update-dir "/" dirname "/"))
-            (to (string-append current-dir "/" dirname "/")))
-        (jazz:copy-directory from to)))
-    
-    ;; danger
-    (remove-directory current-dir)
-    (create-directory current-dir)
-    
-    (copy "Install.exe")
-    (copy "Uninstall.exe")
-    (copy "libgit2.dll")
-    (copy "libeay32.dll")
-    (copy "ssleay32.dll")
-    (copy ".repository")
-    (copy-dir "lib")))
 
 
 ;;;
@@ -188,24 +195,16 @@
     (add-view close-view))
   (when minimize-view
     (add-view minimize-view))
+  (add-stage-view "Updating game" (case stage
+                                    ((root) stage-setup-color)
+                                    ((update) stage-install-color)))
   (add-view percentage-view)
   (add-view downloaded-view)
   (add-view status-view)
   (add-view remaining-view)
   (add-view progress-view)
   (add-view play-view)
-  @convert
-  (if (eq? stage 'update-from-setup)
-      (begin
-        (add-stage-view "Setup successful!" stage-install-color)
-        (thread-start!
-          (make-thread
-            (lambda ()
-              (thread-sleep! 2.5)
-              (PostMessage (window-handle current-window) WM_USER UPDATING_GAME 0)))))
-    (add-stage-view "Updating game" stage-install-color))
-  @convert
-  (when (neq? stage 'current-from-root)
+  (when (eq? stage 'update)
     (set-title~ percentage-view (string-append (number->string (fxround work-percentage)) "%"))
     (set-title~ downloaded-view (string-append "Downloaded: " (number->string work-downloaded) "M"))
     (set-title~ status-view (downloading-title "application" 3 6))

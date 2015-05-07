@@ -90,6 +90,9 @@
 (define-setting jiri-update-dir
   #f)
 
+(define-setting jiri-update-exe
+  #f)
+
 
 ;;;
 ;;;; App

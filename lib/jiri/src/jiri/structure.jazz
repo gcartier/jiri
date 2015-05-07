@@ -58,8 +58,14 @@
 (definition public (root-lib)
   (string-append (current-root-dir) "lib/"))
 
-(definition public (app-exe)
-  (add-extension (string-append (app-dir) (jiri-application)) (executable-extension kernel-platform)))
+(cond-expand
+  (mac
+    (definition public (app-exe)
+      (add-extension (string-append (app-dir) "Contents/MacOS/" (jiri-application)) (executable-extension kernel-platform))))
+  (windows
+    (definition public (app-exe)
+      (add-extension (string-append (app-dir) (jiri-application)) (executable-extension kernel-platform))))
+  (else))
 
 (definition public (current-exe)
   (add-extension (string-append (current-dir) "Install") (executable-extension kernel-platform)))
@@ -75,6 +81,9 @@
 
 (definition public (launch-lib)
   (string-append (install-dir) "lib/"))
+
+(definition public (update-exe)
+  (string-append (update-dir) "Contents/MacOS/" (jiri-update-exe)))
 
 
 ;;;
@@ -133,6 +142,6 @@
     (setenv "window-h" (number->string (get-h~ pos)))
     (setenv "window-v" (number->string (get-v~ pos))))
   (delegate-process (install-exe))
-  ;; wait for install window to cover our own window
+  ;; wait for delegate window to cover our own window
   (thread-sleep! .5)
   (exit)))

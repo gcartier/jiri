@@ -45,11 +45,18 @@
   
   
   (method override (finish-process)
+    (define (setup-toplevel)
+      (let ((toplevel (get-toplevel)))
+        (when (and (/= window-h -1)
+                   (/= window-v -1))
+          (set-position~ toplevel (new Point window-h window-v)))
+        (set-size~ toplevel (cache-background-size))))
+    
     (nextmethod)
-    (set-size~ (get-toplevel) (cache-background-size))
     (maximize~ (current-stage))
     (new-frame Jiri-Pane)
     (init)
+    (setup-toplevel)
     (delay-event startup)))
 
 

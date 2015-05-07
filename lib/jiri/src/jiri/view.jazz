@@ -164,7 +164,10 @@
           direction: 'horizontal)))
     (set-font~ surface default-button-font)
     (when title
-      (draw-text~ surface 10 5 title (if enabled? {Color White} {Color red: 160 green: 160 blue: 160}))))
+      (let ((pos (justify-lazy (lambda () (get-text-extent~ surface title))
+                               (lambda () (get-size))
+                               'center)))
+        (draw-text~ surface (get-h~ pos) (get-v~ pos) title (if enabled? {Color White} {Color red: 160 green: 160 blue: 160})))))
   
   
   (method override (cursor-update evt)

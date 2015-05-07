@@ -111,7 +111,7 @@
 (definition public invite-view
   (new Jiri-Title
     title: (jiri-invite)
-    position: (new Point 20 18)
+    position: (new Point 30 18)
     size: (new Dimension 420 82)))
 
 
@@ -166,7 +166,7 @@
   (new Jiri-Label
     title: ""
     font: default-label-font
-    position: (new Point 50 420)
+    position: (new Point 49 418)
     size: (new Dimension 215 30)))
 
 
@@ -186,7 +186,7 @@
   (new Jiri-Label
     title: "0%"
     font: default-label-font
-    position: (new Point 50 450)
+    position: (new Point 51 449)
     size: (new Dimension 115 20)))
 
 
@@ -199,7 +199,7 @@
   (new Jiri-Label
     title: "Downloaded: "
     font: default-label-font
-    position: (new Point 175 450)
+    position: (new Point 175 449)
     size: (new Dimension 165 20)))
 
 
@@ -212,7 +212,7 @@
   (new Jiri-Label
     title: ""
     font: default-label-font
-    position: (new Point 350 450)
+    position: (new Point 350 449)
     size: (new Dimension 140 20)
     justification: 'tail))
 
@@ -226,7 +226,7 @@
   (new Jiri-Label
     title: "Remaining: "
     font: default-label-font
-    position: (new Point 500 450)
+    position: (new Point 500 449)
     size: (new Dimension 150 20)
     justification: 'tail))
 

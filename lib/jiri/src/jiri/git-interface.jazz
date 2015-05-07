@@ -119,15 +119,15 @@
                       (git-object-free commit)
                       (git-repository-free repo)
                       (cont new-content?)))
-                (git-checkout-head-force-threaded repo))))))
+                (git-reset-hard-threaded repo commit))))))
         (git-remote-download-threaded remote)))))
 
 
-(define (downloading-title title step of)
+(definition public (downloading-title title step of)
   (string-append "Downloading " title " (" (number->string step) "/" (number->string of) ")"))
 
 
-(define (installing-title title step of)
+(definition public (installing-title title step of)
   (string-append "Installing " title " (" (number->string (+ step 1)) "/" (number->string of) ")"))
 
 
