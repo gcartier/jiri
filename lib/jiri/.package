@@ -9,17 +9,22 @@
                           jiri.font
                           jiri.git
                           jiri.git-interface
-                          jiri.install
-                          jiri.launch
+                          (cond
+                            (windows jiri.install))
+                          (cond
+                            (windows jiri.launch))
                           jiri.pane
                           jiri.platform
                           jiri.product
                           jiri.run
                           jiri.settings
-                          jiri.setup
+                          (cond
+                            (windows jiri.setup))
                           jiri.structure
-                          jiri.uninstall
-                          jiri.update
+                          (cond
+                            (windows jiri.uninstall))
+                          (cond
+                            (mac jiri.update))
                           jiri.view
                           jiri.window
                           jiri.work)

@@ -121,12 +121,12 @@
 
 (define (update-at-root)
   (current-root-dir kernel-bundle-root)
-  (pull-repository "update" (jiri-install-remote) (jiri-install-branch) (closed-beta-password) (install-dir) 1 6 0. .05 .1
+  (pull-repository "update" (jiri-update-remote) (jiri-update-branch) (closed-beta-password) (update-dir) 1 6 0. .05 .1
     (lambda (new-content?)
       (if new-content?
           #f
           @w
-          (delegate-install (current-root-dir) (closed-beta-password) "current")
+          (delegate-update (current-root-dir) (closed-beta-password) "current")
         (update-application/world
           (lambda (new-content?)
             (update-done)))))))
@@ -173,15 +173,15 @@
 
 (define (update-current)
   @convert
-  (let ((install-dir (install-dir))
+  (let ((update-dir (update-dir))
         (current-dir (current-dir)))
     (define (copy filename)
-      (let ((from (string-append install-dir "/" filename))
+      (let ((from (string-append update-dir "/" filename))
             (to (string-append current-dir "/" filename)))
         (copy-file from to)))
     
     (define (copy-dir dirname)
-      (let ((from (string-append install-dir "/" dirname "/"))
+      (let ((from (string-append update-dir "/" dirname "/"))
             (to (string-append current-dir "/" dirname "/")))
         (jazz:copy-directory from to)))
     

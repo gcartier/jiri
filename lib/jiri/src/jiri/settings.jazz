@@ -99,6 +99,21 @@
 
 
 ;;;
+;;;; Update
+;;;
+
+
+(define-setting jiri-update-remote
+  #f)
+
+(define-setting jiri-update-branch
+  #f)
+
+(define-setting jiri-update-dir
+  #f)
+
+
+;;;
 ;;;; App
 ;;;
 

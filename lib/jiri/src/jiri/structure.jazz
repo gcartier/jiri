@@ -65,6 +65,9 @@
 (definition public (install-dir)
   (string-append (current-root-dir) (normalize-directory (jiri-install-dir))))
 
+(definition public (update-dir)
+  (string-append (current-root-dir) (normalize-directory (jiri-update-dir))))
+
 (definition public (current-dir)
   (string-append (current-root-dir) (normalize-directory (jiri-current-dir))))
 
