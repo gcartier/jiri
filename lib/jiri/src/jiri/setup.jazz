@@ -38,8 +38,6 @@
 (module jiri.setup jazz
 
 
-(cond-expand
-  (windows
 (import (jazz.geometry)
         (jazz.graphic)
         (jazz.git.interface)
@@ -221,4 +219,3 @@
 (set-startup
   (lambda ()
     (layout))))
-  (else)))
