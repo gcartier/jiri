@@ -37,6 +37,12 @@
 ;; Contents
 ;; - Info.plist
 ;; - App
+;;   - update.app
+;;     - Contents
+;;       - MacOS
+;;         - .git
+;;         - Yownu
+;;         - lib
 ;;   - yownu.app
 ;;     - Contents
 ;;       - MacOS
@@ -47,13 +53,6 @@
 ;;   - Yownu
 ;;   - lib
 ;; - Resources
-;; - Update
-;;   - yownu.app
-;;     - Contents
-;;       - MacOS
-;;         - .git
-;;         - Yownu
-;;         - lib
 ;; - Worlds
 ;;   - yownu
 ;;     - .git

@@ -18,6 +18,9 @@
 
 (import (jazz.git.foreign)
         (jazz.git.interface)
+        (jazz.graphic)
+        (jazz.jml)
+        (jazz.library)
         (jazz.system)
         (jazz.ui)
         (jazz.ui.dialog)
@@ -136,13 +139,54 @@
 ;;;
 
 
-(definition (closed-beta-dialog)
-  (message-box
-    `(<span>
-       (<paragraph> "Yownu closed-alpha contains copyrighted data.")
-       (<paragraph>)
-       (<paragraph> "By installing this program you agree to not redistribute it in whole or in part, including screenshots and videos.")))
-  "")
+(class Password-Box extends Message-Box
+  
+  
+  (method override (focus-box)
+    (acquire-focus~ (locate~ user-content 'password)))
+  
+  
+  (method override (get-modal-result)
+    (get-string-content~ (locate~ user-content 'password))))
+
+
+(class Password-Border extends Border-View
+  
+  
+  (form
+    (<install>                                 border-type: solid border-color: {Color Entry-Border}
+      (<Scroller-View>          name: scroller hscroll?: #f vscroll?: #f
+        (<!>                    name: content  layout-type: fill
+          (<Password-Text-View> name: password return-press-handler: {Event-Handler :form on-return-press} escape-press-handler: {Event-Handler :form on-escape-press})))))
+  
+  
+  (method override (on-return-press evt)
+    (process-action~ (child~ (get-guest) 'yes) self))
+  
+  
+  (method override (on-escape-press evt)
+    (process-action~ (child~ (get-guest) 'cancel) self)))
+
+
+(definition (closed-beta-dialog (usage "installing"))
+  (let ((content (new Password-Border size: {Dimension 460 21})))
+    (let ((password (locate~ content 'password))
+          (code (message-box
+                  `(<span>
+                     (<paragraph> "Yownu closed-beta contains copyrighted data.")
+                     (<paragraph>)
+                     (<paragraph> ,(format "By {a} this program you agree not to redistribute it in whole or in part, including screenshots and videos." usage))
+                     (<paragraph>)
+                     (<paragraph> "Please enter your closed-beta password:"))
+                  class: Password-Box
+                  type: 'error
+                  title: "Copyright Agreement"
+                  yes: "Agree"
+                  content: content
+                  content-spacing: 2
+                  sound: #f)))
+      (when (eq? code 'yes)
+        (get-string-content~ password)))))
 
 
 (definition public (git-remote-connect-with-retries remote cancel)
@@ -163,7 +207,9 @@
     (git-remote-setup-callbacks remote
       (new Git-Callbacks
         credentials-callback: (lambda ()
-                                (git-cred-userpass-plaintext-new (jiri-username) (ask-password)))))
+                                (with-gambit-os-interrupts
+                                  (lambda ()
+                                    (git-cred-userpass-plaintext-new (jiri-username) (ask-password)))))))
     (let ((max-tries 3))
       (let loop ((try 1))
         (if (> try max-tries)
