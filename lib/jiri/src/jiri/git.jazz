@@ -125,7 +125,7 @@
                                              subtype:0
                                                data1:what
                                                data2:result];
-        [NSApp postEvent:event atStart:YES];
+        [NSApp postEvent:event atStart:NO];
     }
 //#)
 

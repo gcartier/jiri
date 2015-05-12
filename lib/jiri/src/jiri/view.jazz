@@ -20,6 +20,7 @@
         (jazz.graphic)
         (jazz.graphic.image)
         (jazz.jml)
+        (jazz.platform)
         (jazz.platform.cairo)
         (jazz.ui)
         (jazz.ui.view)
@@ -156,7 +157,7 @@
   
   (method override (draw surface context)
     (let ((bounds (get-bounds)))
-      (if (eq? self (mouse-view))
+      (if (and enabled? (eq? self (mouse-view)))
           (fill-rect~ surface bounds {Color red: 230 green: 0 blue: 0})
         (gradient-fill~ surface bounds
           (list (list 0 (if enabled? {Color red: 150 green: 0 blue: 0} {Color White}))
@@ -182,12 +183,9 @@
     (invalidate-view))
   
   
-  (method override (mouse-down evt)
-    #f)
-  
-  
   (method override (mouse-up evt)
-    (process-action self)))
+    (when enabled?
+      (process-action self))))
 
 
 ;;;
@@ -295,10 +293,13 @@
   (method (set-info limits range)
     (set! limits~self limits)
     (set! range~self range)
-    (set! pos~self (get-start~ range))
-    (invalidate-view))
+    (set! pos~self (get-start~ range)))
   
   
   (method (set-pos pos)
     (set! pos~self pos)
-    (invalidate-view))))
+    (invalidate-view))
+  
+  
+  (method (set-done)
+    (set-pos (get-end~ range)))))

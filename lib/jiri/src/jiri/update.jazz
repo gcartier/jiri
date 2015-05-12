@@ -18,6 +18,7 @@
 
 (import (jazz.git.foreign)
         (jazz.io)
+        (jazz.platform)
         (jazz.system)
         (jazz.ui)
         (jazz.ui.view)
@@ -41,7 +42,7 @@
 ;;     - Contents
 ;;       - MacOS
 ;;         - .git
-;;         - Yownu
+;;         - Yownu (update)
 ;;         - lib
 ;;   - yownu.app
 ;;     - Contents
@@ -50,7 +51,7 @@
 ;;         - Yownu
 ;;         - lib
 ;; - MacOS
-;;   - Yownu
+;;   - Yownu (launch)
 ;;   - lib
 ;; - Resources
 ;; - Worlds
@@ -68,9 +69,9 @@
   (called-from (getenv-default "called-from"))
   (set! stage (cond ((and (not (current-root-dir))
                           (not (called-from)))
-                     'root)
+                     'launch)
                     ((and (current-root-dir)
-                          (equal? (called-from) "root"))
+                          (equal? (called-from) "launch"))
                      'update)
                     (else
                      (message-box "It is incorrect to launch this application")
@@ -89,21 +90,22 @@
 
 (define (update)
   (case stage
-    ((root) (update-at-root))
+    ((launch) (update-at-launch))
     ((update) (update-at-update))))
 
 
 ;;;
-;;;; At Root
+;;;; At Launch
 ;;;
 
 
-(define (update-at-root)
+(define (update-at-launch)
   (current-root-dir kernel-bundle-root)
-  (pull-repository "update" (jiri-update-remote) (jiri-update-branch) (closed-beta-password) (update-dir) 1 6 0. .05 .1
+  (add-stage-view "Updating launcher" (determine-stage-color (update-dir)))
+  (pull-repository "launcher" (jiri-update-remote) (jiri-update-branch) (closed-beta-password) (update-dir) 1 6 0. .05 .1
     (lambda (new-content?)
       (if new-content?
-          (delegate-update (current-root-dir) (closed-beta-password) "root")
+          (delegate-update (current-root-dir) (closed-beta-password) "launch")
         (update-application/world
           (lambda (new-content?)
             (update-done)))))))
@@ -130,13 +132,13 @@
 
 
 (define (update-at-update)
-  (update-root)
+  (update-launch)
   (update-application/world
     (lambda (new-content?)
       (update-done))))
 
 
-(define (update-root)
+(define (update-launch)
   (let ((update-dir (update-dir))
         (root-dir (current-root-dir)))
     (define (install-file filename)
@@ -159,9 +161,17 @@
 ;;;
 
 
+(define (determine-stage-color dir)
+  (if (not (file-exists? dir))
+      stage-setup-color
+    stage-install-color))
+
+
 (define (update-application/world cont)
-  (pull-repository "application" (jiri-app-remote) (jiri-app-branch) (closed-beta-password) (app-dir) 3 6 .1 .2 .4
+  (add-stage-view "Updating game" (determine-stage-color (app-dir)))
+  (pull-repository "game" (jiri-app-remote) (jiri-app-branch) (closed-beta-password) (app-dir) 3 6 .1 .2 .4
     (lambda (new-content?)
+      (add-stage-view "Updating world" (determine-stage-color (world-dir)))
       (pull-repository "world" (jiri-world-remote) (jiri-world-branch) (closed-beta-password) (world-dir) 5 6 .4 .85 1.
         cont))))
 
@@ -194,20 +204,19 @@
     (add-view close-view))
   (when minimize-view
     (add-view minimize-view))
-  (add-stage-view "Updating game" (case stage
-                                    ((root) stage-setup-color)
-                                    ((update) stage-install-color)))
   (add-view percentage-view)
   (add-view downloaded-view)
   (add-view status-view)
   (add-view remaining-view)
   (add-view progress-view)
   (add-view play-view)
+  ;; mimick launcher state
   (when (eq? stage 'update)
     (set-title~ percentage-view (string-append (number->string (fxround work-percentage)) "%"))
     (set-title~ downloaded-view (string-append "Downloaded: " (number->string work-downloaded) "M"))
-    (set-title~ status-view (downloading-title "application" 3 6))
-    (set-info~ progress-view (new Range .1 .4) (new Range 0 10)))
+    (set-title~ status-view (installing-title "launcher" 1 6))
+    (set-info~ progress-view (new Range 0. .1) (new Range 1 6))
+    (set-done~ progress-view))
   (set-return-callback
     (lambda ()
       (when work-done?
