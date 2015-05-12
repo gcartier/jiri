@@ -216,6 +216,7 @@
   (set-color~ stage-view stage-ready-color)
   (set-title~ status-view "Done")
   (set-title~ percentage-view "100%")
+  (set-done~ progress-view)
   (set-enabled?~ play-view #t)
   (set-cursor :arrow)
   (set-work-in-progress? #f)
