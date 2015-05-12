@@ -83,6 +83,10 @@
     (set-window-v (string->number (getenv-default "window-v" "-1")))))
 
 
+(define (was-update-new?)
+  (equal? (getenv-default "update-new" "yes") "yes"))
+
+
 ;;;
 ;;;; Update
 ;;;
@@ -101,20 +105,22 @@
 
 (define (update-at-launch)
   (current-root-dir kernel-bundle-root)
-  (add-stage-view "Updating launcher" (determine-stage-color (update-dir)))
-  (pull-repository "launcher" (jiri-update-remote) (jiri-update-branch) (closed-beta-password) (update-dir) 1 6 0. .05 .1
-    (lambda (new-content?)
-      (if new-content?
-          (delegate-update (current-root-dir) (closed-beta-password) "launch")
-        (update-application/world .1 .2 .4
-          (lambda (new-content?)
-            (update-done)))))))
+  (let ((update-new? (not (file-exists? (update-dir)))))
+    (add-stage-view "Updating launcher" (determine-stage-color (update-dir)))
+    (pull-repository "launcher" (jiri-update-remote) (jiri-update-branch) (closed-beta-password) (update-dir) 1 6 0. .05 .1
+      (lambda (new-content?)
+        (if new-content?
+            (delegate-update (current-root-dir) (closed-beta-password) "launch" update-new?)
+          (update-application/world .1 .2 .4
+            (lambda (new-content?)
+              (update-done))))))))
 
 
-(definition public (delegate-update root-dir closed-beta-password called-from)
+(definition public (delegate-update root-dir closed-beta-password called-from update-new?)
   (setenv "root-dir" root-dir)
   (setenv "closed-beta-password" (or closed-beta-password ""))
   (setenv "called-from" called-from)
+  (setenv "update-new" (if update-new? "yes" "no"))
   (setenv "work-percentage" (number->string work-percentage))
   (setenv "work-downloaded" (number->string work-downloaded))
   (let ((pos (get-position~ (get-toplevel))))
@@ -132,6 +138,8 @@
 
 
 (define (update-at-update)
+  (add-stage-view "Updating launcher" (if (was-update-new?) stage-setup-color stage-install-color))
+  (set-title~ status-view (updating-title "launcher" 1 6))
   (thread-start!
     (make-thread
       (lambda ()

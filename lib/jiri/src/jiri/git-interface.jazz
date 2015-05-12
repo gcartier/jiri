@@ -134,6 +134,10 @@
   (string-append "Installing " title " (" (number->string (+ step 1)) "/" (number->string of) ")"))
 
 
+(definition public (updating-title title step of)
+  (string-append "Updating " title " (" (number->string (+ step 1)) "/" (number->string of) ")"))
+
+
 ;;;
 ;;;; Remote
 ;;;
