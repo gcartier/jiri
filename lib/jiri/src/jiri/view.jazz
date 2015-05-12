@@ -293,7 +293,8 @@
   (method (set-info limits range)
     (set! limits~self limits)
     (set! range~self range)
-    (set! pos~self (get-start~ range)))
+    (set! pos~self (get-start~ range))
+    (invalidate-view))
   
   
   (method (set-pos pos)
