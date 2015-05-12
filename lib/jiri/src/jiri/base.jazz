@@ -66,9 +66,15 @@
 
 
 (definition public (delegate-process path (arguments: arguments '()))
+  (define (add-debugger arguments)
+    (let ((debugger (command-argument "debugger")))
+      (if (not debugger)
+          arguments
+        (cons "-debugger" (cons debugger arguments)))))
+  
   (open-process (list
                   path: path
-                  arguments: arguments
+                  arguments: (add-debugger arguments)
                   stdin-redirection: #f
                   stdout-redirection: #f
                   stderr-redirection: #f

@@ -46,5 +46,8 @@
                                 jazz.profile
                                 jazz.system
                                 jazz.ui
-                                srfi-19)))
+                                srfi-19
+                                ;; to run under the debugger
+                                profiler
+                                jazz.debugger.jazz)))
   (project ".project"))
