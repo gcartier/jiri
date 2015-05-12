@@ -31,8 +31,9 @@
 
 
 (definition public (add-view view)
-  (set-parent~ view (first-child~ (current-stage)))
-  (invalidate-view~ view))
+  (unless (get-parent~ view)
+    (set-parent~ view (first-child~ (current-stage)))
+    (invalidate-view~ view)))
 
 
 (definition public (remove-view view)
@@ -300,6 +301,14 @@
   (method (set-pos pos)
     (set! pos~self pos)
     (invalidate-view))
+  
+  
+  (method (increase-pos)
+    (set-pos (+ pos 1)))
+  
+  
+  (method (get-remaining)
+    (- (get-end~ range) pos))
   
   
   (method (set-done)

@@ -106,7 +106,7 @@
     (lambda (new-content?)
       (if new-content?
           (delegate-update (current-root-dir) (closed-beta-password) "launch")
-        (update-application/world
+        (update-application/world .1 .2 .4
           (lambda (new-content?)
             (update-done)))))))
 
@@ -132,28 +132,50 @@
 
 
 (define (update-at-update)
-  (update-launch)
-  (update-application/world
-    (lambda (new-content?)
-      (update-done))))
+  (thread-start!
+    (make-thread
+      (lambda ()
+        (update-launch .1 .2
+          (lambda ()
+            (update-application/world .2 .3 .4
+              (lambda (new-content?)
+                (update-done)))))))))
 
 
-(define (update-launch)
-  (let ((update-dir (update-dir))
-        (root-dir (current-root-dir)))
+(define (update-launch head tail cont)
+  (let ((update-dir (make-directory (update-dir)))
+        (root-dir (make-directory (current-root-dir))))
     (define (install-file filename)
-      (let ((from (string-append update-dir filename))
-            (to (string-append root-dir filename)))
-        (install-file~ (new File (list from)) (new File (list to)))))
+      (install-file~
+        (new-file~ update-dir filename)
+        (new-file~ root-dir filename)))
+    
+    (define (install-directory-macos dirname libdir)
+      (install-directory~
+        (new-directory~ update-dir dirname)
+        (new-directory~ root-dir dirname)
+        progress-feedback: (lambda (action dir)
+                             (when (and (eq? action 'entering)
+                                        (pathname=? (get-parent~ dir) libdir))
+                               (post-event
+                                 (lambda ()
+                                   (increase-pos~ progress-view)
+                                   (set-title~ remaining-view (string-append "Remaining: " (number->string (get-remaining~ progress-view))))))))))
     
     (define (install-directory dirname)
-      (let ((from (string-append update-dir dirname))
-            (to (string-append root-dir dirname)))
-        (install-directory~ (new Directory (list from)) (new Directory (list to)))))
+      (install-directory~
+        (new-directory~ update-dir dirname)
+        (new-directory~ root-dir dirname)))
     
-    (install-file "Contents/Info.plist")
-    (install-directory "Contents/MacOS")
-    (install-directory "Contents/Resources")))
+    (let ((libdir (new-directory~ update-dir "Contents/MacOS/lib")))
+      (let ((package-count (count-directories~ libdir)))
+        (post-event
+          (lambda ()
+            (set-info~ progress-view (new Range head tail) (new Range 0 package-count))))
+        (install-file "Contents/Info.plist")
+        (install-directory-macos "Contents/MacOS" libdir)
+        (install-directory "Contents/Resources")
+        (post-event cont)))))
 
 
 ;;;
@@ -167,7 +189,7 @@
     stage-install-color))
 
 
-(define (update-application/world cont)
+(define (update-application/world head mid tail cont)
   (add-stage-view "Updating game" (determine-stage-color (app-dir)))
   (pull-repository "game" (jiri-app-remote) (jiri-app-branch) (closed-beta-password) (app-dir) 3 6 .1 .2 .4
     (lambda (new-content?)
