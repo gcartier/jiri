@@ -107,13 +107,20 @@
   (current-root-dir kernel-bundle-root)
   (let ((update-new? (not (file-exists? (update-dir)))))
     (add-stage-view "Updating launcher" (determine-stage-color (update-dir)))
-    (pull-repository "launcher" (jiri-update-remote) (jiri-update-branch) (closed-beta-password) (update-dir) 1 6 0. .05 .1
-      (lambda (new-content?)
-        (if new-content?
-            (delegate-update (current-root-dir) (closed-beta-password) "launch" update-new?)
-          (update-application/world .1 .2 .4
-            (lambda (new-content?)
-              (update-done))))))))
+    (catch (Git-Exception exc
+             (if (or (not (file-exists? (app-dir)))
+                     (not (file-exists? (world-dir))))
+                 (add-stage-view "Failed to install game" stage-setup-color)
+               (add-stage-view "Failed to update game" stage-setup-color)
+               (set-enabled?~ play-view #t)))
+      (pull-repository "launcher" (jiri-update-remote) (jiri-update-branch) (closed-beta-password) (update-dir) 1 6 0. .05 .1
+        (lambda (new-content?)
+          (if new-content?
+              (delegate-update (current-root-dir) (closed-beta-password) "launch" update-new?)
+            (update-application/world .1 .2 .4
+              (lambda (new-content?)
+                (update-done)))))
+        #t))))
 
 
 (definition public (delegate-update root-dir closed-beta-password called-from update-new?)

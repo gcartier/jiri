@@ -39,7 +39,7 @@
 ;;;
 
 
-(definition public (pull-repository title url branch password dir step of head mid tail cont)
+(definition public (pull-repository title url branch password dir step of head mid tail cont (remote-exception? #f))
   (define (open/init-repository proc)
     (let ((existing? (file-exists? dir)))
       (cond (existing?
@@ -56,7 +56,7 @@
   (open/init-repository
     (lambda (repo remote)
       (let ((megabytes 0))
-        (git-remote-connect-with-retries remote #f)
+        (git-remote-connect-with-retries remote #f remote-exception?)
         (set-info~ progress-view (new Range head mid) (new Range 0 1))
         (set-download-progress
           (let ((inited? #f))
@@ -175,25 +175,27 @@
 (definition (closed-beta-dialog (usage "installing"))
   (let ((content (new Password-Border size: {Dimension 460 21})))
     (let ((password (locate~ content 'password))
-          (code (message-box
-                  `(<span>
-                     (<paragraph> "Yownu closed-beta contains copyrighted data.")
-                     (<paragraph>)
-                     (<paragraph> ,(format "By {a} this program you agree not to redistribute it in whole or in part, including screenshots and videos." usage))
-                     (<paragraph>)
-                     (<paragraph> "Please enter your closed-beta password:"))
-                  class: Password-Box
-                  type: 'error
-                  title: "Copyright Agreement"
-                  yes: "Agree"
-                  content: content
-                  content-spacing: 2
-                  sound: #f)))
+          (code (catch (Cancel-Signal exc
+                         'cancel)
+                  (message-box
+                    `(<span>
+                       (<paragraph> "Yownu closed-beta contains copyrighted data.")
+                       (<paragraph>)
+                       (<paragraph> ,(format "By {a} this program you agree not to redistribute it in whole or in part, including screenshots and videos." usage))
+                       (<paragraph>)
+                       (<paragraph> "Please enter your closed-beta password:"))
+                    class: Password-Box
+                    type: 'error
+                    title: "Copyright Agreement"
+                    yes: "Agree"
+                    content: content
+                    content-spacing: 2
+                    sound: #f))))
       (when (eq? code 'yes)
         (get-string-content~ password)))))
 
 
-(definition public (git-remote-connect-with-retries remote cancel)
+(definition public (git-remote-connect-with-retries remote cancel (remote-exception? #f))
   (let ((password #f))
     (define (ask-password)
       (set! password (or (closed-beta-password) (closed-beta-dialog)))
@@ -206,6 +208,14 @@
             (set-cursor :arrow)
             (set-work-in-progress? #f)
             (continuation-return cancel))
+        (exit 1)))
+    
+    (define (error-connection exc)
+      (if remote-exception?
+          (begin
+            (set-cursor :arrow)
+            (set-work-in-progress? #f)
+            (throw exc))
         (exit 1)))
     
     (git-remote-setup-callbacks remote
@@ -230,7 +240,7 @@
                             (loop (+ try 1)))
                            (else
                             (message-box (string-append "Unable to connect to server" (debug-info) ":\n\n" err))
-                            (cancel-connection)))))
+                            (error-connection exc)))))
             (git-remote-connect remote GIT_DIRECTION_FETCH)
             (closed-beta-password password)))))))
 
