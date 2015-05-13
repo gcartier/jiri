@@ -61,10 +61,6 @@
 ;;;
 
 
-(definition public (command-arguments)
-  (cdr (command-line)))
-
-
 (definition public (delegate-process path (arguments: arguments '()))
   (define (add-debugger arguments)
     (let ((debugger (command-argument "debugger")))
