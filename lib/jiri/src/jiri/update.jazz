@@ -108,10 +108,15 @@
   (let ((update-new? (not (file-exists? (update-dir)))))
     (add-stage-view "Updating launcher" (determine-stage-color (update-dir)))
     (catch (Git-Exception exc
+             (define (debug-info)
+               (if (jiri-development?)
+                   (string-append " (" (get-message~ exc) ")")
+                 ""))
+             
              (if (or (not (file-exists? (app-dir)))
                      (not (file-exists? (world-dir))))
-                 (add-stage-view "Failed to install game" stage-setup-color)
-               (add-stage-view "Failed to update game" stage-setup-color)
+                 (add-stage-view (format "Failed to install game{a}" (debug-info)) stage-setup-color)
+               (add-stage-view (format "Failed to update game{a}" (debug-info)) stage-setup-color)
                (set-enabled?~ play-view #t)))
       (pull-repository "launcher" (jiri-update-remote) (jiri-update-branch) (closed-beta-password) (update-dir) 1 6 0. .05 .1
         (lambda (new-content?)

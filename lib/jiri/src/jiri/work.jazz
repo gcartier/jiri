@@ -167,7 +167,7 @@
     title: ""
     font: default-label-font
     position: (new Point 49 418)
-    size: (new Dimension 215 30)))
+    size: (new Dimension 600 30)))
 
 
 (definition public (add-stage-view title color)
