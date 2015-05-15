@@ -160,7 +160,7 @@
     (let ((bounds (get-bounds)))
       (if (and enabled? (eq? self (mouse-view)))
           (fill-rect~ surface bounds {Color red: 230 green: 0 blue: 0})
-        (gradient-fill~ surface bounds
+        (gradient-fill-rect~ surface bounds
           (list (list 0 (if enabled? {Color red: 150 green: 0 blue: 0} {Color White}))
                 (list 1 (if enabled? {Color red: 220 green: 0 blue: 0} {Color White})))
           direction: 'horizontal)))
@@ -285,7 +285,7 @@
             (let ((h (fxceiling (* (- tail head) where)))
                   (from {Color red: 150 green: 0 blue: 0})
                   (to {Color red: 220 green: 0 blue: 0}))
-              (gradient-fill~ surface (new Rect left top (+ left head h) bottom)
+              (gradient-fill-rect~ surface (new Rect left top (+ left head h) bottom)
                 (list (list 0 from)
                       (list 1 to))
                 direction: 'horizontal)))))))
