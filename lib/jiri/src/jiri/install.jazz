@@ -16,24 +16,34 @@
 (module jiri.install jazz
 
 
-(import (jazz.ui)
+(import (jazz.git.foreign)
+        (jazz.io)
+        (jazz.platform)
+        (jazz.system)
+        (jazz.ui)
         (jazz.ui.view)
         (jazz.ui.window)
         (jiri.base)
         (jiri.devel)
         (jiri.git)
+        (jiri.git-interface)
         (jiri.view)
         (jiri.settings)
         (jiri.structure)
+        (jiri.window)
         (jiri.work))
 
 
-@convert (
 (define stage
   #f)
 
 
-(define (prepare-stage)
+(define (prepare)
+  ;; FOR TESTS
+  (setenv "root-dir" (parse~ {Directory Home "aaa" "yownu"}))
+  (setenv "closed-beta-password" "world123")
+  (setenv "called-from" "setup")
+  
   (current-root-dir (getenv-default "root-dir"))
   (closed-beta-password (getenv-default "closed-beta-password"))
   (called-from (getenv-default "called-from"))
@@ -146,44 +156,46 @@
 
 
 (define (install-current)
-  (let ((install-dir (install-dir))
-        (current-dir (current-dir)))
-    (define (copy filename)
-      (let ((from (string-append install-dir "/" filename))
-            (to (string-append current-dir "/" filename)))
-        (copy-file from to)))
+  (let ((install-dir (make-directory (install-dir)))
+        (current-dir (make-directory (current-dir))))
+    (define (install-file filename)
+      (install-file~
+        (new-file~ install-dir filename)
+        (new-file~ current-dir filename)))
     
-    (define (copy-dir dirname)
-      (let ((from (string-append install-dir "/" dirname "/"))
-            (to (string-append current-dir "/" dirname "/")))
-        (jazz:copy-directory from to)))
+    (define (install-directory dirname)
+      (install-directory~
+        (new-directory~ install-dir dirname)
+        (new-directory~ current-dir dirname)))
     
     ;; danger
+    @convert
     (remove-directory current-dir)
-    (create-directory current-dir)
+    (create-directories~ current-dir)
     
-    (copy "Install.exe")
-    (copy "Uninstall.exe")
-    (copy "libgit2.dll")
-    (copy "libeay32.dll")
-    (copy "ssleay32.dll")
-    (copy ".repository")
-    (copy-dir "lib")))
+    (install-file "Install.exe")
+    (install-file "Uninstall.exe")
+    (install-file "libgit2.dll")
+    (install-file "libeay32.dll")
+    (install-file "ssleay32.dll")
+    (install-file ".repository")
+    (install-directory "lib")))
 
 
 (define (install-root)
-  (let ((from (launch-exe))
-        (from-lib (launch-lib))
-        (to (root-exe))
-        (to-lib (root-lib)))
+  (let ((from (make-file (launch-exe)))
+        (from-lib (make-directory (launch-lib)))
+        (to (make-file (root-exe)))
+        (to-lib (make-directory (root-lib))))
     ;; danger
-    (when (file-exists? to)
-      (delete-file to))
-    (copy-file from to)
-    (jazz:copy-directory from-lib to-lib)))
+    (when (exists?~ to)
+      (delete-file~ to))
+    (install-file~ from to)
+    (install-directory~ from-lib to-lib)))
 
 
 (define (install-desktop)
+  @convert
   (let ((path (root-exe))
         (shortcut (desktop-shortcut)))
     (let ((hr (create-shortcut path #f shortcut (jiri-title))))
@@ -192,6 +204,7 @@
 
 
 (define (install-start-menu)
+  @convert
   (let ((root (root-exe))
         (appdir (start-menu-appdir)))
     (when (file-exists? appdir)
@@ -205,6 +218,7 @@
 
 
 (define (update-start-menu)
+  @convert
   (let ((root (root-exe))
         (appdir (start-menu-appdir)))
     (when (file-exists? appdir)
@@ -217,12 +231,14 @@
 
 ;; hack around windows taking forever to remove newly installed highlight
 (define (rewind-start-menu)
+  @convert
   (let ((shortcut (start-menu-shortcut (start-menu-appdir))))
     (when (file-exists? shortcut)
       (rewind-creation-time shortcut))))
 
 
 (define (install-uninstall)
+  @convert
   (let ((key (registry-create-key (HKEY_CURRENT_USER) (uninstall-subkey))))
     (registry-set-string key "DisplayName" (jiri-title))
     (registry-set-string key "DisplayIcon" (pathname-platformize (root-exe)))
@@ -245,8 +261,10 @@
 (define (layout)
   (add-view root-view)
   (add-view invite-view)
+  @wait-no-frame
   (when close-view
     (add-view close-view))
+  @wait-no-frame
   (when minimize-view
     (add-view minimize-view))
   (add-view percentage-view)
@@ -258,6 +276,7 @@
   (if (eq? stage 'install-from-setup)
       (begin
         (add-stage-view "Setup successful!" stage-install-color)
+        @convert
         (thread-start!
           (make-thread
             (lambda ()
@@ -278,10 +297,22 @@
 
 
 ;;;
-;;;; Main
+;;;; Init
 ;;;
 
 
-@convert (
-(prepare-stage)
-(main install))))
+(set-init
+  (lambda ()
+    (prepare)
+    (layout)))
+
+
+;;;
+;;;; Startup
+;;;
+
+
+(set-startup
+  (lambda ()
+    ;; (install)
+    )))

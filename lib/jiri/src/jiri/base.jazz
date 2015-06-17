@@ -38,6 +38,15 @@
 
 
 ;;;
+;;;; File
+;;;
+
+
+(definition public (make-file filename)
+  (new File (list filename)))
+
+
+;;;
 ;;;; Directory
 ;;;
 

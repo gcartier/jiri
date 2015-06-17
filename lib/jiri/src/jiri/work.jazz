@@ -267,21 +267,21 @@
 
 (cond-expand
   (windows
-   (define (uninstall-subkey)
+   (definition public (uninstall-subkey)
      (string-append "Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\" (jiri-title)))
    
    
-   (define (desktop-shortcut)
+   (definition public (desktop-shortcut)
      (let ((desktop (get-special-folder CSIDL_DESKTOPDIRECTORY)))
        (string-append desktop "/" (jiri-title) ".lnk")))
    
    
-   (define (start-menu-appdir)
+   (definition public (start-menu-appdir)
      (let ((startdir (get-special-folder CSIDL_STARTMENU)))
        (string-append startdir "/Programs/" (jiri-title))))
    
    
-   (define (start-menu-shortcut appdir)
+   (definition public (start-menu-shortcut appdir)
      (string-append appdir "/" (jiri-title) ".lnk")))
   (else))
 
