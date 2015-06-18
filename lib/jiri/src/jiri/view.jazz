@@ -22,6 +22,7 @@
         (jazz.jml)
         (jazz.platform)
         (jazz.platform.cairo)
+        (jazz.system)
         (jazz.ui)
         (jazz.ui.view)
         (jazz.ui.window)
@@ -197,26 +198,20 @@
 (class Jiri-Close extends Jiri-Button
   
   
-  @convert
   (method override (draw surface context)
-    (let ((rect (view-rect view))
-          (gray (CreatePen PS_SOLID 4 {Color red: 150 green: 150 blue: 150}))
-          (white (CreatePen PS_SOLID 2 (if (eq? view (mouse-view)) {Color red: 200 green: 0 blue: 0} {Color red: 255 green: 255 blue: 255}))))
-      (let ((left (+ (rect-left rect) 2))
-            (top (+ (rect-top rect) 2))
-            (right (- (rect-right rect) 2))
-            (bottom (- (rect-bottom rect) 2)))
-        (define (draw-x pen)
-          (SelectObject hdc pen)
-          (MoveToEx hdc left top #f)
-          (LineTo hdc right bottom)
-          (MoveToEx hdc right top #f)
-          (LineTo hdc left bottom))
+    (let ((rect (get-bounds)))
+      (let ((left (+ (get-left~ rect) 2))
+            (top (+ (get-top~ rect) 2))
+            (right (- (get-right~ rect) 2))
+            (bottom (- (get-bottom~ rect) 2)))
+        (define (draw-x width color)
+          (set-line-width~ surface width)
+          (set-color~ surface color)
+          (line~ surface left top right bottom)
+          (line~ surface right top left bottom))
         
-        (draw-x gray)
-        (draw-x white))
-      (DeleteObject gray)
-      (DeleteObject white)))
+        @not-needed (draw-x 4. {Color red: 150 green: 150 blue: 150})
+        (draw-x 2. (if (eq? self (mouse-view)) {Color red: 200 green: 0 blue: 0} {Color red: 255 green: 255 blue: 255})))))
   
   
   (method override (process-action sender (properties (action-properties)))
@@ -231,29 +226,23 @@
 (class Jiri-Minimize extends Jiri-Button
   
   
-  @convert
   (method override (draw surface context)
-    (let ((rect (view-rect view))
-          (gray (CreatePen PS_SOLID 4 {Color red: 150 green: 150 blue: 150}))
-          (white (CreatePen PS_SOLID 2 (if (eq? view (mouse-view)) {Color red: 200 green: 0 blue: 0} {Color red: 255 green: 255 blue: 255}))))
-      (let ((left (+ (rect-left rect) 2))
-            (top (+ (rect-top rect) 2))
-            (right (- (rect-right rect) 2))
-            (bottom (- (rect-bottom rect) 2)))
-        (define (draw-line pen)
-          (SelectObject hdc pen)
-          (MoveToEx hdc left bottom #f)
-          (LineTo hdc right bottom))
+    (let ((rect (get-bounds)))
+      (let ((left (+ (get-left~ rect) 2))
+            (top (+ (get-top~ rect) 2))
+            (right (- (get-right~ rect) 2))
+            (bottom (- (get-bottom~ rect) 2)))
+        (define (draw-line width color)
+          (set-line-width~ surface width)
+          (set-color~ surface color)
+          (line~ surface left (- bottom 1) right (- bottom 1)))
         
-        (draw-line gray)
-        (draw-line white))
-      (DeleteObject gray)
-      (DeleteObject white)))
+        @not-needed (draw-line 4. {Color red: 150 green: 150 blue: 150})
+        (draw-line 2. (if (eq? self (mouse-view)) {Color red: 200 green: 0 blue: 0} {Color red: 255 green: 255 blue: 255})))))
   
   
   (method override (process-action sender (properties (action-properties)))
-    @convert (
-    (ShowWindow (window-handle current-window) SW_MINIMIZE))))
+    (minimize~ (get-toplevel))))
 
 
 ;;;
