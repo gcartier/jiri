@@ -16,11 +16,21 @@
 (module jiri.uninstall jazz
 
 
-(import (jazz.ui)
+(import (jazz.git.foreign)
+        (jazz.io)
+        (jazz.platform)
+        (jazz.system)
+        (jazz.ui)
+        (jazz.ui.view)
+        (jazz.ui.window)
+        (jiri.base)
         (jiri.devel)
+        (jiri.git)
+        (jiri.git-interface)
         (jiri.view)
+        (jiri.settings)
         (jiri.structure)
-        (jiri.view)
+        (jiri.window)
         (jiri.work))
 
 
@@ -29,7 +39,6 @@
 ;;;
 
 
-@convert (
 (define uninstall-view
   (new Jiri-Button
     title: (string-append "Uninstall " (jiri-title))
@@ -50,6 +59,8 @@
                  title: (string-append (jiri-title) " Uninstall")
                  type: 'problem))
   
+  #f
+  @convert
   (let ((key (registry-open-key (HKEY_CURRENT_USER) (uninstall-subkey))))
     (if (not key)
         (not-found)
@@ -72,6 +83,7 @@
               (seppuku-exit))))))))
 
 
+@convert
 (define (uninstall-desktop-shortcut)
   (let ((shortcut (desktop-shortcut)))
     (when (file-exists? shortcut)
@@ -79,6 +91,7 @@
       (delete-file shortcut))))
 
 
+@convert
 (define (uninstall-start-menu)
   (let ((appdir (start-menu-appdir)))
     (when (file-exists? appdir)
@@ -86,10 +99,12 @@
       (remove-directory appdir))))
 
 
+@convert
 (define (uninstall-uninstall)
   (registry-delete-key (HKEY_CURRENT_USER) (uninstall-subkey)))
 
 
+@convert
 (define (uninstall-install install-dir)
   (when (file-exists? install-dir)
     ;; danger
@@ -100,7 +115,7 @@
 
 (define (seppuku-exit)
   (define (generate-remover uninstall remove)
-    (call-with-output-file (list path: remove eol-encoding: eol-encoding)
+    (call-with-output-file (path-settings path: remove)
       (lambda (output)
         (display ":Repeat" output)
         (newline output)
@@ -112,6 +127,8 @@
         (newline output)
         (force-output output))))
   
+  (exit)
+  @convert
   (let ((uninstall (executable-path))
         (remove (get-temporary-file (string-append (jiri-title) " remove") "bat")))
     (generate-remover uninstall remove)
@@ -141,9 +158,21 @@
 
 
 ;;;
-;;;; Main
+;;;; Init
 ;;;
 
 
-@convert
-(main)))
+(set-init
+  (lambda ()
+    (layout)))
+
+
+;;;
+;;;; Startup
+;;;
+
+
+(set-startup
+  (lambda ()
+    ;; (uninstall)
+    )))

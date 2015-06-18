@@ -18,6 +18,7 @@
 
 (import (jazz.graphic)
         (jazz.jml)
+        (jazz.platform)
         (jazz.system)
         (jazz.system.application)
         (jazz.ui)
@@ -79,6 +80,11 @@
 
 (cond-expand
   (cocoa
-    (specific (window-resizable? (<Jiri-Toplevel> window) rest)
+    (specific (window-resizable? (<Jiri-Toplevel> toplevel) rest)
       #f))
+  (windows
+    (specific (window-style (<Jiri-Toplevel> toplevel) rest)
+      (bitwise-ior WS_CLIPSIBLINGS
+                   WS_CLIPCHILDREN
+                   WS_POPUP)))
   (else)))
