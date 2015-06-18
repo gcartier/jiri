@@ -43,7 +43,7 @@
 
 
 (definition public (make-file filename)
-  (new File (list filename)))
+  (new File (tokenise-filename filename)))
 
 
 ;;;
@@ -52,7 +52,7 @@
 
 
 (definition public (make-directory dirname)
-  (new Directory (list dirname)))
+  (new Directory (tokenise-filename dirname)))
 
 
 (definition public (normalize-directory directory)

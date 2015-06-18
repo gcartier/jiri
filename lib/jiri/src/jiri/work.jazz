@@ -251,7 +251,7 @@
 
 (definition public play-view
   (new Jiri-Button
-    title: "Play"
+    title: (or (jiri-play) "Play")
     position: (new Point 680 450)
     size: (new Dimension 135 40)
     enabled?: #f
