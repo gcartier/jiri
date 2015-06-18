@@ -92,7 +92,9 @@
   
   (cond-expand
     (windows
-     (slot moving? initialize #f getter generate))
+     (slot cursor-pos initialize #f getter generate)
+     (slot window-pos initialize #f getter generate)
+     (slot moving?    initialize #f getter generate))
     (else))
   
   
@@ -103,34 +105,26 @@
   
   (cond-expand
     (windows
-     @convert
      (method override (cursor-update evt)
        (set-cursor :all))
 
-     @convert
      (method override (mouse-down evt)
-       (title-cursor-pos-set! view (cursor-position))
-       (title-window-pos-set! view (get-window-position current-window))
-       (title-window-size-set! view (get-window-size current-window))
-       (title-moving?-set! view #t)
-       (SetCapture (window-handle current-window))
-       (set-captured-view view)
-       (set-lose-capture-callback
-         (lambda ()
-           (title-moving?-set! view #f))))
+       (set! cursor-pos (to-desktop (get-position~ evt)))
+       (set! window-pos (get-position~ (get-toplevel)))
+       (set! moving? #t)
+       (acquire-capture))
      
-     @convert
-     (method override (mouse-move evt)
-       (when (title-moving? view)
-         (let ((current (cursor-position)))
-           (let ((delta (point- current (title-cursor-pos view))))
-             (let ((pos (point+ (title-window-pos view) delta))
-                   (size (title-window-size view)))
-               (move-window current-window pos size))))))
+     (method override (drag-move evt)
+       (when moving?
+         (let ((current (to-desktop (get-position~ evt))))
+           (let ((delta (nu- current cursor-pos)))
+             (let ((pos (nu+ window-pos delta)))
+               (set-position~ (get-toplevel) pos))))))
 
-     @convert
      (method override (mouse-up evt)
-       (release-captured-view)))
+       (when moving?
+         (release-capture)
+         (set! moving? #f))))
     (else)))
 
 
