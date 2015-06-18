@@ -64,7 +64,7 @@
 
 (define (launch-current)
   (cond ((file-exists? (current-exe))
-         (delegate-current (current-root-dir) (closed-beta-password) "root"))
+         (delegate-current (current-root-dir) (current-password) "root"))
         (else
          (message-box "Incorrect installation")
          (exit 1))))

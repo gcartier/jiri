@@ -24,10 +24,10 @@
 ;;;
 
 
-(define-setting jiri-title
+(define-setting jiri-invite
   #f)
 
-(define-setting jiri-invite
+(define-setting jiri-title
   #f)
 
 (define-setting jiri-version
@@ -55,6 +55,18 @@
 
 
 (define-setting jiri-username
+  #f)
+
+(define-setting jiri-password
+  #f)
+
+(define-setting jiri-password-title
+  #f)
+
+(define-setting jiri-password-message
+  #f)
+
+(define-setting jiri-password-yes
   #f)
 
 

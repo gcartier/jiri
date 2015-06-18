@@ -65,7 +65,7 @@
 
 (define (prepare)
   (current-root-dir (getenv-default "root-dir"))
-  (closed-beta-password (getenv-default "closed-beta-password"))
+  (current-password (getenv-default "password"))
   (called-from (getenv-default "called-from"))
   (set! stage (cond ((and (not (current-root-dir))
                           (not (called-from)))
@@ -118,19 +118,19 @@
                  (add-stage-view (format "Failed to install game{a}" (debug-info)) stage-setup-color)
                (add-stage-view (format "Failed to update game{a}" (debug-info)) stage-setup-color)
                (set-enabled?~ play-view #t)))
-      (pull-repository "launcher" (jiri-update-remote) (jiri-update-branch) (closed-beta-password) (update-dir) 1 6 0. .05 .1
+      (pull-repository "launcher" (jiri-update-remote) (jiri-update-branch) (current-password) (update-dir) 1 6 0. .05 .1
         (lambda (new-content?)
           (if new-content?
-              (delegate-update (current-root-dir) (closed-beta-password) "launch" update-new?)
+              (delegate-update (current-root-dir) (current-password) "launch" update-new?)
             (update-application/world .1 .2 .4
               (lambda (new-content?)
                 (update-done)))))
         #t))))
 
 
-(definition public (delegate-update root-dir closed-beta-password called-from update-new?)
+(definition public (delegate-update root-dir password called-from update-new?)
   (setenv "root-dir" root-dir)
-  (setenv "closed-beta-password" (or closed-beta-password ""))
+  (setenv "password" (or password ""))
   (setenv "called-from" called-from)
   (setenv "update-new" (if update-new? "yes" "no"))
   (setenv "work-percentage" (number->string work-percentage))
@@ -211,10 +211,10 @@
 
 (define (update-application/world head mid tail cont)
   (add-stage-view "Updating game" (determine-stage-color (app-dir)))
-  (pull-repository "game" (jiri-app-remote) (jiri-app-branch) (closed-beta-password) (app-dir) 3 6 .1 .2 .4
+  (pull-repository "game" (jiri-app-remote) (jiri-app-branch) (current-password) (app-dir) 3 6 .1 .2 .4
     (lambda (new-content?)
       (add-stage-view "Updating world" (determine-stage-color (world-dir)))
-      (pull-repository "world" (jiri-world-remote) (jiri-world-branch) (closed-beta-password) (world-dir) 5 6 .4 .85 1.
+      (pull-repository "world" (jiri-world-remote) (jiri-world-branch) (current-password) (world-dir) 5 6 .4 .85 1.
         cont))))
 
 

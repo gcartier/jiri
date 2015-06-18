@@ -172,22 +172,17 @@
     (process-action~ (child~ (get-guest) 'cancel) self)))
 
 
-(definition (closed-beta-dialog (usage "installing"))
+(definition (password-dialog)
   (let ((content (new Password-Border size: {Dimension 460 21})))
     (let ((password (locate~ content 'password))
           (code (catch (Cancel-Signal exc
                          'cancel)
                   (message-box
-                    `(<span>
-                       (<paragraph> "Yownu closed-beta contains copyrighted data.")
-                       (<paragraph>)
-                       (<paragraph> ,(format "By {a} this program you agree not to redistribute it in whole or in part, including screenshots and videos." usage))
-                       (<paragraph>)
-                       (<paragraph> "Please enter your closed-beta password:"))
+                    (or (jiri-password-message) `(<span> (<paragraph> "Please enter your password:")))
                     class: Password-Box
                     type: 'error
-                    title: "Copyright Agreement"
-                    yes: "Agree"
+                    title: (or (jiri-password-title) "Password")
+                    yes: (or (jiri-password-yes) "OK")
                     content: content
                     content-spacing: 2
                     sound: #f))))
@@ -198,7 +193,7 @@
 (definition public (git-remote-connect-with-retries remote cancel (remote-exception? #f))
   (let ((password #f))
     (define (ask-password)
-      (set! password (or (closed-beta-password) (closed-beta-dialog)))
+      (set! password (or (current-password) (password-dialog)))
       (or password
           (cancel-connection)))
     
@@ -242,7 +237,7 @@
                             (message-box (string-append "Unable to connect to server" (debug-info) ":\n\n" err))
                             (error-connection exc)))))
             (git-remote-connect remote GIT_DIRECTION_FETCH)
-            (closed-beta-password password)))))))
+            (current-password password)))))))
 
 
 ;;;

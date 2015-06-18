@@ -30,7 +30,7 @@
 (define-setting current-root-dir
   #f)
 
-(define-setting closed-beta-password
+(define-setting current-password
   #f)
 
 (define-setting called-from
@@ -124,17 +124,17 @@
 ;;;
 
 
-(definition public (delegate-current root-dir closed-beta-password called-from)
+(definition public (delegate-current root-dir password called-from)
   (setenv "root-dir" root-dir)
-  (setenv "closed-beta-password" (or closed-beta-password ""))
+  (setenv "password" (or password ""))
   (setenv "called-from" called-from)
   (delegate-process (current-exe))
   (exit))
 
 
-(definition public (delegate-install root-dir closed-beta-password called-from)
+(definition public (delegate-install root-dir password called-from)
   (setenv "root-dir" root-dir)
-  (setenv "closed-beta-password" (or closed-beta-password ""))
+  (setenv "password" (or password ""))
   (setenv "called-from" called-from)
   (setenv "work-percentage" (number->string work-percentage))
   (setenv "work-downloaded" (number->string work-downloaded))

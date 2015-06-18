@@ -123,7 +123,7 @@
 
 
 (define (validate-password cancel)
-  (or (closed-beta-password)
+  (or (current-password)
       (let ((repo #f)
             (remote #f)
             (successful? #f)
@@ -149,7 +149,7 @@
 
 
 (define (setup-work)
-  (pull-repository "launch" (jiri-install-remote) (jiri-install-branch) (closed-beta-password) (install-dir) 1 6 0. .05 .1
+  (pull-repository "launch" (jiri-install-remote) (jiri-install-branch) (current-password) (install-dir) 1 6 0. .05 .1
     (lambda (new-content?)
       (setup-done))))
 
@@ -165,7 +165,7 @@
   (set-cursor :arrow)
   (set-work-in-progress? #f)
   (set-work-done? #t)
-  (delegate-install (current-root-dir) (closed-beta-password) "setup"))
+  (delegate-install (current-root-dir) (current-password) "setup"))
 
 
 ;;;
@@ -176,8 +176,10 @@
 (define (layout)
   (add-view root-view)
   (add-view invite-view)
+  @wait-no-frame
   (when close-view
     (add-view close-view))
+  @wait-no-frame
   (when minimize-view
     (add-view minimize-view))
   (add-view setup-view)

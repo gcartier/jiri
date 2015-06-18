@@ -40,12 +40,12 @@
 
 (define (prepare)
   ;; FOR TESTS
-  (setenv "root-dir" (parse~ {Directory Home "aaa" "yownu"}))
-  (setenv "closed-beta-password" "world123")
+  (setenv "root-dir" (parse~ {Directory Home "aaa" "sentio"}))
+  (setenv "password" "world123")
   (setenv "called-from" "setup")
   
   (current-root-dir (getenv-default "root-dir"))
-  (closed-beta-password (getenv-default "closed-beta-password"))
+  (current-password (getenv-default "password"))
   (called-from (getenv-default "called-from"))
   (set! stage (cond ((and (current-root-dir)
                           (equal? (called-from) "setup"))
@@ -101,10 +101,10 @@
 
 
 (define (current-from-root-work)
-  (pull-repository "launch" (jiri-install-remote) (jiri-install-branch) (closed-beta-password) (install-dir) 1 6 0. .05 .1
+  (pull-repository "launch" (jiri-install-remote) (jiri-install-branch) (current-password) (install-dir) 1 6 0. .05 .1
     (lambda (new-content?)
       (if new-content?
-          (delegate-install (current-root-dir) (closed-beta-password) "current")
+          (delegate-install (current-root-dir) (current-password) "current")
         (begin
           (update-start-menu)
           (rewind-start-menu)
@@ -134,9 +134,9 @@
 
 
 (define (install-application/world cont)
-  (pull-repository "application" (jiri-app-remote) (jiri-app-branch) (closed-beta-password) (app-dir) 3 6 .1 .2 .4
+  (pull-repository "application" (jiri-app-remote) (jiri-app-branch) (current-password) (app-dir) 3 6 .1 .2 .4
     (lambda (new-content?)
-      (pull-repository "world" (jiri-world-remote) (jiri-world-branch) (closed-beta-password) (world-dir) 5 6 .4 .85 1.
+      (pull-repository "world" (jiri-world-remote) (jiri-world-branch) (current-password) (world-dir) 5 6 .4 .85 1.
         cont))))
 
 
