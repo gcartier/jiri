@@ -155,37 +155,13 @@
 (define (install-current)
   (let ((install-dir (make-directory (install-dir)))
         (current-dir (make-directory (current-dir))))
-    (define (install-file filename)
-      (install-file~
-        (new-file~ install-dir filename)
-        (new-file~ current-dir filename)))
-    
-    (define (install-directory dirname)
-      (install-directory~
-        (new-directory~ install-dir dirname)
-        (new-directory~ current-dir dirname)))
-    
-    ;; danger
-    @convert
-    (remove-directory current-dir)
-    (create-directories~ current-dir)
-    
-    (install-file "Install.exe")
-    (install-file "Uninstall.exe")
-    (install-file "libgit2.dll")
-    ;(install-file "libeay32.dll")
-    ;(install-file "ssleay32.dll")
-    (install-file "libcairo-2.dll")
-    (install-file "libexpat-1.dll")
-    (install-file "libfontconfig-1.dll")
-    (install-file "libfreetype-6.dll")
-    (install-file "libgcc_s_dw2-1.dll")
-    (install-file "libpixman-1-0.dll")
-    (install-file "libpng16-16.dll")
-    (install-file "zlib1.dll")
-    (install-file ".repository")
-    (install-directory "etc")
-    (install-directory "lib")))
+    (install-directory~ install-dir current-dir
+      filter: (lambda (action pathname)
+                (if (and (eq? action 'copy)
+                         (pathname=? (get-parent~ pathname) install-dir)
+                         (filename=? (get-name~ pathname) ".git"))
+                    #f
+                  #t)))))
 
 
 (define (install-root)
