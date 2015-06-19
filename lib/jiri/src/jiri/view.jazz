@@ -75,7 +75,11 @@
   
   
   (method override (draw surface context)
-    (draw-surface~ surface (cache-background) 0 0))
+    (draw-surface~ surface (cache-background) 0 0)
+    (let ((rect (get-bounds)))
+      (let ((right (get-right~ rect))
+            (bottom (get-bottom~ rect)))
+        (fill-rect~ surface (new Rect 20 (- bottom 150) (- right 20) (- bottom 20)) {Color Black alpha: .5}))))
   
   
   (method override (cursor-update evt)

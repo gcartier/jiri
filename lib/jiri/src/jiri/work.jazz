@@ -59,8 +59,8 @@
 ;; SCENARIO
 ;; - Setup : clone install, delegate Install
 ;; - Launch : delegate Current
-;; - Current from Launch : pull install, if newer delegate Install else pull app/world
 ;; - Current direct : incorrect
+;; - Current from Launch : pull install, if newer delegate Install else pull app/world
 ;; - Install from Setup : clone app/world
 ;; - Install from Current : pull app/world
 ;; - Install direct : incorrect

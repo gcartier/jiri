@@ -16,11 +16,10 @@
 (module jiri.launch jazz
 
 
-(import (jazz.ui)
-        (jiri.devel)
-        (jiri.view)
-        (jiri.structure)
-        (jiri.work))
+(import (jazz.platform)
+        (jiri.base)
+        (jiri.settings)
+        (jiri.structure))
 
 
 ;;;
@@ -28,19 +27,22 @@
 ;;;
 
 
-@convert (
-(define (launch)
-  (current-root-dir (executable-directory))
+(definition public (launch)
+  (current-root-dir kernel-install)
   (let ((args (command-arguments)))
-    (cond ((equal? args '("-information"))
+    (cond ((and (equal? args '("-information")) (jiri-launch-information))
            (launch-information))
-          ((equal? args '("-uninstall"))
+          ((and (equal? args '("-uninstall")) (jiri-launch-uninstall?))
            (launch-uninstall))
           ((equal? args '())
            (launch-current))
           (else
-           (message-box (string-append "Invalid command arguments: " (->string args)))
-           (exit 1)))))
+           (incorrect-installation)))))
+
+
+(define (incorrect-installation)
+  (system-message "Incorrect installation")
+  (exit 1))
 
 
 ;;;
@@ -50,11 +52,10 @@
 
 (define (launch-information)
   (cond ((file-exists? (app-exe))
-         (delegate-process (app-exe) arguments: '("-glinformation" "true"))
+         (delegate-process (app-exe) arguments: (jiri-launch-information))
          (exit))
         (else
-         (message-box "Incorrect installation")
-         (exit 1))))
+         (incorrect-installation))))
 
 
 ;;;
@@ -66,8 +67,7 @@
   (cond ((file-exists? (current-exe))
          (delegate-current (current-root-dir) (current-password) "root"))
         (else
-         (message-box "Incorrect installation")
-         (exit 1))))
+         (incorrect-installation))))
 
 
 ;;;
@@ -76,23 +76,16 @@
 
 
 (define (launch-uninstall)
+  @convert
   (let ((uninstall (uninstall-exe)))
     (cond ((file-exists? uninstall)
            (delegate-uninstall uninstall))
           (else
-           (message-box "Incorrect installation")
-           (exit 1)))))
+           (incorrect-installation)))))
 
 
+@convert
 (define (delegate-uninstall uninstall)
   (let ((uninstall-temp (get-temporary-file (string-append (jiri-title) " uninstall") "exe")))
     (copy-file uninstall uninstall-temp)
-    (delegate-process uninstall-temp)))
-
-
-;;;
-;;;; Main
-;;;
-
-
-(launch)))
+    (delegate-process uninstall-temp))))

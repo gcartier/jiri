@@ -18,7 +18,6 @@
     (<*>                                         tag-reference: {File :context "jiri.project"})
     (<Project-Directory>                         directory: {Directory :context "src"}
       (<Project-Directory>                       directory: {Directory :context "src" "jiri"}
-        (<Jazz-File>         name: devel         source: {File :context "src" "jiri" "devel.jazz"})
         (<Jazz-File>         name: install       source: {File :context "src" "jiri" "install.jazz"})
         (<Jazz-File>         name: launch        source: {File :context "src" "jiri" "launch.jazz"})
         (<Jazz-File>         name: product       source: {File :context "src" "jiri" "product.jazz"})
@@ -39,4 +38,5 @@
         (<Jazz-File>         name: git-interface source: {File :context "src" "jiri" "git-interface.jazz"})
         (<Project-Directory>                     directory: {Directory :context "src" "jiri" "platform"}
           (<Jazz-File>       name: _platform     source: {File :context "src" "jiri" "platform" "_platform.jazz"})
-          (<Jazz-File>       name: windows       source: {File :context "src" "jiri" "platform" "windows.jazz"})))))))
+          (<Jazz-File>       name: windows       source: {File :context "src" "jiri" "platform" "windows.jazz"}))
+        (<Jazz-File>         name: syntax        source: {File :context "src" "jiri" "syntax.jazz"}))))))

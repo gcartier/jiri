@@ -5,7 +5,6 @@
                   (unit jiri.product)
                   (update jiri.appl
                           jiri.base
-                          jiri.devel
                           jiri.font
                           jiri.git
                           jiri.git-interface

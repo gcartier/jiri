@@ -16,10 +16,9 @@
 (module jiri.structure jazz
 
 
-(import (jazz.library)
-        (jazz.system)
-        (jiri.base)
-        (jiri.settings))
+(import (jiri.base)
+        (jiri.settings)
+        (jiri.syntax (phase syntax)))
 
 
 ;;;
@@ -27,13 +26,13 @@
 ;;;
 
 
-(define-setting current-root-dir
+(define-jiri current-root-dir
   #f)
 
-(define-setting current-password
+(define-jiri current-password
   #f)
 
-(define-setting called-from
+(define-jiri called-from
   #f)
 
 
@@ -138,7 +137,7 @@
   (setenv "called-from" called-from)
   (setenv "work-percentage" (number->string work-percentage))
   (setenv "work-downloaded" (number->string work-downloaded))
-  (let ((pos (get-position~ (get-toplevel))))
+  (let ((pos (get-position~ (jazz.system:get-toplevel))))
     (setenv "window-h" (number->string (get-h~ pos)))
     (setenv "window-v" (number->string (get-v~ pos))))
   (delegate-process (install-exe))

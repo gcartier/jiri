@@ -16,7 +16,7 @@
 (module jiri.settings jazz
 
 
-(import (jazz.library))
+(import (jiri.syntax (phase syntax)))
 
 
 ;;;
@@ -24,31 +24,31 @@
 ;;;
 
 
-(define-setting jiri-invite
+(define-jiri jiri-invite
   #f)
 
-(define-setting jiri-title
+(define-jiri jiri-title
   #f)
 
-(define-setting jiri-version
+(define-jiri jiri-version
   #f)
 
-(define-setting jiri-company
+(define-jiri jiri-company
   #f)
 
-(define-setting jiri-size
+(define-jiri jiri-size
   #f)
 
-(define-setting jiri-background
+(define-jiri jiri-background
   #f)
 
-(define-setting jiri-play
+(define-jiri jiri-play
   #f)
 
-(define-setting jiri-application
+(define-jiri jiri-application
   #f)
 
-(define-setting jiri-development?
+(define-jiri jiri-development?
   #f)
 
 
@@ -57,20 +57,32 @@
 ;;;
 
 
-(define-setting jiri-username
+(define-jiri jiri-username
   #f)
 
-(define-setting jiri-password
+(define-jiri jiri-password
   #f)
 
-(define-setting jiri-password-title
+(define-jiri jiri-password-title
   #f)
 
-(define-setting jiri-password-message
+(define-jiri jiri-password-message
   #f)
 
-(define-setting jiri-password-yes
+(define-jiri jiri-password-yes
   #f)
+
+
+;;;
+;;;; Launch
+;;;
+
+
+(define-jiri jiri-launch-information
+  #f)
+
+(define-jiri jiri-launch-uninstall?
+  #t)
 
 
 ;;;
@@ -78,16 +90,16 @@
 ;;;
 
 
-(define-setting jiri-install-remote
+(define-jiri jiri-install-remote
   #f)
 
-(define-setting jiri-install-branch
+(define-jiri jiri-install-branch
   #f)
 
-(define-setting jiri-install-dir
+(define-jiri jiri-install-dir
   #f)
 
-(define-setting jiri-current-dir
+(define-jiri jiri-current-dir
   #f)
 
 
@@ -96,16 +108,16 @@
 ;;;
 
 
-(define-setting jiri-update-remote
+(define-jiri jiri-update-remote
   #f)
 
-(define-setting jiri-update-branch
+(define-jiri jiri-update-branch
   #f)
 
-(define-setting jiri-update-dir
+(define-jiri jiri-update-dir
   #f)
 
-(define-setting jiri-update-exe
+(define-jiri jiri-update-exe
   #f)
 
 
@@ -114,13 +126,13 @@
 ;;;
 
 
-(define-setting jiri-app-remote
+(define-jiri jiri-app-remote
   #f)
 
-(define-setting jiri-app-branch
+(define-jiri jiri-app-branch
   #f)
 
-(define-setting jiri-app-dir
+(define-jiri jiri-app-dir
   #f)
 
 
@@ -129,14 +141,14 @@
 ;;;
 
 
-(define-setting jiri-world-remote
+(define-jiri jiri-world-remote
   #f)
 
-(define-setting jiri-world-branch
+(define-jiri jiri-world-branch
   #f)
 
-(define-setting jiri-world-dir
+(define-jiri jiri-world-dir
   #f)
 
-(define-setting jiri-world-work
+(define-jiri jiri-world-work
   #f))

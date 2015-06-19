@@ -24,7 +24,6 @@
         (jazz.ui.view)
         (jazz.ui.window)
         (jiri.base)
-        (jiri.devel)
         (jiri.git)
         (jiri.git-interface)
         (jiri.view)
@@ -39,11 +38,6 @@
 
 
 (define (prepare)
-  ;; FOR TESTS
-  (setenv "root-dir" (parse~ {Directory Home "aaa" "Sentio"}))
-  (setenv "password" (password-dialog))
-  (setenv "called-from" "setup")
-  
   (current-root-dir (getenv-default "root-dir"))
   (current-password (getenv-default "password"))
   (called-from (getenv-default "called-from"))
@@ -140,7 +134,7 @@
              (pull-repository "world" (jiri-world-remote) (jiri-world-branch) (current-password) (world-dir) 5 6 .4 .85 1.
                cont))
             ((jiri-world-work)
-             ((jiri-world-work) cont))))))
+             ((jiri-world-work) 5 6 .4 .85 1. cont))))))
 
 
 ;;;
@@ -182,6 +176,7 @@
     ;(install-file "libeay32.dll")
     ;(install-file "ssleay32.dll")
     (install-file ".repository")
+    (install-directory "etc")
     (install-directory "lib")))
 
 
@@ -190,11 +185,31 @@
         (from-lib (make-directory (launch-lib)))
         (to (make-file (root-exe)))
         (to-lib (make-directory (root-lib))))
-    ;; danger
-    (when (exists?~ to)
-      (delete-file~ to))
     (install-file~ from to)
-    (install-directory~ from-lib to-lib)))
+    (install-directory~ from-lib to-lib
+      filter: (lambda (action pathname)
+                (if (and (eq? action 'copy)
+                         (pathname=? (get-parent~ pathname) from-lib)
+                         (let ((filename (get-name~ pathname)))
+                           (member? filename '("jazz.catalog"
+                                               "jazz.debugger"
+                                               "jazz.debugger.jazz"
+                                               "jazz.designer"
+                                               "jazz.editor.jazz"
+                                               "jazz.editor.lisp"
+                                               "jazz.git"
+                                               "jazz.graphic"
+                                               "jazz.jml"
+                                               "jazz.jrm"
+                                               "jazz.library"
+                                               "jazz.media"
+                                               "jazz.profile"
+                                               "jazz.resources"
+                                               "jazz.system"
+                                               "jazz.ui")
+                             test: filename=?)))
+                    #f
+                  #t)))))
 
 
 (define (install-desktop)

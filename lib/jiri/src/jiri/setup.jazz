@@ -25,7 +25,6 @@
         (jazz.ui.view)
         (jazz.ui.window)
         (jiri.base)
-        (jiri.devel)
         (jiri.git)
         (jiri.git-interface)
         (jiri.platform)
@@ -82,7 +81,7 @@
 
 (define (setup-root)
   (define (choose-dir)
-    (let ((dir (parse~ (choose-directory title: "Please select the installation folder" initial-directory: {Directory Home "aaa"} @wait (make-directory (or choosen-dir (get-special-folder CSIDL_PROGRAM_FILESX86)))))))
+    (let ((dir (parse~ (choose-directory title: "Please select the installation folder" initial-directory: {Directory Home "aaa"} @TEST (make-directory (or choosen-dir (get-special-folder CSIDL_PROGRAM_FILESX86)))))))
       (unless (equal? dir "")
         (set! choosen-dir dir)
         (normalize-directory (standardize-directory dir)))))
@@ -103,8 +102,6 @@
               (set-work-in-progress? #t)
               ;; danger
               (let ((code (remove-directory root-dir)))
-                ;; convert windows specific
-                (set! code 0)
                 (if (= code 0)
                     (begin
                       (create-directory-with-acl root-dir)
@@ -113,7 +110,7 @@
                   (begin
                     (set-cursor :arrow)
                     (set-work-in-progress? #f)
-                    (message-box (string-append "Unable to delete folder (0x" (number->string code 16) ")"))
+                    (message-box (string-append "Unable to delete installation folder (0x" (number->string code 16) ")"))
                     #f))))))))))
 
 
