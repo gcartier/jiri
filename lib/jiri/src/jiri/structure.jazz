@@ -54,6 +54,9 @@
 (definition public (root-exe)
   (add-extension (string-append (current-root-dir) (jiri-application)) (executable-extension kernel-platform)))
 
+(definition public (root-repo)
+  (string-append (current-root-dir) ".repository"))
+
 (definition public (root-lib)
   (string-append (current-root-dir) "lib/"))
 
@@ -77,6 +80,9 @@
 
 (definition public (launch-exe)
   (add-extension (string-append (install-dir) "Launch") (executable-extension kernel-platform)))
+
+(definition public (launch-repo)
+  (string-append (install-dir) ".repository"))
 
 (definition public (launch-lib)
   (string-append (install-dir) "lib/"))
