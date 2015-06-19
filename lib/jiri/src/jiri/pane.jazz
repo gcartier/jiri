@@ -20,10 +20,18 @@
         (jazz.ui)
         (jiri.settings)
         (jiri.structure)
-        (jiri.window))
+        (jiri.window)
+        (jiri.work))
 
 
 (class Jiri-Pane extends View
+  
+  
+  (method override (key-press evt)
+    (case (get-key~ evt)
+      ((#\v) (explore-views~ (jazz.debuggee:current-view-debugger)))
+      ((#\t) (debug (get-limits~ progress-view) (get-pos~ progress-view) (get-range~ progress-view))
+       (invalidate-view~ progress-view))))
   
   
   (method override (return-press evt)
