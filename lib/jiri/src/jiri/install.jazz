@@ -40,8 +40,8 @@
 
 (define (prepare)
   ;; FOR TESTS
-  (setenv "root-dir" (parse~ {Directory Home "aaa" "sentio"}))
-  (setenv "password" "world123")
+  (setenv "root-dir" (parse~ {Directory Home "aaa" "Sentio"}))
+  (setenv "password" (password-dialog))
   (setenv "called-from" "setup")
   
   (current-root-dir (getenv-default "root-dir"))
@@ -136,8 +136,11 @@
 (define (install-application/world cont)
   (pull-repository "application" (jiri-app-remote) (jiri-app-branch) (current-password) (app-dir) 3 6 .1 .2 .4
     (lambda (new-content?)
-      (pull-repository "world" (jiri-world-remote) (jiri-world-branch) (current-password) (world-dir) 5 6 .4 .85 1.
-        cont))))
+      (cond ((world-dir)
+             (pull-repository "world" (jiri-world-remote) (jiri-world-branch) (current-password) (world-dir) 5 6 .4 .85 1.
+               cont))
+            ((jiri-world-work)
+             ((jiri-world-work) cont))))))
 
 
 ;;;
@@ -176,8 +179,8 @@
     (install-file "Install.exe")
     (install-file "Uninstall.exe")
     (install-file "libgit2.dll")
-    (install-file "libeay32.dll")
-    (install-file "ssleay32.dll")
+    ;(install-file "libeay32.dll")
+    ;(install-file "ssleay32.dll")
     (install-file ".repository")
     (install-directory "lib")))
 
@@ -312,5 +315,4 @@
 
 (set-startup
   (lambda ()
-    ;; (install)
-    )))
+    (install))))

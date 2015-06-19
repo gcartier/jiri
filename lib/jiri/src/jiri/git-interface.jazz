@@ -172,7 +172,7 @@
     (process-action~ (child~ (get-guest) 'cancel) self)))
 
 
-(definition (password-dialog)
+(definition public (password-dialog)
   (let ((content (new Password-Border size: {Dimension 460 21})))
     (let ((password (locate~ content 'password))
           (code (catch (Cancel-Signal exc

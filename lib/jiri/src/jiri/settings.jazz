@@ -136,4 +136,7 @@
   #f)
 
 (define-setting jiri-world-dir
+  #f)
+
+(define-setting jiri-world-work
   #f))

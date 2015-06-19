@@ -50,7 +50,7 @@
   (string-append (current-root-dir) (normalize-directory (jiri-current-dir))))
 
 (definition public (world-dir)
-  (string-append (current-root-dir) (normalize-directory (jiri-world-dir))))
+  (and (jiri-world-dir) (string-append (current-root-dir) (normalize-directory (jiri-world-dir)))))
 
 (definition public (root-exe)
   (add-extension (string-append (current-root-dir) (jiri-application)) (executable-extension kernel-platform)))
