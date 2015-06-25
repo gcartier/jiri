@@ -34,11 +34,19 @@
         (jiri.work))
 
 
+(define TEST?
+  #t)
+
+
 (define stage
   #f)
 
 
 (define (prepare)
+  (when (and TEST? (not (getenv-default "called-from")))
+    (setenv "root-dir" "C:/App/Sentio/")
+    (setenv "called-from" "root"))
+  
   (current-root-dir (getenv-default "root-dir"))
   (current-password (getenv-default "password"))
   (called-from (getenv-default "called-from"))
