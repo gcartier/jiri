@@ -166,7 +166,7 @@
   (new Jiri-Label
     title: ""
     font: default-label-font
-    position: (new Point 49 418)
+    position: (new Point 49 446)
     size: (new Dimension 600 30)))
 
 
@@ -186,7 +186,7 @@
   (new Jiri-Label
     title: "0%"
     font: default-label-font
-    position: (new Point 51 449)
+    position: (new Point 51 477)
     size: (new Dimension 115 20)))
 
 
@@ -199,7 +199,7 @@
   (new Jiri-Label
     title: "Downloaded: "
     font: default-label-font
-    position: (new Point 175 449)
+    position: (new Point 175 477)
     size: (new Dimension 165 20)))
 
 
@@ -212,7 +212,7 @@
   (new Jiri-Label
     title: ""
     font: default-label-font
-    position: (new Point 350 449)
+    position: (new Point 350 477)
     size: (new Dimension 140 20)
     justification: 'tail))
 
@@ -226,7 +226,7 @@
   (new Jiri-Label
     title: "Remaining: "
     font: default-label-font
-    position: (new Point 500 449)
+    position: (new Point 500 477)
     size: (new Dimension 150 20)
     justification: 'tail))
 
@@ -238,7 +238,7 @@
 
 (definition public progress-view
   (new Jiri-Progress
-    position: (new Point 50 470)
+    position: (new Point 50 498)
     size: (new Dimension 600 20)
     range: (new Range 0 10)
     pos: 0))
@@ -252,7 +252,7 @@
 (definition public play-view
   (new Jiri-Button
     title: (or (jiri-play) "Play")
-    position: (new Point 680 450)
+    position: (new Point 680 478)
     size: (new Dimension 135 40)
     enabled?: #f
     action-handler: (lambda (view)

@@ -42,6 +42,9 @@
 (define-jiri jiri-background
   #f)
 
+(define-jiri jiri-dark-overlay?
+  #f)
+
 (define-jiri jiri-game
   #f)
 
