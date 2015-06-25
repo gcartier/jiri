@@ -23,6 +23,7 @@
         (jazz.system)
         (jazz.system.application)
         (jazz.ui)
+        (jazz.ui.skin)
         (jazz.ui.view)
         (jazz.ui.window)
         (jiri.pane)
@@ -64,6 +65,7 @@
         (set-size~ toplevel (cache-background-size))))
     
     (nextmethod)
+    (set-skin (new Jiri-Skin))
     (maximize~ (current-stage))
     (new-frame Jiri-Pane)
     (init)
