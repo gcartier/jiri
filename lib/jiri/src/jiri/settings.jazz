@@ -157,4 +157,19 @@
   #f)
 
 (define-jiri jiri-world-work
+  #f)
+
+
+;;;
+;;;; Debug
+;;;
+
+
+(define-jiri jiri-process-name
+  #f)
+
+(define-jiri jiri-settings-directory
+  #f)
+
+(define-jiri jiri-snapshots-directory
   #f))
