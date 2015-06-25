@@ -18,6 +18,7 @@
 
 (import (jazz.graphic)
         (jazz.jml)
+        (jazz.snapshot)
         (jazz.platform)
         (jazz.system)
         (jazz.system.application)
@@ -25,6 +26,7 @@
         (jazz.ui.view)
         (jazz.ui.window)
         (jiri.pane)
+        (jiri.settings)
         (jiri.view)
         (jiri.window))
 
@@ -43,6 +45,14 @@
 
   (method override (new-toplevel)
     (new Jiri-Toplevel))
+  
+  
+  (method override (prepare-process)
+    (nextmethod)
+    (when (jiri-process-name)
+      (current-process-name-set! (jiri-process-name)))
+    (when (jiri-snapshots-directory)
+      (snapshots-directory (jiri-snapshots-directory))))
   
   
   (method override (finish-process)
