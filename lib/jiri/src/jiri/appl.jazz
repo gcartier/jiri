@@ -67,7 +67,7 @@
     (nextmethod)
     (set-skin (new Jiri-Skin))
     (maximize~ (current-stage))
-    (new-frame Jiri-Pane)
+    (set-jiri-pane (get-guest~ (new-frame Jiri-Pane)))
     (init)
     (setup-toplevel)
     (delay-event startup)))

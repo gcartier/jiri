@@ -31,9 +31,16 @@
         (jiri.window))
 
 
+(definition jiri-pane
+  #f)
+
+(definition public (set-jiri-pane pane)
+  (set! jiri-pane pane))
+
+
 (definition public (add-view view)
   (unless (get-parent~ view)
-    (set-parent~ view (first-child~ (current-stage)))
+    (set-parent~ view jiri-pane)
     (invalidate-view~ view)))
 
 
