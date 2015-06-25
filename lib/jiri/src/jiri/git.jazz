@@ -27,19 +27,6 @@
 
 
 ;;;
-;;;; Error
-;;;
-
-
-(c-definition (git-check-error error-code) (int) void "git_check_error" ""
-  (when (not (= error-code 0))
-    (throw (let ((err (giterr-last)))
-             (if err
-                 (new Git-Exception error-code (git-error-message err))
-               (new Git-Exception error-code #f))))))
-
-
-;;;
 ;;;; Thread
 ;;;
 
