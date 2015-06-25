@@ -148,6 +148,18 @@
 
 
 ;;;
+;;;; Remotes
+;;;
+
+
+(definition public remotes-view
+  (new Jiri-Tree
+    background: {Color Black alpha: 0.2}
+    position: (new Point 24 118)
+    size: (new Dimension 175 300)))
+
+
+;;;
 ;;;; Stage
 ;;;
 

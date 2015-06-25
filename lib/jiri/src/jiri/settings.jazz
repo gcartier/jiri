@@ -135,6 +135,12 @@
 ;;;
 
 
+(define-jiri jiri-app-remotes
+  #f)
+
+(define-jiri jiri-app-default
+  #f)
+
 (define-jiri jiri-app-remote
   #f)
 

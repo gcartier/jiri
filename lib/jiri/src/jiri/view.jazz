@@ -212,6 +212,26 @@
 
 
 ;;;
+;;;; Tree
+;;;
+
+
+(class Jiri-Tree extends Layout-View
+  
+  
+  (form
+    (<install>                                       background: {Color red: .000 green: .000 blue: .000 alpha: .2} layout-type: fill
+      (<Border-View>                                 border-type: edge style: entry
+        (<Scroller-View>                             vscroll?: #t
+          (<content~>                                layout-type: fill
+            (<Jiri-Tree-View>      name: tree        background: #f filled-column: environment font: {Font Label-User point-size: 18} default-row-height: 25 can-select-empty?: #f
+              (<Tree-Node-Column>  name: environment toplevel-controls?: #f display-images?: #f))))))))
+
+
+(class Jiri-Tree-View extends Tree-View)
+
+
+;;;
 ;;;; Close
 ;;;
 

@@ -17,6 +17,7 @@
 
 
 (import (jazz.git.foreign)
+        (jazz.graphic)
         (jazz.io)
         (jazz.platform)
         (jazz.system)
@@ -270,6 +271,16 @@
     (add-view close-view))
   (when minimize-view
     (add-view minimize-view))
+  (let ((remotes (jiri-app-remotes))
+        (default (jiri-app-default)))
+    (when remotes
+      (add-view remotes-view)
+      (let ((tree (locate~ remotes-view 'tree)))
+        (for-each (lambda (env)
+                    (add-row~ tree children: (list (new Tree-Node title: (car env))) user-data: env))
+                  remotes)
+        (when default
+          (select-user-data-row~ tree (assoc default remotes))))))
   (add-view percentage-view)
   (add-view downloaded-view)
   (add-view status-view)
