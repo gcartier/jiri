@@ -90,6 +90,9 @@
 (definition public (update-exe)
   (string-append (update-dir) "Contents/MacOS/" (jiri-update-exe)))
 
+(definition public (game-string)
+  (or (jiri-game) "game"))
+
 
 ;;;
 ;;;; Work

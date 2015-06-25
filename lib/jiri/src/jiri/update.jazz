@@ -114,8 +114,8 @@
              
              (if (or (not (file-exists? (app-dir)))
                      (not (file-exists? (world-dir))))
-                 (add-stage-view (format "Failed to install game{a}" (debug-info)) stage-setup-color)
-               (add-stage-view (format "Failed to update game{a}" (debug-info)) stage-setup-color)
+                 (add-stage-view (format "Failed to install {a}{a}" (game-string) (debug-info)) stage-setup-color)
+               (add-stage-view (format "Failed to update {a}{a}" (game-string) (debug-info)) stage-setup-color)
                (set-enabled?~ play-view #t)))
       (pull-repository "launcher" (jiri-update-remote) (jiri-update-branch) (current-password) (update-dir) 1 6 0. .05 .1
         (lambda (new-content?)
@@ -209,8 +209,8 @@
 
 
 (define (update-application/world head mid tail cont)
-  (add-stage-view "Updating game" (determine-stage-color (app-dir)))
-  (pull-repository "game" (jiri-app-remote) (jiri-app-branch) (current-password) (app-dir) 3 6 .1 .2 .4
+  (add-stage-view (string-append "Updating " (game-string)) (determine-stage-color (app-dir)))
+  (pull-repository (game-string) (jiri-app-remote) (jiri-app-branch) (current-password) (app-dir) 3 6 .1 .2 .4
     (lambda (new-content?)
       (add-stage-view "Updating world" (determine-stage-color (world-dir)))
       (pull-repository "world" (jiri-world-remote) (jiri-world-branch) (current-password) (world-dir) 5 6 .4 .85 1.

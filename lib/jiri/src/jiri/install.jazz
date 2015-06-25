@@ -285,7 +285,7 @@
             (lambda ()
               (thread-sleep! 2.5)
               (PostMessage (window-handle current-window) WM_USER UPDATING_GAME 0)))))
-    (add-stage-view "Updating game" stage-install-color))
+    (add-stage-view (string-append "Updating " (game-string)) stage-install-color))
   (when (neq? stage 'install-from-root)
     (set-title~ percentage-view (string-append (number->string (fxround work-percentage)) "%"))
     (set-title~ downloaded-view (string-append "Downloaded: " (number->string work-downloaded) "M"))

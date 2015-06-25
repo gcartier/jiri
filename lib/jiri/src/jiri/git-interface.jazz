@@ -254,7 +254,7 @@
                                           (delay-modal-user-event what result)
                                         (checkout-done result)))
           ((= what UPDATING_GAME)     (unless work-done?
-                                        (set-title~ stage-view "Updating game"))))))
+                                        (set-title~ stage-view (string-append "Updating " (game-string))))))))
 
 
 ;;;
