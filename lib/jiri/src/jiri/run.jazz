@@ -19,6 +19,8 @@
 (import (jiri.appl))
 
 
-(register-product-run 'jiri
-  (lambda (descriptor)
-    (boot-environment~ (new Jiri-Application)))))
+(definition (run descriptor)
+  (boot-environment~ (new Jiri-Application)))
+
+
+(register-product-run 'jiri run))
