@@ -212,7 +212,7 @@
     title: "Downloaded: "
     font: default-label-font
     position: (new Point 175 477)
-    size: (new Dimension 165 20)))
+    size: (new Dimension 160 20)))
 
 
 ;;;
@@ -224,8 +224,8 @@
   (new Jiri-Label
     title: ""
     font: default-label-font
-    position: (new Point 350 477)
-    size: (new Dimension 140 20)
+    position: (new Point 345 477)
+    size: (new Dimension 145 20)
     justification: 'tail))
 
 
