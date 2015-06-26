@@ -79,7 +79,8 @@
     (set-work-percentage (string->number (getenv-default "work-percentage" "0.")))
     (set-work-downloaded (string->number (getenv-default "work-downloaded" "0")))
     (set-window-h (string->number (getenv-default "window-h" "-1")))
-    (set-window-v (string->number (getenv-default "window-v" "-1")))))
+    (set-window-v (string->number (getenv-default "window-v" "-1")))
+    (set-send-ready? (getenv-default "send-ready" #f))))
 
 
 (define (was-update-new?)
@@ -137,7 +138,8 @@
   (let ((pos (get-position~ (get-toplevel))))
     (setenv "window-h" (number->string (get-h~ pos)))
     (setenv "window-v" (number->string (get-v~ pos))))
-  (delegate-process (update-exe))
+  (setenv "send-ready" "true")
+  (delegate-process (update-exe) wait-ready?: #t)
   ;; wait for delegate window to cover our own window
   (thread-sleep! .5)
   (exit))

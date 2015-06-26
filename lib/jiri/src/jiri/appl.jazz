@@ -28,6 +28,7 @@
         (jazz.ui.window)
         (jiri.pane)
         (jiri.settings)
+        (jiri.structure)
         (jiri.view)
         (jiri.window))
 
@@ -70,7 +71,11 @@
     (set-jiri-pane (get-guest~ (new-frame Jiri-Pane)))
     (init)
     (setup-toplevel)
-    (delay-event startup)))
+    (delay-event startup)
+    (when send-ready?
+      (write 'ready)
+      (newline)
+      (force-output))))
 
 
 ;;;

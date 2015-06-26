@@ -70,17 +70,22 @@
 ;;;
 
 
-(definition public (delegate-process path (arguments: arguments '()))
+(definition public (delegate-process path (arguments: arguments '()) (wait-ready?: wait-ready? #f))
   (define (add-debugger arguments)
     (let ((debugger (command-argument "debugger")))
       (if (not debugger)
           arguments
         (cons "-debugger" (cons debugger arguments)))))
   
-  (open-process (list
-                  path: path
-                  arguments: (add-debugger arguments)
-                  stdin-redirection: #f
-                  stdout-redirection: #f
-                  stderr-redirection: #f
-                  show-console: #f))))
+  (define (open (redirect?: redirect? #f))
+    (open-process (list
+                    path: path
+                    arguments: (add-debugger arguments)
+                    stdin-redirection: redirect?
+                    stdout-redirection: redirect?
+                    stderr-redirection: redirect?
+                    show-console: #f)))
+  
+  (if (not wait-ready?)
+      (open redirect?: #f)
+    (read (open redirect?: #t)))))
