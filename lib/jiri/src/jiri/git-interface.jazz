@@ -245,16 +245,18 @@
 ;;;
 
 
-(set-notification-callback
-  (lambda (what result)
-    (cond ((= what DOWNLOAD_PROGRESS) (download-progress result))
-          ((= what DOWNLOAD_DONE)     (download-done     result))
-          ((= what CHECKOUT_PROGRESS) (checkout-progress result))
-          ((= what CHECKOUT_DONE)     (if (in-modal?)
-                                          (delay-modal-user-event what result)
-                                        (checkout-done result)))
-          ((= what UPDATING_GAME)     (unless work-done?
-                                        (set-title~ stage-view (string-append "Updating " (game-string))))))))
+(definition (notification-callback-function what result)
+  (cond ((= what DOWNLOAD_PROGRESS) (download-progress result))
+        ((= what DOWNLOAD_DONE)     (download-done     result))
+        ((= what CHECKOUT_PROGRESS) (checkout-progress result))
+        ((= what CHECKOUT_DONE)     (if (in-modal?)
+                                        (delay-modal-user-event what result)
+                                      (checkout-done result)))
+        ((= what UPDATING_GAME)     (unless work-done?
+                                      (set-title~ stage-view (string-append "Updating " (game-string)))))))
+
+
+(set-notification-callback notification-callback-function)
 
 
 ;;;
