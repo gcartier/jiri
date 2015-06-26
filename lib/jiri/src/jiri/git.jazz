@@ -27,6 +27,15 @@
 
 
 ;;;
+;;;; Error
+;;;
+
+
+(c-definition (jiri-git-call-error-handler error) (int) void "git_call_error_handler" ""
+  (handle-git-error error))
+
+
+;;;
 ;;;; Thread
 ;;;
 
