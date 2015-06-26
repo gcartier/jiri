@@ -35,7 +35,7 @@
 
 
 (define TEST?
-  #f)
+  #t)
 
 
 (define stage
@@ -337,4 +337,5 @@
 
 (set-startup
   (lambda ()
-    (install))))
+    (unless TEST?
+      (install)))))

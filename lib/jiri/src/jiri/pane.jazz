@@ -24,14 +24,19 @@
         (jiri.work))
 
 
+(define TEST?
+  #t)
+
+
 (class Jiri-Pane extends View
   
   
-  @EXPERIMENT
   (method override (key-press evt)
-    (case (get-key~ evt)
-      ((#\v) (explore-views~ (jazz.debuggee:current-view-debugger)))
-      ((#\t) (invalidate-view~ progress-view))))
+    (if (not TEST?)
+        (nextmethod evt)
+      (case (get-key~ evt)
+        ((#\v) (explore-views~ (jazz.debuggee:current-view-debugger)))
+        ((#\t) (invalidate-view~ progress-view)))))
   
   
   (method override (return-press evt)
