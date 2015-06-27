@@ -32,7 +32,7 @@
   
   
   (method override (key-press evt)
-    (if (not TEST?)
+    (if (or (not TEST?) (not kernel-source-accessible?))
         (nextmethod evt)
       (case (get-key~ evt)
         ((#\v) (explore-views~ (jazz.debuggee:current-view-debugger)))

@@ -35,7 +35,7 @@
 
 
 (define TEST?
-  #f)
+  #t)
 
 
 (define stage
@@ -43,7 +43,7 @@
 
 
 (define (prepare)
-  (when (and TEST? (not (getenv-default "called-from")))
+  (when (and TEST? kernel-source-accessible? (not (getenv-default "called-from")))
     (setenv "root-dir" "C:/App/Sentio/")
     (setenv "called-from" "root"))
   
