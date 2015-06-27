@@ -223,7 +223,7 @@
 
 
 (define (update-done)
-  (set-title~ stage-view "Ready to play!")
+  (set-title~ stage-view (or (jiri-play-ready) "Ready to play!"))
   (set-color~ stage-view stage-ready-color)
   (set-title~ status-view "Done")
   (set-done~ progress-view)
