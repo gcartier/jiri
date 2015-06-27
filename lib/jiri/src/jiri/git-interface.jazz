@@ -49,10 +49,10 @@
              (let ((repo (git-repository-init dir)))
                (proc repo (git-remote-create repo "origin" url)))))))
   
-  (define first-limits
+  (define first-section
     (new Range (first limits) (second limits)))
   
-  (define last-limits
+  (define last-section
     (new Range (second limits) (third limits)))
   
   (set-cursor :wait)
@@ -63,7 +63,7 @@
     (lambda (repo remote)
       (let ((megabytes 0))
         (git-remote-connect-with-retries remote #f remote-exception?)
-        (set-info~ progress-view first-limits (new Range 0 1))
+        (set-info~ progress-view first-section (new Range 0 1))
         (set-download-progress
           (let ((inited? #f))
             (lambda (result)
@@ -75,7 +75,7 @@
                    (set-title~ remaining-view (string-append "Remaining: " (number->string remaining)))
                    (set! megabytes downloaded))
                   (when (not inited?)
-                    (set-info~ progress-view first-limits (new Range 0 total-objects))
+                    (set-info~ progress-view first-section (new Range 0 total-objects))
                     (set! inited? #t))
                   (set-pos~ progress-view received-objects))))))
         (set-download-done
@@ -94,7 +94,7 @@
                 (unless (git-branch-lookup repo branch GIT_BRANCH_LOCAL)
                   (git-branch-create repo branch commit 1))
                 (let ((new-content? #f))
-                  (set-info~ progress-view last-limits (new Range 0 1))
+                  (set-info~ progress-view last-section (new Range 0 1))
                   (set-checkout-progress
                     (let ((inited? #f))
                       (lambda (result)
@@ -108,7 +108,7 @@
                               (let ((remaining (- total-steps completed-steps)))
                                 (set-title~ remaining-view (string-append "Remaining: " (number->string remaining))))
                               (when (not inited?)
-                                (set-info~ progress-view last-limits (new Range 0 total-steps))
+                                (set-info~ progress-view last-section (new Range 0 total-steps))
                                 (set! inited? #t))
                               (set-pos~ progress-view completed-steps)))))))
                   (set-checkout-done

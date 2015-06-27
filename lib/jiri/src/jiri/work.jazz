@@ -252,7 +252,7 @@
   (new Jiri-Progress
     position: (new Point 50 498)
     size: (new Dimension 600 20)
-    limits: (new Range 0. 1.)
+    section: (new Range 0. 1.)
     range: (new Range 0 10)
     pos: 0))
 

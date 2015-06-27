@@ -294,9 +294,9 @@
 (class Jiri-Progress extends View
 
 
-  (property limits initialize #f accessors generate)
-  (property range  initialize #f accessors generate)
-  (property pos    initialize #f getter generate setter explicit)
+  (property section initialize #f accessors generate)
+  (property range   initialize #f accessors generate)
+  (property pos     initialize #f getter generate setter explicit)
   
   
   (method override (draw surface context)
@@ -309,8 +309,8 @@
         (let ((start (get-start~ range))
               (end (get-end~ range))
               (width (rect-width rect)))
-          (let ((head (if (not limits) 0 (fxfloor (* (get-start~ limits) width))))
-                (tail (if (not limits) width (fxceiling (* (get-end~ limits) width))))
+          (let ((head (if (not section) 0 (fxfloor (* (get-start~ section) width))))
+                (tail (if (not section) width (fxceiling (* (get-end~ section) width))))
                 (where (/ (fixnum->flonum (- pos start)) (fixnum->flonum (- end start)))))
             (let ((h (fxceiling (* (- tail head) where)))
                   (from {Color red: 150 green: 0 blue: 0})
@@ -321,8 +321,8 @@
                 direction: 'horizontal)))))))
   
   
-  (method (set-info limits range)
-    (set! limits~self limits)
+  (method (set-info section range)
+    (set! section~self section)
     (set! range~self range)
     (set! pos~self (get-start~ range))
     (percentage-update)
@@ -349,7 +349,7 @@
   
   (method (effective-percentage)
     (* (let ((range-progress (/ (- pos (get-start~ range)) (extent~ range))))
-         (+ (get-start~ limits) (* (extent~ limits) (cast <fl> range-progress))))
+         (+ (get-start~ section) (* (extent~ section) (cast <fl> range-progress))))
        100.)))
 
 
