@@ -35,7 +35,7 @@
 
 
 (define TEST?
-  #t)
+  #f)
 
 
 (define stage
@@ -63,7 +63,6 @@
                      (message-box "It is incorrect to launch this application")
                      (exit 1))))
   (when (neq? stage 'install-from-root)
-    (set-work-percentage (string->number (getenv-default "work-percentage" "0.")))
     (set-work-downloaded (string->number (getenv-default "work-downloaded" "0")))
     (set-window-h (string->number (getenv-default "window-h" "-1")))
     (set-window-v (string->number (getenv-default "window-v" "-1")))
@@ -307,10 +306,10 @@
               (PostMessage (window-handle current-window) WM_USER UPDATING_GAME 0)))))
     (add-stage-view (string-append "Updating " (game-string)) stage-install-color))
   (when (neq? stage 'install-from-root)
-    (set-title~ percentage-view (string-append (number->string (fxround work-percentage)) "%"))
     (set-title~ downloaded-view (string-append "Downloaded: " (number->string work-downloaded) "M"))
     (set-title~ status-view (downloading-title "application" 3 6))
     (set-info~ progress-view (new Range .1 .4) (new Range 0 10)))
+  (update-percentage)
   (set-return-callback
     (lambda ()
       (when work-done?
@@ -337,5 +336,4 @@
 
 (set-startup
   (lambda ()
-    (unless TEST?
-      (install)))))
+    (install))))

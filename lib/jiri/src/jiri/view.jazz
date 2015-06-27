@@ -325,11 +325,13 @@
     (set! limits~self limits)
     (set! range~self range)
     (set! pos~self (get-start~ range))
+    (percentage-update)
     (invalidate-view))
   
   
   (method (set-pos pos)
     (set! pos~self pos)
+    (percentage-update)
     (invalidate-view))
   
   
@@ -337,9 +339,28 @@
     (set-pos (+ pos 1)))
   
   
+  (method (set-done)
+    (set-pos (get-end~ range)))
+  
+  
   (method (get-remaining)
     (- (get-end~ range) pos))
   
   
-  (method (set-done)
-    (set-pos (get-end~ range)))))
+  (method (effective-percentage)
+    (* (let ((range-progress (/ (- pos (get-start~ range)) (extent~ range))))
+         (+ (get-start~ limits) (* (extent~ limits) (cast <fl> range-progress))))
+       100.)))
+
+
+(definition percentage-updater
+  #f)
+
+
+(definition (percentage-update)
+  (when percentage-updater
+    (percentage-updater)))
+
+
+(definition protected (set-percentage-updater updater)
+  (set! percentage-updater updater)))

@@ -113,13 +113,6 @@
   (set! work-done? value))
 
 
-(definition public work-percentage
-  0.)
-
-(definition public (set-work-percentage value)
-  (set! work-percentage value))
-
-
 (definition public work-downloaded
   0)
 
@@ -151,7 +144,6 @@
   (setenv "root-dir" root-dir)
   (setenv "password" (or password ""))
   (setenv "called-from" called-from)
-  (setenv "work-percentage" (number->string work-percentage))
   (setenv "work-downloaded" (number->string work-downloaded))
   (let ((pos (get-position~ (jazz.system:get-toplevel))))
     (setenv "window-h" (number->string (get-h~ pos)))

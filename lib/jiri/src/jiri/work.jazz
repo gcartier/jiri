@@ -252,8 +252,16 @@
   (new Jiri-Progress
     position: (new Point 50 498)
     size: (new Dimension 600 20)
+    limits: (new Range 0. 1.)
     range: (new Range 0 10)
     pos: 0))
+
+
+(definition protected (update-percentage)
+  (set-title~ percentage-view (string-append (number->string (fxround (effective-percentage~ progress-view))) "%")))
+
+
+(set-percentage-updater update-percentage)
 
 
 ;;;

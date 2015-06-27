@@ -72,6 +72,7 @@
         (add-view progress-view)
         (add-view play-view)
         (add-stage-view "Setup in progress" stage-setup-color)
+        (update-percentage)
         (setup-work)))))
 
 
