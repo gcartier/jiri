@@ -38,7 +38,7 @@
   #t)
 
 (define INSTALL?
-  #f)
+  #t)
 
 
 (define stage

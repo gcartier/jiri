@@ -120,6 +120,13 @@
   (set! work-downloaded value))
 
 
+(definition public pull-in-progress
+  #f)
+
+(definition public (set-pull-in-progress value)
+  (set! pull-in-progress value))
+
+
 (definition public send-ready?
   #f)
 

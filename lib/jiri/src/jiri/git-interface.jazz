@@ -81,7 +81,11 @@
                   (set-pos~ progress-view received-objects))))))
         (set-download-done
           (lambda (result)
-            (safe-quit-point)
+            (safe-abort-point
+              (lambda ()
+                (git-remote-disconnect remote)
+                (git-remote-free remote)
+                (git-repository-free repo)))
             (git-check-error result)
             (set-work-downloaded (+ work-downloaded megabytes))
             (set-title~ status-view (installing-title title step of))
@@ -92,6 +96,11 @@
             (git-repository-set-head repo (string-append "refs/heads/" branch))
             (let ((upstream (git-reference-lookup repo (string-append "refs/remotes/origin/" branch))))
               (let ((commit (git-object-lookup repo (git-reference->id repo upstream) GIT_OBJ_COMMIT)))
+                (define (checkout-cleanup)
+                  (git-reference-free upstream)
+                  (git-object-free commit)
+                  (git-repository-free repo))
+                
                 (unless (git-branch-lookup repo branch GIT_BRANCH_LOCAL)
                   (git-branch-create repo branch commit 1))
                 (let ((new-content? #f))
@@ -101,7 +110,8 @@
                       (lambda (result)
                         ;; from a discusion on freenode, aborting a checkout could leave the worktree in an arbitrary
                         ;; state, but the next checkout force should overwrite whatever is present in the worktree...
-                        (safe-quit-point)
+                        ;; commented out as there is no way to interrupt the threaded checkout
+                        ;; (safe-abort-point checkout-cleanup)
                         (git-checkout-state
                           (lambda (path completed-steps total-steps)
                             (when (> total-steps 0)
@@ -114,12 +124,11 @@
                               (set-pos~ progress-view completed-steps)))))))
                   (set-checkout-done
                     (lambda (result)
-                      (safe-quit-point)
+                      (safe-abort-point checkout-cleanup)
                       (git-check-error result)
                       (set-done~ progress-view)
-                      (git-reference-free upstream)
-                      (git-object-free commit)
-                      (git-repository-free repo)
+                      (checkout-cleanup)
+                      (set-pull-in-progress #f)
                       (cont new-content?)))
                 (git-reset-hard-threaded repo commit))))))
         (git-remote-download-threaded remote)))))
@@ -284,16 +293,11 @@
 
 
 (define (request-quit title)
-  (set! quit-requested? #t)
-  (git-request-quit)
+  (set-abort-requested (lambda () (exit)))
+  (git-request-abort)
   (set-cursor :wait)
   (set-title~ status-view title)
   (when minimize-view
     (set-enabled?~ minimize-view #f))
   (when close-view
-    (set-enabled?~ close-view #f)))
-
-
-(define (safe-quit-point)
-  (when quit-requested?
-    (exit))))
+    (set-enabled?~ close-view #f))))

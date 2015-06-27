@@ -131,7 +131,7 @@
 
 
 (c-declare jiri.git #/C/
-    bool quitRequested = false;
+    bool abortRequested = false;
     
     #define DOWNLOAD_PROGRESS 0
     #define DOWNLOAD_DONE     1
@@ -159,10 +159,10 @@
 //#)
 
 
-(git-external (git-request-quit) void
+(git-external (git-request-abort) void
   #/C/
     lock_mutex();
-    quitRequested = true;
+    abortRequested = true;
     unlock_mutex();
 //#)
 
@@ -291,16 +291,16 @@
 (c-declare jiri.git #/C/
     int remote_download_callback(const git_transfer_progress *stats, void *payload)
     {
-        bool quit;
+        bool abort;
       
         lock_mutex();
-        quit = quitRequested;
+        abort = abortRequested;
         total_objects = stats->total_objects;
         received_objects = stats->received_objects;
         received_bytes = stats->received_bytes;
         unlock_mutex();
         
-        if (! quit)
+        if (! abort)
         {
             post_notification(DOWNLOAD_PROGRESS, 0);
             return 0;

@@ -212,11 +212,11 @@
 
 
 ;;;
-;;;; Remotes
+;;;; Tree
 ;;;
 
 
-(class Jiri-Remotes extends Layout-View
+(class Jiri-Tree extends Layout-View
   
   
   (form
@@ -224,22 +224,11 @@
       (<Border-View>                                 border-type: edge style: entry
         (<Scroller-View>                             vscroll?: #t
           (<content~>                                layout-type: fill
-            (<Jiri-Remotes-Tree>   name: tree        background: #f filled-column: environment font: {Font Label-User point-size: 18} default-row-height: 25 can-select-empty?: #f selection-handler: {Selection-Handler :form on-selection-change}
-              (<Tree-Node-Column>  name: environment toplevel-controls?: #f display-images?: #f)))))))
-  
-  
-  (method (on-selection-change evt)
-    (let ((tree (get-sender~ evt)))
-      (let ((selection (get-single-selection~ tree)))
-        (let ((row (get-row~ tree selection)))
-          (let ((remote (get-user-data~ row)))
-            (bind (title dirname remote branch) remote
-              (jiri-app-remote remote)
-              (jiri-app-branch branch)
-              (jiri-app-dir (string-append "app/" dirname)))))))))
+            (<Jiri-Tree-View>      name: tree        background: #f filled-column: environment font: {Font Label-User point-size: 18} default-row-height: 25 can-select-empty?: #f selection-handler: {Selection-Handler :form on-selection-change}
+              (<Tree-Node-Column>  name: environment toplevel-controls?: #f display-images?: #f))))))))
 
 
-(class Jiri-Remotes-Tree extends Tree-View)
+(class Jiri-Tree-View extends Tree-View)
 
 
 ;;;

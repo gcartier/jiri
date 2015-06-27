@@ -152,6 +152,25 @@
 ;;;
 
 
+(class Jiri-Remotes extends Jiri-Tree
+  
+  
+  (method (on-selection-change evt)
+    (let ((tree (get-sender~ evt)))
+      (let ((selection (get-single-selection~ tree)))
+        (let ((row (get-row~ tree selection)))
+          (let ((remote (get-user-data~ row)))
+            (bind (title dirname remote branch) remote
+              (define (change-remote)
+                (jiri-app-remote remote)
+                (jiri-app-branch branch)
+                (jiri-app-dir (string-append "app/" dirname)))
+              
+              (if (eq? pull-in-progress 'app)
+                  (set-abort-requested change-remote)
+                (change-remote)))))))))
+
+
 (definition public remotes-view
   (new Jiri-Remotes
     background: {Color Black alpha: 0.2}
@@ -314,6 +333,25 @@
   (set-cursor :wait)
   (delegate-process (app-exe))
   (quit-callback))
+
+
+;;;
+;;;; Abort
+;;;
+
+
+(define abort-requested
+  #f)
+
+
+(definition public (set-abort-requested abort)
+  (set! abort-requested abort))
+
+
+(definition protected (safe-abort-point cleanup)
+  (when abort-requested
+    (cleanup)
+    (abort-requested)))
 
 
 ;;;
