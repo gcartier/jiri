@@ -54,7 +54,10 @@
     (when (jiri-process-name)
       (current-process-name-set! (jiri-process-name)))
     (when (jiri-snapshots-directory)
-      (snapshots-directory (jiri-snapshots-directory))))
+      (snapshots-directory (jiri-snapshots-directory)))
+    (unless kernel-source-accessible?
+      (set-exception-debugger (application-exception-debugger))
+      (set-exception-hook exception-debugger-hook)))
   
   
   (method override (finish-process)
