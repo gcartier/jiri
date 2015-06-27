@@ -37,6 +37,9 @@
 (define TEST?
   #t)
 
+(define INSTALL?
+  #f)
+
 
 (define stage
   #f)
@@ -282,13 +285,14 @@
   (let ((remotes (jiri-app-remotes))
         (default (jiri-app-default)))
     (when remotes
+      (assert default)
       (add-view remotes-view)
       (let ((tree (locate~ remotes-view 'tree)))
         (for-each (lambda (env)
                     (add-row~ tree children: (list (new Tree-Node title: (car env))) user-data: env))
                   remotes)
-        (when default
-          (select-user-data-row~ tree (assoc default remotes))))))
+        (let ((default-remote (assoc default remotes)))
+          (select-user-data-row~ tree default-remote)))))
   (add-view percentage-view)
   (add-view downloaded-view)
   (add-view status-view)
@@ -336,4 +340,5 @@
 
 (set-startup
   (lambda ()
-    (install))))
+    (when (or INSTALL? (not kernel-source-accessible?))
+      (install)))))
