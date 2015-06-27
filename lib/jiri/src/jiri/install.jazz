@@ -308,7 +308,7 @@
   (when (neq? stage 'install-from-root)
     (set-title~ downloaded-view (string-append "Downloaded: " (number->string work-downloaded) "M"))
     (set-title~ status-view (downloading-title (jiri-app-title) 3 6))
-    (set-info~ progress-view (new Range .1 .4) (new Range 0 10)))
+    (set-info~ progress-view (new Range (first (jiri-app-limits)) (third (jiri-app-limits))) (new Range 0 10)))
   (update-percentage)
   (set-return-callback
     (lambda ()
