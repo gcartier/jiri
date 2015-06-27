@@ -104,7 +104,7 @@
 
 
 (define (install-from-root)
-  (pull-repository (jiri-install-title) (jiri-install-remote) (jiri-install-branch) (current-password) (install-dir) 1 6 0. .05 .1
+  (pull-repository (jiri-install-title) (jiri-install-remote) (jiri-install-branch) (current-password) (install-dir) 1 6 (jiri-install-limits)
     (lambda (new-content?)
       (if new-content?
           (delegate-install (current-root-dir) (current-password) "current")
@@ -137,13 +137,13 @@
 
 
 (define (install-application/world cont)
-  (pull-repository (jiri-app-title) (jiri-app-remote) (jiri-app-branch) (current-password) (app-dir) 3 6 .1 .2 .4
+  (pull-repository (jiri-app-title) (jiri-app-remote) (jiri-app-branch) (current-password) (app-dir) 3 6 (jiri-app-limits)
     (lambda (new-content?)
       (cond ((world-dir)
-             (pull-repository (jiri-world-title) (jiri-world-remote) (jiri-world-branch) (current-password) (world-dir) 5 6 .4 .85 1.
+             (pull-repository (jiri-world-title) (jiri-world-remote) (jiri-world-branch) (current-password) (world-dir) 5 6 (jiri-world-limits)
                cont))
             ((jiri-world-work)
-             ((jiri-world-work) 5 6 .4 .85 1. cont))))))
+             ((jiri-world-work) 5 6 (jiri-world-limits) cont))))))
 
 
 ;;;

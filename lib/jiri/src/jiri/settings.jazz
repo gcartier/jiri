@@ -102,6 +102,9 @@
 (define-jiri jiri-install-title
   "launcher")
 
+(define-jiri jiri-install-limits
+  (list 0. .05 .1))
+
 (define-jiri jiri-install-remote
   #f)
 
@@ -123,6 +126,9 @@
 (define-jiri jiri-update-title
   "launcher")
 
+(define-jiri jiri-update-limits
+  (list 0. .05 .1))
+
 (define-jiri jiri-update-remote
   #f)
 
@@ -143,6 +149,9 @@
 
 (define-jiri jiri-app-title
   "application")
+
+(define-jiri jiri-app-limits
+  (list .1 .2 .4))
 
 (define-jiri jiri-app-remotes
   #f)
@@ -167,6 +176,9 @@
 
 (define-jiri jiri-world-title
   "world")
+
+(define-jiri jiri-world-limits
+  (list .4 .85 1.))
 
 (define-jiri jiri-world-remote
   #f)

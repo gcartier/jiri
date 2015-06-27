@@ -152,7 +152,7 @@
 
 
 (define (setup-work)
-  (pull-repository (jiri-install-title) (jiri-install-remote) (jiri-install-branch) (current-password) (install-dir) 1 6 0. .05 .1
+  (pull-repository (jiri-install-title) (jiri-install-remote) (jiri-install-branch) (current-password) (install-dir) 1 6 (jiri-install-limits)
     (lambda (new-content?)
       (setup-done))))
 
