@@ -39,7 +39,7 @@
 ;;;
 
 
-(definition public (pull-repository title url branch password dir step of limits cont (remote-exception? #f))
+(definition public (pull-repository name title url branch password dir step of limits cont (remote-exception? #f))
   (define (open/init-repository proc)
     (let ((existing? (file-exists? dir)))
       (cond (existing?
@@ -57,6 +57,7 @@
   
   (set-cursor :wait)
   (set-work-in-progress? #t)
+  (set-pull-in-progress name)
   (set-title~ status-view (downloading-title title step of))
   (git-callback-hwnd (get-handle~ (get-toplevel)))
   (open/init-repository

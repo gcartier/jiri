@@ -99,6 +99,9 @@
 ;;;
 
 
+(define-jiri jiri-install-name
+  'install)
+
 (define-jiri jiri-install-title
   "launcher")
 
@@ -123,6 +126,9 @@
 ;;;
 
 
+(define-jiri jiri-update-name
+  'update)
+
 (define-jiri jiri-update-title
   "launcher")
 
@@ -146,6 +152,9 @@
 ;;;; App
 ;;;
 
+
+(define-jiri jiri-app-name
+  'app)
 
 (define-jiri jiri-app-title
   "application")
@@ -173,6 +182,9 @@
 ;;;; World
 ;;;
 
+
+(define-jiri jiri-world-name
+  'world)
 
 (define-jiri jiri-world-title
   "world")

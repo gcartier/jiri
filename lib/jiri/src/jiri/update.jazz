@@ -117,7 +117,7 @@
                  (add-stage-view (string-append "Failed to install " (game-string) (debug-info)) stage-setup-color)
                (add-stage-view (string-append "Failed to update " (game-string) (debug-info)) stage-setup-color)
                (set-enabled?~ play-view #t)))
-      (pull-repository (jiri-update-title) (jiri-update-remote) (jiri-update-branch) (current-password) (update-dir) 1 6 (jiri-update-limits)
+      (pull-repository (jiri-update-name) (jiri-update-title) (jiri-update-remote) (jiri-update-branch) (current-password) (update-dir) 1 6 (jiri-update-limits)
         (lambda (new-content?)
           (if new-content?
               (delegate-update (current-root-dir) (current-password) "launch" update-new?)
@@ -210,10 +210,10 @@
 
 (define (update-application/world limits cont)
   (add-stage-view (string-append "Updating " (game-string)) (determine-stage-color (app-dir)))
-  (pull-repository (jiri-app-title) (jiri-app-remote) (jiri-app-branch) (current-password) (app-dir) 3 6 (jiri-app-limits)
+  (pull-repository (jiri-app-name) (jiri-app-title) (jiri-app-remote) (jiri-app-branch) (current-password) (app-dir) 3 6 (jiri-app-limits)
     (lambda (new-content?)
       (add-stage-view (string-append "Updating " (jiri-world-title)) (determine-stage-color (world-dir)))
-      (pull-repository (jiri-world-title) (jiri-world-remote) (jiri-world-branch) (current-password) (world-dir) 5 6 (jiri-world-limits)
+      (pull-repository (jiri-world-name) (jiri-world-title) (jiri-world-remote) (jiri-world-branch) (current-password) (world-dir) 5 6 (jiri-world-limits)
         cont))))
 
 
