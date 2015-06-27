@@ -105,7 +105,7 @@
 (define (update-at-launch)
   (current-root-dir kernel-bundle-root)
   (let ((update-new? (not (file-exists? (update-dir)))))
-    (add-stage-view "Updating launcher" (determine-stage-color (update-dir)))
+    (add-stage-view (string-append "Updating " (jiri-update-title)) (determine-stage-color (update-dir)))
     (catch (Git-Exception exc
              (define (debug-info)
                (if (jiri-development?)
@@ -114,10 +114,10 @@
              
              (if (or (not (file-exists? (app-dir)))
                      (not (file-exists? (world-dir))))
-                 (add-stage-view (format "Failed to install {a}{a}" (game-string) (debug-info)) stage-setup-color)
-               (add-stage-view (format "Failed to update {a}{a}" (game-string) (debug-info)) stage-setup-color)
+                 (add-stage-view (string-append "Failed to install " (game-string) (debug-info)) stage-setup-color)
+               (add-stage-view (string-append "Failed to update " (game-string) (debug-info)) stage-setup-color)
                (set-enabled?~ play-view #t)))
-      (pull-repository "launcher" (jiri-update-remote) (jiri-update-branch) (current-password) (update-dir) 1 6 0. .05 .1
+      (pull-repository (jiri-update-title) (jiri-update-remote) (jiri-update-branch) (current-password) (update-dir) 1 6 0. .05 .1
         (lambda (new-content?)
           (if new-content?
               (delegate-update (current-root-dir) (current-password) "launch" update-new?)
@@ -149,8 +149,8 @@
 
 
 (define (update-at-update)
-  (add-stage-view "Updating launcher" (if (was-update-new?) stage-setup-color stage-install-color))
-  (set-title~ status-view (updating-title "launcher" 1 6))
+  (add-stage-view (string-append "Updating " (jiri-update-title)) (if (was-update-new?) stage-setup-color stage-install-color))
+  (set-title~ status-view (updating-title (jiri-update-title) 1 6))
   (thread-start!
     (make-thread
       (lambda ()
@@ -210,10 +210,10 @@
 
 (define (update-application/world head mid tail cont)
   (add-stage-view (string-append "Updating " (game-string)) (determine-stage-color (app-dir)))
-  (pull-repository (game-string) (jiri-app-remote) (jiri-app-branch) (current-password) (app-dir) 3 6 .1 .2 .4
+  (pull-repository (jiri-app-title) (jiri-app-remote) (jiri-app-branch) (current-password) (app-dir) 3 6 .1 .2 .4
     (lambda (new-content?)
-      (add-stage-view "Updating world" (determine-stage-color (world-dir)))
-      (pull-repository "world" (jiri-world-remote) (jiri-world-branch) (current-password) (world-dir) 5 6 .4 .85 1.
+      (add-stage-view (string-append "Updating " (jiri-world-title)) (determine-stage-color (world-dir)))
+      (pull-repository (jiri-world-title) (jiri-world-remote) (jiri-world-branch) (current-password) (world-dir) 5 6 .4 .85 1.
         cont))))
 
 
@@ -254,7 +254,7 @@
   ;; mimick launcher state
   (when (eq? stage 'update)
     (set-title~ downloaded-view (string-append "Downloaded: " (number->string work-downloaded) "M"))
-    (set-title~ status-view (installing-title "launcher" 1 6))
+    (set-title~ status-view (installing-title (jiri-update-title) 1 6))
     (set-info~ progress-view (new Range 0. .1) (new Range 1 6))
     (set-done~ progress-view))
   (update-percentage)

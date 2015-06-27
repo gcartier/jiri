@@ -104,7 +104,7 @@
 
 
 (define (install-from-root)
-  (pull-repository "launch" (jiri-install-remote) (jiri-install-branch) (current-password) (install-dir) 1 6 0. .05 .1
+  (pull-repository (jiri-install-title) (jiri-install-remote) (jiri-install-branch) (current-password) (install-dir) 1 6 0. .05 .1
     (lambda (new-content?)
       (if new-content?
           (delegate-install (current-root-dir) (current-password) "current")
@@ -137,10 +137,10 @@
 
 
 (define (install-application/world cont)
-  (pull-repository "application" (jiri-app-remote) (jiri-app-branch) (current-password) (app-dir) 3 6 .1 .2 .4
+  (pull-repository (jiri-app-title) (jiri-app-remote) (jiri-app-branch) (current-password) (app-dir) 3 6 .1 .2 .4
     (lambda (new-content?)
       (cond ((world-dir)
-             (pull-repository "world" (jiri-world-remote) (jiri-world-branch) (current-password) (world-dir) 5 6 .4 .85 1.
+             (pull-repository (jiri-world-title) (jiri-world-remote) (jiri-world-branch) (current-password) (world-dir) 5 6 .4 .85 1.
                cont))
             ((jiri-world-work)
              ((jiri-world-work) 5 6 .4 .85 1. cont))))))
@@ -307,7 +307,7 @@
     (add-stage-view (string-append "Updating " (game-string)) stage-install-color))
   (when (neq? stage 'install-from-root)
     (set-title~ downloaded-view (string-append "Downloaded: " (number->string work-downloaded) "M"))
-    (set-title~ status-view (downloading-title "application" 3 6))
+    (set-title~ status-view (downloading-title (jiri-app-title) 3 6))
     (set-info~ progress-view (new Range .1 .4) (new Range 0 10)))
   (update-percentage)
   (set-return-callback

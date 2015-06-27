@@ -99,6 +99,9 @@
 ;;;
 
 
+(define-jiri jiri-install-title
+  "launcher")
+
 (define-jiri jiri-install-remote
   #f)
 
@@ -117,6 +120,9 @@
 ;;;
 
 
+(define-jiri jiri-update-title
+  "launcher")
+
 (define-jiri jiri-update-remote
   #f)
 
@@ -134,6 +140,9 @@
 ;;;; App
 ;;;
 
+
+(define-jiri jiri-app-title
+  "application")
 
 (define-jiri jiri-app-remotes
   #f)
@@ -155,6 +164,9 @@
 ;;;; World
 ;;;
 
+
+(define-jiri jiri-world-title
+  "world")
 
 (define-jiri jiri-world-remote
   #f)
