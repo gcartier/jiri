@@ -43,13 +43,17 @@
   
   (method override (process-name)
     "Jiri")
+  
+  
+  (method override (process-email)
+    "gucartier@gmail.com")
 
 
   (method override (new-toplevel)
     (new Jiri-Toplevel))
   
   
-  (method override (prepare-process)
+  (method override (prepare-settings)
     (nextmethod)
     (when (jiri-process-name)
       (current-process-name-set! (jiri-process-name)))
