@@ -65,14 +65,13 @@
       (lambda (cancel)
         (validate-password cancel)
         (remove-view setup-view)
+        (add-stage-view "Setup in progress" stage-setup-color)
         (add-view percentage-view)
         (add-view downloaded-view)
         (add-view status-view)
         (add-view remaining-view)
         (add-view progress-view)
         (add-view play-view)
-        (add-stage-view "Setup in progress" stage-setup-color)
-        (update-percentage)
         (setup-work)))))
 
 
@@ -134,7 +133,7 @@
         (dynamic-wind
           (lambda ()
             (set! repo (git-repository-init dir))
-            (set! remote (git-remote-create repo "origin" (jiri-install-remote))))
+            (set! remote (git-remote-create repo "origin" (get-url~ (get-connection~ (jiri-install-section))))))
           (lambda ()
             (git-remote-connect-with-retries remote cancel))
           (lambda ()
@@ -152,7 +151,7 @@
 
 
 (define (setup-work)
-  (pull-repository (jiri-install-name) (jiri-install-title) (jiri-install-remote) (jiri-install-branch) (current-password) (install-dir) 1 6 (jiri-install-limits)
+  (pull-repository (jiri-install-section) (current-password) (install-dir)
     (lambda (new-content?)
       (setup-done))))
 

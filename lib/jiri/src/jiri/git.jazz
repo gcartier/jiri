@@ -67,9 +67,9 @@
         ReleaseMutex(mutex);
     }
     
-    void post_notification(int what, int result)
+    void post_notification(int id, int what, int result)
     {
-        PostMessage(hwnd, WM_USER, what, result);
+        PostMessage(hwnd, WM_USER, id, MAKELPARAM(what, result));
     }
 //#)
 
@@ -110,7 +110,7 @@
         pthread_mutex_unlock(&mutex);
     }
     
-    void post_notification(int what, int result)
+    void post_notification(int id, int what, int result)
     {
         NSEvent* event = [NSEvent otherEventWithType:NSApplicationDefined
                                             location:NSMakePoint(0, 0)
@@ -137,7 +137,6 @@
     #define DOWNLOAD_DONE     1
     #define CHECKOUT_PROGRESS 2
     #define CHECKOUT_DONE     3
-    #define UPDATING_GAME     5
 //#)
 
 
@@ -145,7 +144,6 @@
 (c-enumerant DOWNLOAD_DONE)
 (c-enumerant CHECKOUT_PROGRESS)
 (c-enumerant CHECKOUT_DONE)
-(c-enumerant UPDATING_GAME)
 
 
 (c-external (git-lock-mutex) void
@@ -173,62 +171,73 @@
 
 
 (c-declare jiri.git #/C/
+    #define MAX_CONNECTIONS 16
+    
     git_repository* checkout_repository = NULL;
     
-    char* checkout_path = NULL;
-    size_t checkout_completed_steps = 0;
-    size_t checkout_total_steps = 0;
+    struct CheckoutInfo
+    {
+        char* checkout_path;
+        size_t checkout_completed_steps;
+        size_t checkout_total_steps;
+    };
+    
+    struct CheckoutInfo checkoutInfos[MAX_CONNECTIONS];
 //#)
 
-(git-external (git-checkout-path) char-string
+(git-external (git-checkout-path int) char-string
   #/C/
-    ___result = checkout_path;
+    ___result = checkoutInfos[___arg1].checkout_path;
 //#)
 
-(git-external (git-checkout-completed-steps) int
+(git-external (git-checkout-completed-steps int) int
   #/C/
-    ___result = checkout_completed_steps;
+    ___result = checkoutInfos[___arg1].checkout_completed_steps;
 //#)
 
-(git-external (git-checkout-total-steps) int
+(git-external (git-checkout-total-steps int) int
   #/C/
-    ___result = checkout_total_steps;
+    ___result = checkoutInfos[___arg1].checkout_total_steps;
 //#)
 
-(definition public (git-checkout-state proc)
+(definition public (git-checkout-state id proc)
   (git-lock-mutex)
-  (let ((path (git-checkout-path))
-        (completed-steps (git-checkout-completed-steps))
-        (total-steps (git-checkout-total-steps)))
+  (let ((path (git-checkout-path id))
+        (completed-steps (git-checkout-completed-steps id))
+        (total-steps (git-checkout-total-steps id)))
     (git-unlock-mutex)
     (proc path completed-steps total-steps)))
 
 (c-declare jiri.git #/C/
     void checkout_callback(const char *path, size_t completed_steps, size_t total_steps, void *payload)
     {
+        int id = (int) payload;
         lock_mutex();
-        checkout_path = (char*) path;
-        checkout_completed_steps = completed_steps;
-        checkout_total_steps = total_steps;
+        checkoutInfos[id].checkout_path = (char*) path;
+        checkoutInfos[id].checkout_completed_steps = completed_steps;
+        checkoutInfos[id].checkout_total_steps = total_steps;
         unlock_mutex();
-        post_notification(CHECKOUT_PROGRESS, 0);
+        post_notification(id, CHECKOUT_PROGRESS, 0);
     }
 
     THREADPROC(checkout_head_proc, payload)
     {
+        int id = (int) payload;
         git_checkout_options options = GIT_CHECKOUT_OPTIONS_INIT;
         options.checkout_strategy = GIT_CHECKOUT_FORCE;
         options.progress_cb = checkout_callback;
+        options.progress_payload = payload;
         int result = git_checkout_head(checkout_repository, &options);
-        post_notification(CHECKOUT_DONE, result);
+        post_notification(id, CHECKOUT_DONE, result);
         return 0;
     }
 //#)
 
-(git-external (git-checkout-head-force-threaded git_repository*) void
+(git-external (git-checkout-head-force-threaded int git_repository*) void
   #/C/
-    checkout_repository = ___arg1;
-    create_thread(&checkout_head_proc, NULL);
+    int id = ___arg1;
+    checkout_repository = ___arg2;
+    create_thread(&checkout_head_proc, (void*) id);
 //#)
 
 (c-declare jiri.git #/C/
@@ -237,20 +246,26 @@
     
     THREADPROC(reset_hard_proc, payload)
     {
+        int id = (int) payload;
         git_checkout_options options = GIT_CHECKOUT_OPTIONS_INIT;
         options.checkout_strategy = GIT_CHECKOUT_FORCE;
         options.progress_cb = checkout_callback;
+        options.progress_payload = payload;
         int result = git_reset(reset_repository, reset_commit, GIT_RESET_HARD, &options);
-        post_notification(CHECKOUT_DONE, result);
+        post_notification(id, CHECKOUT_DONE, result);
         return 0;
     }
 //#)
 
-(git-external (git-reset-hard-threaded git_repository* git_object*) void
+(git-external (git-reset-hard-threaded int git_repository* git_object*) void
   #/C/
-    reset_repository = ___arg1;
-    reset_commit = ___arg2;
-    create_thread(&reset_hard_proc, NULL);
+    int id = ___arg1;
+    checkoutInfos[id].checkout_path = NULL;
+    checkoutInfos[id].checkout_completed_steps = 0;
+    checkoutInfos[id].checkout_total_steps = 0;
+    reset_repository = ___arg2;
+    reset_commit = ___arg3;
+    create_thread(&reset_hard_proc, (void*) id);
 //#)
 
 
@@ -260,49 +275,56 @@
 
 
 (c-declare jiri.git #/C/
-    unsigned int total_objects = 0;
-    unsigned int received_objects = 0;
-    size_t received_bytes = 0;
+    struct DownloadInfo
+    {
+        git_remote* remote;
+        unsigned int total_objects;
+        unsigned int received_objects;
+        size_t received_bytes;
+    };
+    
+    struct DownloadInfo downloadInfos[MAX_CONNECTIONS];
 //#)
 
-(git-external (git-remote-download-total-objects) int
+(git-external (git-remote-download-total-objects int) int
   #/C/
-    ___result = total_objects;
+    ___result = downloadInfos[___arg1].total_objects;
 //#)
 
-(git-external (git-remote-download-received-objects) int
+(git-external (git-remote-download-received-objects int) int
   #/C/
-    ___result = received_objects;
+    ___result = downloadInfos[___arg1].received_objects;
 //#)
 
-(git-external (git-remote-download-received-bytes) int
+(git-external (git-remote-download-received-bytes int) int
   #/C/
-    ___result = received_bytes;
+    ___result = downloadInfos[___arg1].received_bytes;
 //#)
 
-(definition public (git-download-state proc)
+(definition public (git-download-state id proc)
   (git-lock-mutex)
-  (let ((total-objects (git-remote-download-total-objects))
-        (received-objects (git-remote-download-received-objects))
-        (received-bytes (git-remote-download-received-bytes)))
+  (let ((total-objects (git-remote-download-total-objects id))
+        (received-objects (git-remote-download-received-objects id))
+        (received-bytes (git-remote-download-received-bytes id)))
     (git-unlock-mutex)
     (proc total-objects received-objects received-bytes)))
 
 (c-declare jiri.git #/C/
     int remote_download_callback(const git_transfer_progress *stats, void *payload)
     {
+        int id = (int) payload;
         bool abort;
       
         lock_mutex();
         abort = abortRequested;
-        total_objects = stats->total_objects;
-        received_objects = stats->received_objects;
-        received_bytes = stats->received_bytes;
+        downloadInfos[id].total_objects = stats->total_objects;
+        downloadInfos[id].received_objects = stats->received_objects;
+        downloadInfos[id].received_bytes = stats->received_bytes;
         unlock_mutex();
         
         if (! abort)
         {
-            post_notification(DOWNLOAD_PROGRESS, 0);
+            post_notification(id, DOWNLOAD_PROGRESS, 0);
             return 0;
         }
         else
@@ -311,17 +333,24 @@
 
     THREADPROC(remote_download_proc, payload)
     {
-        git_remote* remote = (git_remote*) payload;
+        int id = (int) payload;
+        git_remote* remote = downloadInfos[id].remote;
         git_remote_callbacks callbacks = GIT_REMOTE_CALLBACKS_INIT;
         callbacks.transfer_progress = remote_download_callback;
+        callbacks.payload = payload;
         git_remote_set_callbacks(remote, &callbacks);
         int result = git_remote_download(remote, NULL);
-        post_notification(DOWNLOAD_DONE, result);
+        post_notification(id, DOWNLOAD_DONE, result);
         return 0;
     }
 //#)
 
-(git-external (git-remote-download-threaded git_remote*) void
+(git-external (git-remote-download-threaded int git_remote*) void
   #/C/
-    create_thread(&remote_download_proc, ___arg1);
+    int id = ___arg1;
+    downloadInfos[id].remote = ___arg2;
+    downloadInfos[id].total_objects = 0;
+    downloadInfos[id].received_objects = 0;
+    downloadInfos[id].received_bytes = 0;
+    create_thread(&remote_download_proc, (void*) id);
 //#))

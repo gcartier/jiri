@@ -1,0 +1,84 @@
+;;;==============
+;;;  JiriScheme
+;;;==============
+;;;
+;;;; Jiri Task
+;;;
+;;;  The Initial Developer of the Original Code is Guillaume Cartier.
+;;;  Portions created by the Initial Developer are Copyright (C) 1996-2015
+;;;  the Initial Developer. All Rights Reserved.
+;;;
+;;;  Contributor(s):
+;;;
+;;;  See www.jazzscheme.org for details.
+
+
+(module jiri.task jazz
+
+
+(definition task-invalidater
+  #f)
+
+(definition protected (set-task-invalidater proc)
+  (set! task-invalidater proc))
+
+
+(class Jiri-Task extends Object
+  
+  
+  (slot status     initialize #f  accessors generate)
+  (slot part       initialize #f  getter generate)
+  (slot range      initialize #f  getter generate setter explicit)
+  (slot pos        initialize #f  getter generate setter explicit)
+  (slot downloaded initialize #f  getter generate setter explicit)
+  (slot remaining  initialize #f  getter generate setter explicit)
+  (slot children   initialize '() accessors generate)
+  
+  
+  (method override (initialize (part: part #f))
+    (set! part~self part))
+  
+  
+  (method override (print output readably)
+    (print-unreadable self output
+      (lambda (output)
+        (format output "{s}" status))))
+  
+  
+  (method public (set-range range)
+    (set! range~self range)
+    (set! pos~self (get-start~ range)))
+  
+  
+  (method public (set-pos pos)
+    (set! pos~self pos)
+    (task-invalidater self))
+  
+  
+  (method public (done?)
+    (and range pos (= pos (get-end~ range))))
+  
+  
+  (method public (set-done)
+    (set-pos (get-end~ range)))
+  
+  
+  (method public (progress-done)
+    (if (and range pos)
+        (/ (fixnum->flonum (- pos (get-start~ range))) (fixnum->flonum (extent~ range)))
+      0.))
+  
+  
+  (method public (set-downloaded value)
+    (set! downloaded value)
+    (task-invalidater self))
+  
+  
+  (method public (set-remaining value)
+    (set! remaining value)
+    (task-invalidater self))
+  
+  
+  (method public (add-child child)
+    (set! children (append children (list child)))
+    child)))

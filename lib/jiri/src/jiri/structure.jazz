@@ -17,6 +17,7 @@
 
 
 (import (jiri.base)
+        (jiri.manage)
         (jiri.settings)
         (jiri.syntax (phase syntax)))
 
@@ -37,19 +38,19 @@
 
 
 (definition public (app-dir)
-  (string-append (current-root-dir) (normalize-directory (jiri-app-dir))))
+  (string-append (current-root-dir) (normalize-directory (get-dir~ (get-connection~ (jiri-app-section))))))
 
 (definition public (install-dir)
-  (string-append (current-root-dir) (normalize-directory (jiri-install-dir))))
+  (string-append (current-root-dir) (normalize-directory (get-dir~ (get-connection~ (jiri-install-section))))))
 
 (definition public (update-dir)
-  (string-append (current-root-dir) (normalize-directory (jiri-update-dir))))
+  (string-append (current-root-dir) (normalize-directory (get-dir~ (get-connection~ (jiri-update-section))))))
+
+(definition public (world-dir)
+  (and (jiri-world-section) (string-append (current-root-dir) (normalize-directory (get-dir~ (get-connection~ (jiri-world-section)))))))
 
 (definition public (current-dir)
   (string-append (current-root-dir) (normalize-directory (jiri-current-dir))))
-
-(definition public (world-dir)
-  (and (jiri-world-dir) (string-append (current-root-dir) (normalize-directory (jiri-world-dir)))))
 
 (definition public (root-exe)
   (add-extension (string-append (current-root-dir) (jiri-application)) (executable-extension kernel-platform)))
@@ -120,13 +121,6 @@
   (set! work-downloaded value))
 
 
-(definition public pull-in-progress
-  #f)
-
-(definition public (set-pull-in-progress value)
-  (set! pull-in-progress value))
-
-
 (definition public send-ready?
   #f)
 
@@ -151,7 +145,7 @@
   (setenv "root-dir" root-dir)
   (setenv "password" (or password ""))
   (setenv "called-from" called-from)
-  (setenv "work-downloaded" (number->string work-downloaded))
+  (setenv "work-downloaded" (number->string (or (calculate-downloaded) 0)))
   (let ((pos (get-position~ (jazz.system:get-toplevel))))
     (setenv "window-h" (number->string (get-h~ pos)))
     (setenv "window-v" (number->string (get-v~ pos))))

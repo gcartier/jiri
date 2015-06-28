@@ -37,7 +37,7 @@
 (define TEST?
   #t)
 
-(define INSTALL?
+(define TEST-INSTALL?
   #t)
 
 
@@ -107,7 +107,7 @@
 
 
 (define (install-from-root)
-  (pull-repository (jiri-install-name) (jiri-install-title) (jiri-install-remote) (jiri-install-branch) (current-password) (install-dir) 1 6 (jiri-install-limits)
+  (pull-repository (jiri-install-section) (current-password) (install-dir)
     (lambda (new-content?)
       (if new-content?
           (delegate-install (current-root-dir) (current-password) "current")
@@ -140,13 +140,13 @@
 
 
 (define (install-application/world cont)
-  (pull-repository (jiri-app-name) (jiri-app-title) (jiri-app-remote) (jiri-app-branch) (current-password) (app-dir) 3 6 (jiri-app-limits)
+  (pull-repository (jiri-app-section) (current-password) (app-dir)
     (lambda (new-content?)
       (cond ((world-dir)
-             (pull-repository (jiri-world-name) (jiri-world-title) (jiri-world-remote) (jiri-world-branch) (current-password) (world-dir) 5 6 (jiri-world-limits)
+             (pull-repository (jiri-world-section) (current-password) (world-dir)
                cont))
             ((jiri-world-work)
-             ((jiri-world-work) 5 6 (jiri-world-limits) cont))))))
+             ((jiri-world-work) (jiri-world-section) 5 6 cont))))))
 
 
 ;;;
@@ -158,7 +158,6 @@
   (set-title~ stage-view (or (jiri-play-ready) "Ready to play!"))
   (set-color~ stage-view stage-ready-color)
   (set-title~ status-view "Done")
-  (set-enabled?~ play-view #t)
   (set-cursor :arrow)
   (set-work-in-progress? #f)
   (set-work-done? #t))
@@ -282,38 +281,42 @@
     (add-view close-view))
   (when minimize-view
     (add-view minimize-view))
-  (let ((remotes (jiri-app-remotes))
-        (default (jiri-app-default)))
-    (when remotes
-      (assert default)
-      (add-view remotes-view)
-      (let ((tree (locate~ remotes-view 'tree)))
-        (for-each (lambda (env)
-                    (add-row~ tree children: (list (new Tree-Node title: (car env))) user-data: env))
-                  remotes)
-        (let ((default-remote (assoc default remotes)))
-          (select-user-data-row~ tree default-remote)))))
+  (let ((section (jiri-app-section)))
+    (let ((connections (get-connections~ section))
+          (default (get-default~ section)))
+      (when connections
+        (assert default)
+        (add-view connections-view)
+        (set-connection-change
+          (lambda (connection)
+            (set-connection~ (jiri-app-section) connection)))
+        (let ((tree (locate~ connections-view 'tree)))
+          (for-each (lambda (connection)
+                      (add-row~ tree children: (list (new Tree-Node title: (get-title~ connection))) user-data: connection))
+                    connections)
+          (let ((default-connection (find connections default key: get-title~ test: equal? return: 'item)))
+            (select-user-data-row~ tree default-connection)))
+        (set-connection-change
+          (lambda (connection)
+            (set-connection~ (jiri-app-section) connection)
+            (unless (get-work?~ connection)
+              (pull-repository (jiri-app-section) (current-password) (app-dir)
+                (lambda (new-content?)
+                  ))))))))
+  (if (eq? stage 'install-from-setup)
+      (add-stage-view "Setup successful!" stage-install-color)
+    (add-stage-view (string-append "Updating " (game-string)) stage-install-color))
   (add-view percentage-view)
   (add-view downloaded-view)
   (add-view status-view)
   (add-view remaining-view)
   (add-view progress-view)
   (add-view play-view)
-  (if (eq? stage 'install-from-setup)
-      (begin
-        (add-stage-view "Setup successful!" stage-install-color)
-        @convert
-        (thread-start!
-          (make-thread
-            (lambda ()
-              (thread-sleep! 2.5)
-              (PostMessage (window-handle current-window) WM_USER UPDATING_GAME 0)))))
-    (add-stage-view (string-append "Updating " (game-string)) stage-install-color))
   (when (neq? stage 'install-from-root)
-    (set-title~ downloaded-view (string-append "Downloaded: " (number->string work-downloaded) "M"))
-    (set-title~ status-view (downloading-title (jiri-app-title) 3 6))
-    (set-info~ progress-view (new Range (first (jiri-app-limits)) (third (jiri-app-limits))) (new Range 0 10)))
-  (update-percentage)
+    ;;convert-to-task(set-title~ downloaded-view (string-append "Downloaded: " (number->string work-downloaded) "M"))
+    ;;convert-to-task(set-title~ status-view (downloading-title (get-title~ (jiri-app-section)) 3 6))
+    ;;convert-to-task(set-info~ progress-view (new Range (first (get-limits~ (jiri-app-section))) (third (get-limits~ (jiri-app-section)))) (new Range 0 10))
+    )
   (set-return-callback
     (lambda ()
       (when work-done?
@@ -340,5 +343,5 @@
 
 (set-startup
   (lambda ()
-    (when (or INSTALL? (not kernel-source-accessible?))
+    (when (or TEST-INSTALL? (not kernel-source-accessible?))
       (install)))))

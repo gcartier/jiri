@@ -99,22 +99,7 @@
 ;;;
 
 
-(define-jiri jiri-install-name
-  'install)
-
-(define-jiri jiri-install-title
-  "launcher")
-
-(define-jiri jiri-install-limits
-  (list 0. .05 .1))
-
-(define-jiri jiri-install-remote
-  #f)
-
-(define-jiri jiri-install-branch
-  #f)
-
-(define-jiri jiri-install-dir
+(define-jiri jiri-install-section
   #f)
 
 (define-jiri jiri-current-dir
@@ -126,22 +111,7 @@
 ;;;
 
 
-(define-jiri jiri-update-name
-  'update)
-
-(define-jiri jiri-update-title
-  "launcher")
-
-(define-jiri jiri-update-limits
-  (list 0. .05 .1))
-
-(define-jiri jiri-update-remote
-  #f)
-
-(define-jiri jiri-update-branch
-  #f)
-
-(define-jiri jiri-update-dir
+(define-jiri jiri-update-section
   #f)
 
 (define-jiri jiri-update-exe
@@ -153,28 +123,7 @@
 ;;;
 
 
-(define-jiri jiri-app-name
-  'app)
-
-(define-jiri jiri-app-title
-  "application")
-
-(define-jiri jiri-app-limits
-  (list .1 .2 .4))
-
-(define-jiri jiri-app-remotes
-  #f)
-
-(define-jiri jiri-app-default
-  #f)
-
-(define-jiri jiri-app-remote
-  #f)
-
-(define-jiri jiri-app-branch
-  #f)
-
-(define-jiri jiri-app-dir
+(define-jiri jiri-app-section
   #f)
 
 
@@ -183,25 +132,19 @@
 ;;;
 
 
-(define-jiri jiri-world-name
-  'world)
-
-(define-jiri jiri-world-title
-  "world")
-
-(define-jiri jiri-world-limits
-  (list .4 .85 1.))
-
-(define-jiri jiri-world-remote
-  #f)
-
-(define-jiri jiri-world-branch
-  #f)
-
-(define-jiri jiri-world-dir
+(define-jiri jiri-world-section
   #f)
 
 (define-jiri jiri-world-work
+  #f)
+
+
+;;;
+;;;; Manager
+;;;
+
+
+(define-jiri jiri-manager
   #f)
 
 

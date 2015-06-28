@@ -5,6 +5,7 @@
                   (unit jiri.product)
                   (update jiri.appl
                           jiri.base
+                          jiri.connection
                           jiri.debug
                           jiri.font
                           jiri.git
@@ -13,14 +14,18 @@
                             (windows jiri.install))
                           (cond
                             (windows jiri.launch))
+                          jiri.manage
+                          jiri.manager
                           jiri.pane
                           jiri.platform
                           jiri.product
                           jiri.run
+                          jiri.section
                           jiri.settings
                           (cond
                             (windows jiri.setup))
                           jiri.structure
+                          jiri.task
                           (cond
                             (windows jiri.uninstall))
                           (cond

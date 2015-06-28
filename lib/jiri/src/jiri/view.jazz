@@ -27,6 +27,7 @@
         (jazz.ui.view)
         (jazz.ui.window)
         (jiri.font)
+        (jiri.manage)
         (jiri.settings)
         (jiri.window))
 
@@ -292,75 +293,26 @@
 
 
 (class Jiri-Progress extends View
-
-
-  (property section initialize #f accessors generate)
-  (property range   initialize #f accessors generate)
-  (property pos     initialize #f getter generate setter explicit)
   
   
   (method override (draw surface context)
     (let ((rect (get-bounds)))
+      (fill-rect~ surface rect {Color White})
       (let ((left (get-left~ rect))
             (top (get-top~ rect))
             (right (get-right~ rect))
-            (bottom (get-bottom~ rect)))
-        (fill-rect~ surface rect {Color White})
-        (let ((start (get-start~ range))
-              (end (get-end~ range))
-              (width (rect-width rect)))
-          (let ((head (if (not section) 0 (fxfloor (* (get-start~ section) width))))
-                (tail (if (not section) width (fxceiling (* (get-end~ section) width))))
-                (where (/ (fixnum->flonum (- pos start)) (fixnum->flonum (- end start)))))
-            (let ((h (fxceiling (* (- tail head) where)))
-                  (from {Color red: 150 green: 0 blue: 0})
-                  (to {Color red: 220 green: 0 blue: 0}))
-              (gradient-fill-rect~ surface (new Rect left top (+ left head h) bottom)
-                (list (list 0 from)
-                      (list 1 to))
-                direction: 'horizontal)))))))
-  
-  
-  (method (set-info section range)
-    (set! section~self section)
-    (set! range~self range)
-    (set! pos~self (get-start~ range))
-    (percentage-update)
-    (invalidate-view))
-  
-  
-  (method (set-pos pos)
-    (set! pos~self pos)
-    (percentage-update)
-    (invalidate-view))
-  
-  
-  (method (increase-pos)
-    (set-pos (+ pos 1)))
-  
-  
-  (method (set-done)
-    (set-pos (get-end~ range)))
-  
-  
-  (method (get-remaining)
-    (- (get-end~ range) pos))
-  
-  
-  (method (effective-percentage)
-    (* (let ((range-progress (/ (- pos (get-start~ range)) (extent~ range))))
-         (+ (get-start~ section) (* (extent~ section) (cast <fl> range-progress))))
-       100.)))
-
-
-(definition percentage-updater
-  #f)
-
-
-(definition (percentage-update)
-  (when percentage-updater
-    (percentage-updater)))
-
-
-(definition protected (set-percentage-updater updater)
-  (set! percentage-updater updater)))
+            (bottom (get-bottom~ rect))
+            (width (rect-width rect))
+            (head {Color red: 150 green: 0 blue: 0})
+            (tail {Color red: 220 green: 0 blue: 0}))
+        (for-each-task-info
+          (lambda (task step from to)
+            (let ((l (+ left (fxfloor (* width from))))
+                  (r (+ left (fxceiling (* width to)))))
+              (let ((r (+ l (fxceiling (* (- r l) (progress-done~ task))))))
+                (with-clip~ surface (new Rect l top r bottom)
+                  (lambda ()
+                    (gradient-fill-rect~ surface (new Rect left top right bottom)
+                      (list (list 0 head)
+                            (list 1 tail))
+                      direction: 'horizontal))))))))))))

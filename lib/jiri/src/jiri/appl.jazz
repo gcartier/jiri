@@ -97,9 +97,12 @@
     (<install> caption-base: "Jiri" position: {Point 100 100} size: {Dimension 800 625}))
   
   
-  (method override (user-notification what result)
+  (method override (user-notification wparam lparam)
     (when notification-callback
-      (notification-callback what result))))
+      (let ((id wparam)
+            (what (signed-loword lparam))
+            (result (signed-hiword lparam)))
+        (notification-callback id what result)))))
 
 
 (cond-expand

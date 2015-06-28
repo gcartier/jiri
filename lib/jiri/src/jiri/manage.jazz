@@ -1,0 +1,114 @@
+;;;==============
+;;;  JiriScheme
+;;;==============
+;;;
+;;;; Jiri Manage
+;;;
+;;;  The Initial Developer of the Original Code is Guillaume Cartier.
+;;;  Portions created by the Initial Developer are Copyright (C) 1996-2015
+;;;  the Initial Developer. All Rights Reserved.
+;;;
+;;;  Contributor(s):
+;;;
+;;;  See www.jazzscheme.org for details.
+
+
+(module jiri.manage jazz
+
+
+(import (jiri.settings))
+
+
+;;;
+;;;; Task
+;;;
+
+
+(definition protected (count-tasks)
+  (let ((count 0))
+    (for-each (lambda (section)
+                (let ((connection (get-connection~ section)))
+                  (when connection
+                    (for-each (lambda (task)
+                                (increase! count))
+                              (get-children~ connection)))))
+              (get-sections~ (jiri-manager)))
+    count))
+
+
+(definition protected (for-each-task-info proc)
+  (let ((step 0)
+        (from 0.))
+    (for-each (lambda (section)
+                (let ((part (get-part~ section))
+                      (connection (get-connection~ section)))
+                  (when connection
+                    (let ((from from))
+                      (for-each (lambda (task)
+                                  (let ((to (+ from (* part (get-part~ task)))))
+                                    (proc task step from to)
+                                    (increase! step)
+                                    (set! from to)))
+                                (get-children~ connection))))
+                  (increase! from part)))
+              (get-sections~ (jiri-manager)))))
+
+
+(definition protected (current-task-info)
+  (continuation-capture
+    (lambda (return)
+      (for-each-task-info
+        (lambda (task step from to)
+          (when (not (done?~ task))
+            (continuation-return return (list task step from to)))))
+      #f)))
+
+
+(definition protected (all-tasks-done?)
+  (not (current-task-info)))
+
+
+(definition protected (calculate-downloaded)
+  (let ((downloaded #f))
+    (for-each-task-info
+      (lambda (task step from to)
+        (let ((down (get-downloaded~ task)))
+          (when down
+            (set! downloaded (+ (or downloaded 0) down))))))
+    downloaded))
+
+
+(definition protected (calculate-remaining)
+  (let ((remaining #f))
+    (for-each-task-info
+      (lambda (task step from to)
+        (let ((rem (get-remaining~ task)))
+          (when rem
+            (set! remaining (+ (or remaining 0) rem))))))
+    remaining))
+
+
+;;;
+;;;; Connection
+;;;
+
+
+(definition protected (for-each-connection proc)
+  (for-each (lambda (section)
+              (let ((connection (get-connection~ section)))
+                (when connection
+                  (proc connection)))
+              (let ((connections (get-connections~ section)))
+                (when connections
+                  (for-each proc connections))))
+            (get-sections~ (jiri-manager))))
+
+
+(definition protected (id->connection id)
+  (continuation-capture
+    (lambda (return)
+      (for-each-connection
+        (lambda (connection)
+          (when (= (get-id~ connection) id)
+            (continuation-return return connection))))
+      #f))))

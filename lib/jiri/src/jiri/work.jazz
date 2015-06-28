@@ -21,9 +21,11 @@
         (jazz.ui.window)
         (jiri.base)
         (jiri.font)
+        (jiri.manage)
         (jiri.platform)
         (jiri.settings)
         (jiri.structure)
+        (jiri.task)
         (jiri.view)
         (jiri.window))
 
@@ -148,34 +150,34 @@
 
 
 ;;;
-;;;; Remotes
+;;;; Connections
 ;;;
 
 
-(class Jiri-Remotes extends Jiri-Tree
+(class Jiri-Connections extends Jiri-Tree
   
   
   (method (on-selection-change evt)
     (let ((tree (get-sender~ evt)))
       (let ((selection (get-single-selection~ tree)))
         (let ((row (get-row~ tree selection)))
-          (let ((remote (get-user-data~ row)))
-            (bind (title dirname remote branch) remote
-              (define (change-remote)
-                (jiri-app-remote remote)
-                (jiri-app-branch branch)
-                (jiri-app-dir (string-append "app/" dirname)))
-              
-              (if (eq? pull-in-progress 'app)
-                  (set-abort-requested change-remote)
-                (change-remote)))))))))
+          (let ((connection (get-user-data~ row)))
+            (when connection-change
+              (connection-change connection))))))))
 
 
-(definition public remotes-view
-  (new Jiri-Remotes
+(definition public connections-view
+  (new Jiri-Connections
     background: {Color Black alpha: 0.2}
     position: (new Point 24 118)
     size: (new Dimension 175 300)))
+
+
+(definition connection-change
+  #f)
+
+(definition protected (set-connection-change proc)
+  (set! connection-change proc))
 
 
 ;;;
@@ -213,8 +215,19 @@
 ;;;
 
 
+(class Jiri-Percentage extends Jiri-Label
+  
+  
+  (method override (label-title)
+    (let ((percentage 0.))
+      (for-each-task-info
+        (lambda (task step from to)
+          (increase! percentage (* (- to from) (progress-done~ task)))))
+      (string-append (number->string (fxround (* percentage 100.))) "%"))))
+
+
 (definition public percentage-view
-  (new Jiri-Label
+  (new Jiri-Percentage
     title: "0%"
     font: default-label-font
     position: (new Point 51 477)
@@ -226,9 +239,18 @@
 ;;;
 
 
+(class Jiri-Downloaded extends Jiri-Label
+  
+  
+  (method override (label-title)
+    (let ((downloaded (calculate-downloaded)))
+      (if (not downloaded)
+          "Downloaded: "
+        (string-append "Downloaded: " (number->string (+ work-downloaded downloaded)) "M")))))
+
+
 (definition public downloaded-view
-  (new Jiri-Label
-    title: "Downloaded: "
+  (new Jiri-Downloaded
     font: default-label-font
     position: (new Point 175 477)
     size: (new Dimension 160 20)))
@@ -239,8 +261,25 @@
 ;;;
 
 
+(class Jiri-Status extends Jiri-Label
+  
+  
+  (method override (label-title)
+    (let ((of (count-tasks)))
+      (if (= of 0)
+          ""
+        (let ((info (current-task-info)))
+          (if (not info)
+              "Done"
+            (bind (task step from to) info
+              ;; quicky should not be necessary
+              (if (not (get-status~ task))
+                  ""
+                (string-append (get-status~ task) " (" (number->string step) "/" (number->string of) ")")))))))))
+
+
 (definition public status-view
-  (new Jiri-Label
+  (new Jiri-Status
     title: ""
     font: default-label-font
     position: (new Point 345 477)
@@ -253,9 +292,18 @@
 ;;;
 
 
+(class Jiri-Remaining extends Jiri-Label
+  
+  
+  (method override (label-title)
+    (let ((remaining (calculate-remaining)))
+      (if (not remaining)
+          "Remaining: "
+        (string-append "Remaining: " (number->string remaining))))))
+
+
 (definition public remaining-view
-  (new Jiri-Label
-    title: "Remaining: "
+  (new Jiri-Remaining
     font: default-label-font
     position: (new Point 500 477)
     size: (new Dimension 150 20)
@@ -270,17 +318,24 @@
 (definition public progress-view
   (new Jiri-Progress
     position: (new Point 50 498)
-    size: (new Dimension 600 20)
-    section: (new Range 0. 1.)
-    range: (new Range 0 10)
-    pos: 0))
+    size: (new Dimension 600 20)))
 
 
-(definition protected (update-percentage)
-  (set-title~ percentage-view (string-append (number->string (fxround (effective-percentage~ progress-view))) "%")))
+;;;
+;;;; Task
+;;;
 
 
-(set-percentage-updater update-percentage)
+(definition protected (invalidate-task task)
+  (invalidate-view~ percentage-view)
+  (invalidate-view~ downloaded-view)
+  (invalidate-view~ status-view)
+  (invalidate-view~ remaining-view)
+  (invalidate-view~ progress-view)
+  (set-enabled?~ play-view (all-tasks-done?)))
+
+
+(set-task-invalidater invalidate-task)
 
 
 ;;;

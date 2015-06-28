@@ -1,0 +1,55 @@
+;;;==============
+;;;  JiriScheme
+;;;==============
+;;;
+;;;; Jiri Connection
+;;;
+;;;  The Initial Developer of the Original Code is Guillaume Cartier.
+;;;  Portions created by the Initial Developer are Copyright (C) 1996-2015
+;;;  the Initial Developer. All Rights Reserved.
+;;;
+;;;  Contributor(s):
+;;;
+;;;  See www.jazzscheme.org for details.
+
+
+(module jiri.connection jazz
+
+
+(import (jiri.task))
+
+
+(definition connection-id
+  0)
+
+
+(class Jiri-Connection extends Jiri-Task
+  
+  
+  (slot id                initialize #f  getter generate)
+  (slot name              initialize #f  getter generate)
+  (slot title             initialize #f  getter generate)
+  (slot url               initialize #f  getter generate)
+  (slot branch            initialize #f  getter generate)
+  (slot dir               initialize #f  getter generate)
+  (slot work?             initialize #f  accessors generate)
+  (slot download-progress initialize #f  accessors generate)
+  (slot download-done     initialize #f  accessors generate)
+  (slot checkout-progress initialize #f  accessors generate)
+  (slot checkout-done     initialize #f  accessors generate)
+  
+  
+  (method override (initialize (name: name #f) (title: title #f) (url: url #f) (branch: branch #f) (dir: dir #f))
+    (set! id~self connection-id)
+    (increase! connection-id)
+    (set! name~self name)
+    (set! title~self title)
+    (set! url~self url)
+    (set! branch~self branch)
+    (set! dir~self dir))
+  
+  
+  (method override (print output readably)
+    (print-unreadable self output
+      (lambda (output)
+        (format output "{s}" title))))))

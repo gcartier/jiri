@@ -115,13 +115,12 @@
              (if (or (not (file-exists? (app-dir)))
                      (not (file-exists? (world-dir))))
                  (add-stage-view (string-append "Failed to install " (game-string) (debug-info)) stage-setup-color)
-               (add-stage-view (string-append "Failed to update " (game-string) (debug-info)) stage-setup-color)
-               (set-enabled?~ play-view #t)))
-      (pull-repository (jiri-update-name) (jiri-update-title) (jiri-update-remote) (jiri-update-branch) (current-password) (update-dir) 1 6 (jiri-update-limits)
+               (add-stage-view (string-append "Failed to update " (game-string) (debug-info)) stage-setup-color)))
+      (pull-repository (jiri-update-section) (current-password) (update-dir)
         (lambda (new-content?)
           (if new-content?
               (delegate-update (current-root-dir) (current-password) "launch" update-new?)
-            (update-application/world (jiri-app-limits)
+            (update-application/world (get-limits~ (jiri-app-section))
               (lambda (new-content?)
                 (update-done)))))
         #t))))
@@ -132,7 +131,7 @@
   (setenv "password" (or password ""))
   (setenv "called-from" called-from)
   (setenv "update-new" (if update-new? "yes" "no"))
-  (setenv "work-downloaded" (number->string work-downloaded))
+  (setenv "work-downloaded" (number->string (or (calculate-downloaded) 0)))
   (let ((pos (get-position~ (get-toplevel))))
     (setenv "window-h" (number->string (get-h~ pos)))
     (setenv "window-v" (number->string (get-v~ pos))))
@@ -150,7 +149,7 @@
 
 (define (update-at-update)
   (add-stage-view (string-append "Updating " (jiri-update-title)) (if (was-update-new?) stage-setup-color stage-install-color))
-  (set-title~ status-view (updating-title (jiri-update-title) 1 6))
+  ;;convert-to-task(set-title~ status-view (updating-title (jiri-update-title) 1 6))
   (thread-start!
     (make-thread
       (lambda ()
@@ -178,8 +177,9 @@
                                         (pathname=? (get-parent~ dir) libdir))
                                (post-event
                                  (lambda ()
-                                   (increase-pos~ progress-view)
-                                   (set-title~ remaining-view (string-append "Remaining: " (number->string (get-remaining~ progress-view))))))))))
+                                   ;;convert-to-task(increase-pos~ progress-view)
+                                   ;;convert-to-task(set-title~ remaining-view (string-append "Remaining: " (number->string (get-remaining~ progress-view))))
+                                   ))))))
     
     (define (install-directory dirname)
       (install-directory~
@@ -190,7 +190,8 @@
       (let ((package-count (count-directories~ libdir)))
         (post-event
           (lambda ()
-            (set-info~ progress-view (new Range head tail) (new Range 0 package-count))))
+            ;;convert-to-task(set-info~ progress-view (new Range head tail) (new Range 0 package-count))
+            ))
         (install-file "Contents/Info.plist")
         (install-directory-macos "Contents/MacOS" libdir)
         (install-directory "Contents/Resources")
@@ -210,10 +211,10 @@
 
 (define (update-application/world limits cont)
   (add-stage-view (string-append "Updating " (game-string)) (determine-stage-color (app-dir)))
-  (pull-repository (jiri-app-name) (jiri-app-title) (jiri-app-remote) (jiri-app-branch) (current-password) (app-dir) 3 6 (jiri-app-limits)
+  (pull-repository (jiri-app-section) (current-password) (app-dir)
     (lambda (new-content?)
-      (add-stage-view (string-append "Updating " (jiri-world-title)) (determine-stage-color (world-dir)))
-      (pull-repository (jiri-world-name) (jiri-world-title) (jiri-world-remote) (jiri-world-branch) (current-password) (world-dir) 5 6 (jiri-world-limits)
+      (add-stage-view (string-append "Updating " (get-title~ (jiri-world-section))) (determine-stage-color (world-dir)))
+      (pull-repository (jiri-world-section) (current-password) (world-dir)
         cont))))
 
 
@@ -226,8 +227,6 @@
   (set-title~ stage-view (or (jiri-play-ready) "Ready to play!"))
   (set-color~ stage-view stage-ready-color)
   (set-title~ status-view "Done")
-  (set-done~ progress-view)
-  (set-enabled?~ play-view #t)
   (set-cursor :arrow)
   (set-work-in-progress? #f)
   (set-work-done? #t))
@@ -253,11 +252,11 @@
   (add-view play-view)
   ;; mimick launcher state
   (when (eq? stage 'update)
-    (set-title~ downloaded-view (string-append "Downloaded: " (number->string work-downloaded) "M"))
-    (set-title~ status-view (installing-title (jiri-update-title) 1 6))
-    (set-info~ progress-view (new Range 0. .1) (new Range 1 6))
-    (set-done~ progress-view))
-  (update-percentage)
+    ;;convert-to-task(set-title~ downloaded-view (string-append "Downloaded: " (number->string work-downloaded) "M"))
+    ;;convert-to-task(set-title~ status-view (installing-title (jiri-update-title) 1 6))
+    ;;convert-to-task(set-info~ progress-view (new Range 0. .1) (new Range 1 6))
+    ;;convert-to-task(set-done~ progress-view)
+    )
   (set-return-callback
     (lambda ()
       (when work-done?
