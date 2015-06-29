@@ -84,12 +84,17 @@
     ((install-from-current) (install-from-current))))
 
 
+(define (install-tasks-done)
+  (for-each set-done~ (get-children~ (get-connection~ (jiri-install-section)))))
+
+
 ;;;
 ;;;; Install From Setup
 ;;;
 
 
 (define (install-from-setup)
+  (install-tasks-done)
   (install-current)
   (install-root)
   (install-desktop)
@@ -125,6 +130,7 @@
 
 
 (define (install-from-current)
+  (install-tasks-done)
   (install-current)
   (install-root)
   (update-start-menu)

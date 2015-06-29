@@ -36,7 +36,9 @@
   
   
   (method override (initialize (part: part #f))
-    (set! part~self part))
+    (set! part~self part)
+    (set! range~self (new Range 0 1))
+    (set! pos~self 0))
   
   
   (method override (print output readably)
@@ -56,7 +58,7 @@
   
   
   (method public (done?)
-    (and range pos (= pos (get-end~ range))))
+    (= pos (get-end~ range)))
   
   
   (method public (set-done)
@@ -64,9 +66,7 @@
   
   
   (method public (progress-done)
-    (if (and range pos)
-        (/ (fixnum->flonum (- pos (get-start~ range))) (fixnum->flonum (extent~ range)))
-      0.))
+    (/ (fixnum->flonum (- pos (get-start~ range))) (fixnum->flonum (extent~ range))))
   
   
   (method public (set-downloaded value)
