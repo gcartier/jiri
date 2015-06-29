@@ -48,8 +48,8 @@
           (name (get-name~ connection))
           (url (get-url~ connection))
           (branch (get-branch~ connection))
-          (download-task (add-child~ connection (new Jiri-Task part: .5)))
-          (checkout-task (add-child~ connection (new Jiri-Task part: .5))))
+          (download-task (get-download-task~ connection))
+          (checkout-task (get-checkout-task~ connection)))
       (define (open/init-repository proc)
         (let ((existing? (file-exists? dir)))
           (cond (existing?

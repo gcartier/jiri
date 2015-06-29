@@ -26,17 +26,17 @@
 (class Jiri-Connection extends Jiri-Task
   
   
-  (slot id                initialize #f  getter generate)
-  (slot name              initialize #f  getter generate)
-  (slot title             initialize #f  getter generate)
-  (slot url               initialize #f  getter generate)
-  (slot branch            initialize #f  getter generate)
-  (slot dir               initialize #f  getter generate)
-  (slot work?             initialize #f  accessors generate)
-  (slot download-progress initialize #f  accessors generate)
-  (slot download-done     initialize #f  accessors generate)
-  (slot checkout-progress initialize #f  accessors generate)
-  (slot checkout-done     initialize #f  accessors generate)
+  (slot id                initialize #f getter generate)
+  (slot name              initialize #f getter generate)
+  (slot title             initialize #f getter generate)
+  (slot url               initialize #f getter generate)
+  (slot branch            initialize #f getter generate)
+  (slot dir               initialize #f getter generate)
+  (slot work?             initialize #f accessors generate)
+  (slot download-progress initialize #f accessors generate)
+  (slot download-done     initialize #f accessors generate)
+  (slot checkout-progress initialize #f accessors generate)
+  (slot checkout-done     initialize #f accessors generate)
   
   
   (method override (initialize (name: name #f) (title: title #f) (url: url #f) (branch: branch #f) (dir: dir #f))
@@ -46,10 +46,20 @@
     (set! title~self title)
     (set! url~self url)
     (set! branch~self branch)
-    (set! dir~self dir))
+    (set! dir~self dir)
+    (set! children~self (list (new Jiri-Task part: .5)
+                              (new Jiri-Task part: .5))))
   
   
   (method override (print output readably)
     (print-unreadable self output
       (lambda (output)
-        (format output "{s}" title))))))
+        (format output "{s}" title))))
+  
+  
+  (method public (get-download-task)
+    (first children))
+  
+  
+  (method public (get-checkout-task)
+    (second children))))
