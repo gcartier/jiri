@@ -275,7 +275,7 @@
               ;; quicky should not be necessary
               (if (not (get-status~ task))
                   ""
-                (string-append (get-status~ task) " (" (number->string step) "/" (number->string of) ")")))))))))
+                (string-append (get-status~ task) " (" (number->string (+ step 1)) "/" (number->string of) ")")))))))))
 
 
 (definition public status-view

@@ -129,13 +129,14 @@
       (let ((repo #f)
             (remote #f)
             (successful? #f)
-            (dir (install-dir)))
+            (dir (install-dir))
+            (connection (get-connection~ (jiri-install-section))))
         (dynamic-wind
           (lambda ()
             (set! repo (git-repository-init dir))
-            (set! remote (git-remote-create repo "origin" (get-url~ (get-connection~ (jiri-install-section))))))
+            (set! remote (git-remote-create repo "origin" (get-url~ connection))))
           (lambda ()
-            (git-remote-connect-with-retries remote cancel))
+            (git-remote-connect-with-retries connection remote cancel))
           (lambda ()
             (when remote
               (when successful?
