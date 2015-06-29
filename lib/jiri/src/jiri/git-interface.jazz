@@ -274,6 +274,9 @@
 
 (definition public (quit-safely)
   (lambda ()
+    ;; DEMO
+    (exit)
+    @wait
     (if (not work-in-progress?)
         (exit)
       (request-quit "Disconnecting..."))))
