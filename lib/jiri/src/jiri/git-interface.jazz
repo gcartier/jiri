@@ -60,13 +60,13 @@
                    (proc repo (git-remote-create repo "origin" url)))))))
       
       (set-cursor :wait)
-      (set-work-in-progress? #t)
-      (set-work?~ connection #t)
+      (set-started?~ connection #t)
+      (set-working?~ connection #t)
       (set-status~ download-task (string-append "Downloading " title))
       (git-callback-hwnd (get-handle~ (get-toplevel)))
       (open/init-repository
         (lambda (repo remote)
-          (git-remote-connect-with-retries remote #f remote-exception?)
+          (git-remote-connect-with-retries connection remote #f remote-exception?)
           (set-range~ download-task (new Range 0 1))
           (set-download-progress~ connection
             (let ((inited? #f))
@@ -83,54 +83,56 @@
                     (set-pos~ download-task received-objects))))))
           (set-download-done~ connection
             (lambda (result)
-              (safe-abort-point
-                (lambda ()
-                  (git-remote-disconnect remote)
-                  (git-remote-free remote)
-                  (git-repository-free repo)))
-              (git-check-error result)
-              (set-status~ checkout-task (string-append "Installing " title))
-              (set-done~ download-task)
-              (git-remote-disconnect remote)
-              (git-remote-update-tips remote)
-              (git-remote-free remote)
-              (git-repository-set-head repo (string-append "refs/heads/" branch))
-              (let ((upstream (git-reference-lookup repo (string-append "refs/remotes/origin/" branch))))
-                (let ((commit (git-object-lookup repo (git-reference->id repo upstream) GIT_OBJ_COMMIT)))
-                  (define (checkout-cleanup)
-                    (git-reference-free upstream)
-                    (git-object-free commit)
-                    (git-repository-free repo))
-                  
-                  (unless (git-branch-lookup repo branch GIT_BRANCH_LOCAL)
-                    (git-branch-create repo branch commit 1))
-                  (let ((new-content? #f))
-                    (set-range~ checkout-task (new Range 0 1))
-                    (set-checkout-progress~ connection
-                      (let ((inited? #f))
+              (unless (safe-abort-point
+                        (lambda ()
+                          (git-remote-disconnect remote)
+                          (git-remote-free remote)
+                          (git-repository-free repo)
+                          (set-working?~ connection #f)))
+                (git-check-error result)
+                (set-status~ checkout-task (string-append "Installing " title))
+                (set-done~ download-task)
+                (git-remote-disconnect remote)
+                (git-remote-update-tips remote)
+                (git-remote-free remote)
+                (git-repository-set-head repo (string-append "refs/heads/" branch))
+                (let ((upstream (git-reference-lookup repo (string-append "refs/remotes/origin/" branch))))
+                  (let ((commit (git-object-lookup repo (git-reference->id repo upstream) GIT_OBJ_COMMIT)))
+                    (define (checkout-cleanup)
+                      (git-reference-free upstream)
+                      (git-object-free commit)
+                      (git-repository-free repo)
+                      (set-working?~ connection #f))
+                    
+                    (unless (git-branch-lookup repo branch GIT_BRANCH_LOCAL)
+                      (git-branch-create repo branch commit 1))
+                    (let ((new-content? #f))
+                      (set-range~ checkout-task (new Range 0 1))
+                      (set-checkout-progress~ connection
+                        (let ((inited? #f))
+                          (lambda (result)
+                            ;; from a discusion on freenode, aborting a checkout could leave the worktree in an arbitrary
+                            ;; state, but the next checkout force should overwrite whatever is present in the worktree...
+                            ;; commented out as there is no way to interrupt the threaded checkout
+                            ;; (safe-abort-point checkout-cleanup)
+                            (git-checkout-state id
+                              (lambda (path completed-steps total-steps)
+                                (when (> total-steps 0)
+                                  (set! new-content? #t)
+                                  (let ((remaining (- total-steps completed-steps)))
+                                    (set-remaining~ checkout-task remaining))
+                                  (when (not inited?)
+                                    (set-range~ checkout-task (new Range 0 total-steps))
+                                    (set! inited? #t))
+                                  (set-pos~ checkout-task completed-steps)))))))
+                      (set-checkout-done~ connection
                         (lambda (result)
-                          ;; from a discusion on freenode, aborting a checkout could leave the worktree in an arbitrary
-                          ;; state, but the next checkout force should overwrite whatever is present in the worktree...
-                          ;; commented out as there is no way to interrupt the threaded checkout
-                          ;; (safe-abort-point checkout-cleanup)
-                          (git-checkout-state id
-                            (lambda (path completed-steps total-steps)
-                              (when (> total-steps 0)
-                                (set! new-content? #t)
-                                (let ((remaining (- total-steps completed-steps)))
-                                  (set-remaining~ checkout-task remaining))
-                                (when (not inited?)
-                                  (set-range~ checkout-task (new Range 0 total-steps))
-                                  (set! inited? #t))
-                                (set-pos~ checkout-task completed-steps)))))))
-                    (set-checkout-done~ connection
-                      (lambda (result)
-                        (safe-abort-point checkout-cleanup)
-                        (git-check-error result)
-                        (set-done~ checkout-task)
-                        (checkout-cleanup)
-                        (cont new-content?)))
-                    (git-reset-hard-threaded id repo commit))))))
+                          (unless (safe-abort-point checkout-cleanup)
+                            (git-check-error result)
+                            (set-done~ checkout-task)
+                            (checkout-cleanup)
+                            (cont new-content?))))
+                      (git-reset-hard-threaded id repo commit)))))))
           (git-remote-download-threaded id remote))))))
 
 
@@ -186,7 +188,7 @@
         (get-string-content~ password)))))
 
 
-(definition public (git-remote-connect-with-retries remote cancel (remote-exception? #f))
+(definition public (git-remote-connect-with-retries connection remote cancel (remote-exception? #f))
   (let ((password #f))
     (define (ask-password)
       (set! password (or (current-password) (password-dialog)))
@@ -197,7 +199,7 @@
       (if cancel
           (begin
             (set-cursor :arrow)
-            (set-work-in-progress? #f)
+            (set-working?~ connection #f)
             (continuation-return cancel))
         (exit 1)))
     
@@ -205,7 +207,7 @@
       (if remote-exception?
           (begin
             (set-cursor :arrow)
-            (set-work-in-progress? #f)
+            (set-working?~ connection #f)
             (throw exc))
         (exit 1)))
     
@@ -265,7 +267,7 @@
 
 (definition public (quit-confirm-abort title)
   (lambda ()
-    (if (not work-in-progress?)
+    (if (not (work-in-progress?))
         (exit)
       (let ((code (message-box (string-append title " in progress.\n\nDo you want to abort?") type: 'question)))
         (when (eq? code 'yes)
@@ -274,10 +276,7 @@
 
 (definition public (quit-safely)
   (lambda ()
-    ;; DEMO
-    (exit)
-    @wait
-    (if (not work-in-progress?)
+    (if (not (work-in-progress?))
         (exit)
       (request-quit "Disconnecting..."))))
 

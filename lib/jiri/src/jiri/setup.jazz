@@ -104,7 +104,7 @@
                         (message-box (string-append "Installation folder already exists: " root-dir "\n\nDo you want to replace?") type: 'confirmation))))
             (when (eq? code 'yes)
               (set-cursor :wait)
-              (set-work-in-progress? #t)
+              ;;convert-to-task(set-work-in-progress? #t)
               ;; danger
               (let ((code (remove-directory root-dir)))
                 (if (= code 0)
@@ -114,7 +114,7 @@
                       root-dir)
                   (begin
                     (set-cursor :arrow)
-                    (set-work-in-progress? #f)
+                    ;;convert-to-task(set-work-in-progress? #f)
                     (message-box (string-append "Unable to delete installation folder (0x" (number->string code 16) ")"))
                     #f))))))))))
 
@@ -165,7 +165,6 @@
   (set-title~ stage-view "Setup successful!")
   (set-color~ stage-view stage-install-color)
   (set-cursor :arrow)
-  (set-work-in-progress? #f)
   (set-work-done? #t)
   (delegate-install (current-root-dir) (current-password) "setup"))
 

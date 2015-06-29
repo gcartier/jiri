@@ -100,13 +100,6 @@
 ;;;
 
 
-(definition public work-in-progress?
-  #f)
-
-(definition public (set-work-in-progress? value)
-  (set! work-in-progress? value))
-
-
 (definition public work-done?
   #f)
 

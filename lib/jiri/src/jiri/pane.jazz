@@ -39,7 +39,7 @@
   
   
   (method override (return-press evt)
-    (when (and return-callback (not work-in-progress?))
+    (when return-callback
       (return-callback)))
   
   

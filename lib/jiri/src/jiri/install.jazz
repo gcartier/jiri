@@ -159,7 +159,6 @@
   (set-color~ stage-view stage-ready-color)
   (set-title~ status-view "Done")
   (set-cursor :arrow)
-  (set-work-in-progress? #f)
   (set-work-done? #t))
 
 
@@ -299,7 +298,7 @@
         (set-connection-change
           (lambda (connection)
             (set-connection~ (jiri-app-section) connection)
-            (unless (get-work?~ connection)
+            (unless (get-started?~ connection)
               (pull-repository (jiri-app-section) (current-password) (app-dir)
                 (lambda (new-content?)
                   ))))))))

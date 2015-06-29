@@ -228,7 +228,6 @@
   (set-color~ stage-view stage-ready-color)
   (set-title~ status-view "Done")
   (set-cursor :arrow)
-  (set-work-in-progress? #f)
   (set-work-done? #t))
 
 
