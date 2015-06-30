@@ -70,7 +70,11 @@
 ;;;
 
 
-(definition public (delegate-process path (arguments: arguments '()) (wait-ready?: wait-ready? #f))
+(definition max-wait
+  30)
+
+
+(definition public (delegate-process path (arguments: arguments '()) (wait-and-exit?: wait-and-exit? #f))
   (define (add-debugger arguments)
     (let ((debugger (command-argument "debugger")))
       (if (not debugger)
@@ -86,6 +90,14 @@
                     stderr-redirection: redirect?
                     show-console: #f)))
   
-  (if (not wait-ready?)
+  (if (not wait-and-exit?)
       (open redirect?: #f)
-    (read (open redirect?: #t)))))
+    (disable-window~ (jazz.system:get-toplevel))
+    (let ((port (open redirect?: #t)))
+      (thread-start!
+        (new-thread
+          (lambda ()
+            (input-port-timeout-set! port max-wait)
+            (read port)
+            (exit))
+          'delegate))))))

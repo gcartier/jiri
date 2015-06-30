@@ -143,5 +143,4 @@
     (setenv "window-h" (number->string (get-h~ pos)))
     (setenv "window-v" (number->string (get-v~ pos))))
   (setenv "send-ready" "true")
-  (delegate-process (install-exe) wait-ready?: #t)
-  (exit)))
+  (delegate-process (install-exe) wait-and-exit?: #t)))
