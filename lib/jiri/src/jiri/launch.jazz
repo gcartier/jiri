@@ -16,7 +16,8 @@
 (module jiri.launch jazz
 
 
-(import (jazz.platform)
+(import (jazz.io)
+        (jazz.platform)
         (jiri.base)
         (jiri.settings)
         (jiri.structure))
@@ -64,7 +65,23 @@
 
 
 (define (launch-current)
+  (define (check-running)
+    (let ((pid (current-process-id))
+          (root-exe (add-extension (string-append kernel-install (jiri-application)) (executable-extension kernel-platform)))
+          (install-dir (string-append kernel-install "install")))
+      (iterate-table (collect-processes-info)
+                     (lambda (id info)
+                       (bind (id name exe) info
+                         (when (and (/= id 0)
+                                    (/= id pid)
+                                    (not (equal? exe ""))
+                                    (or (filename=? exe root-exe)
+                                        (starts-with? exe install-dir)))
+                           (system-message (string-append (jiri-title) " installer is already running"))
+                           (exit 1)))))))
+  
   (cond ((file-exists? (current-exe))
+         (check-running)
          (delegate-current (current-root-dir) (current-password) "root"))
         (else
          (incorrect-installation))))
