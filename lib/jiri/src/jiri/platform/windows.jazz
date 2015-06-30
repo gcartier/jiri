@@ -18,7 +18,8 @@
 
 (import (jazz.foreign)
         (jazz.platform)
-        (jazz.platform.types))
+        (jazz.platform.types)
+        (jazz.ui.view))
 
 
 (c-include "<shlobj.h>")
@@ -98,7 +99,8 @@ exit:
 
 (definition public (create-directory-with-acl dir)
   (when (not (create-directory-with-acl-internal dir))
-    (error "Unable to create directory: {a}" dir)))
+    (message-box (format "Unable to create directory: {a}" dir))
+    (exit 1)))
 
 
 (c-external (remove-directory wchar_t-string) int
