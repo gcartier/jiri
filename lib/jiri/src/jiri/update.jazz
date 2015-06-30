@@ -137,8 +137,6 @@
     (setenv "window-v" (number->string (get-v~ pos))))
   (setenv "send-ready" "true")
   (delegate-process (update-exe) wait-ready?: #t)
-  ;; wait for delegate window to cover our own window
-  (thread-sleep! .5)
   (exit))
 
 
