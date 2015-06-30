@@ -35,10 +35,10 @@
 
 
 (define TEST?
-  #t)
+  #f)
 
 (define TEST-INSTALL?
-  #t)
+  #f)
 
 
 (define stage
