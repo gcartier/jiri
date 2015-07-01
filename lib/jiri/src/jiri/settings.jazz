@@ -57,6 +57,9 @@
 (define-jiri jiri-application
   #f)
 
+(define-jiri jiri-email
+  #f)
+
 (define-jiri jiri-development?
   #f)
 

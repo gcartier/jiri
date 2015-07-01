@@ -221,7 +221,7 @@
         (shortcut (desktop-shortcut)))
     (let ((hr (create-shortcut path #f shortcut (jiri-title))))
       (when (< hr 0)
-        (error "Unable to create desktop shortcut (0x" (number->string hr 16) ")")))))
+        (continuable-error (format "Unable to create desktop shortcut ({x})" hr))))))
 
 
 (define (install-start-menu)
@@ -235,7 +235,7 @@
     (let ((shortcut (start-menu-shortcut appdir)))
       (let ((hr (create-shortcut root #f shortcut (jiri-title))))
         (when (< hr 0)
-          (error "Unable to create start menu shortcut (0x" (number->string hr 16) ")"))))))
+          (continuable-error (format "Unable to create start menu shortcut ({x})" hr)))))))
 
 
 (define (update-start-menu)
@@ -247,7 +247,7 @@
         (let ((shortcut (string-append appdir "/" title ".lnk")))
           (let ((hr (create-shortcut root "-information" shortcut title)))
             (when (< hr 0)
-              (error "Unable to create start menu shortcut (0x" (number->string hr 16) ")"))))))))
+              (continuable-error (format "Unable to create start menu shortcut ({x})" hr)))))))))
 
 
 ;; hack around windows taking forever to remove newly installed highlight

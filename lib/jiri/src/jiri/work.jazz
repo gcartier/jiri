@@ -17,7 +17,9 @@
 
 
 (import (jazz.graphic)
+        (jazz.snapshot)
         (jazz.ui)
+        (jazz.ui.view)
         (jazz.ui.window)
         (jiri.base)
         (jiri.font)
@@ -388,6 +390,28 @@
   (set-cursor :wait)
   (delegate-process (app-exe))
   (quit-callback))
+
+
+;;;
+;;;; Error
+;;;
+
+
+(definition protected (continuable-error reason)
+  (let ((snapshot (snapshot-process reason: reason)))
+    (message-box (format "{a}{%}{%}{a}{%}    {a}{a}"
+                         reason
+                         "A log file has been generated at"
+                         (parse~ snapshot)
+                         (let ((email (jiri-email)))
+                           (if email
+                               (format "{%}{%}{a}{%}{a}: {a}."
+                                       "Help us fix this problem by sending the log file and any comments"
+                                       "about how the problem occurred to"
+                                       email)
+                             "")))
+                 title: "Application Problem"
+                 type: 'problem)))
 
 
 ;;;
