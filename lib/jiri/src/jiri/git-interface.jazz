@@ -223,16 +223,13 @@
             (exit 1)
           (catch (Git-Exception exc
                    (let ((err (get-message~ exc)))
-                     (define (debug-info)
-                       (if (jiri-devel?)
-                           (string-append " (" (git-remote-url remote) ")")
-                         ""))
-                     
                      (cond ((string-ends-with? err "401")
                             (message-box "Incorrect password")
                             (loop (+ try 1)))
                            (else
-                            (message-box (string-append "Unable to connect to server" (debug-info) ":\n\n" err))
+                            (message-box (if (jiri-devel?)
+                                             (string-append "Unable to connect to server (" (git-remote-url remote) "):\n\n" err)
+                                           "Unable to connect to server"))
                             (error-connection exc)))))
             (git-remote-connect remote GIT_DIRECTION_FETCH)
             (current-password password)))))))
