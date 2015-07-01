@@ -20,6 +20,25 @@
 
 
 ;;;
+;;;; Environment
+;;;
+
+
+(define-jiri jiri-environment
+  (getf kernel-properties environment: not-found: 'devel))
+
+
+(definition public (jiri-devel?)
+  (eq? (jiri-environment) 'devel))
+
+(definition public (jiri-test?)
+  (eq? (jiri-environment) 'test))
+
+(definition public (jiri-prod?)
+  (eq? (jiri-environment) 'prod))
+
+
+;;;
 ;;;; Jiri
 ;;;
 
@@ -61,9 +80,6 @@
   #f)
 
 (define-jiri jiri-email
-  #f)
-
-(define-jiri jiri-development?
   #f)
 
 

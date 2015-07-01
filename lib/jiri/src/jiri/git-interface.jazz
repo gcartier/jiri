@@ -224,7 +224,7 @@
           (catch (Git-Exception exc
                    (let ((err (get-message~ exc)))
                      (define (debug-info)
-                       (if (jiri-development?)
+                       (if (jiri-devel?)
                            (string-append " (" (git-remote-url remote) ")")
                          ""))
                      

@@ -108,7 +108,7 @@
     (add-stage-view (string-append "Updating " (jiri-update-title)) (determine-stage-color (update-dir)))
     (catch (Git-Exception exc
              (define (debug-info)
-               (if (jiri-development?)
+               (if (jiri-devel?)
                    (string-append " (" (get-message~ exc) ")")
                  ""))
              
