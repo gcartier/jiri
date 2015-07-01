@@ -283,12 +283,16 @@
     (add-view close-view))
   (when minimize-view
     (add-view minimize-view))
+  (add-view connections-view)
   (let ((section (jiri-app-section)))
     (let ((connections (get-connections~ section))
           (default (get-default~ section)))
-      (when connections
+      (if (not connections)
+          (let ((connection (get-connection~ section))
+                (tree (locate~ connections-view 'tree)))
+            (add-row~ tree children: (list (new Tree-Node title: (get-title~ connection))) user-data: connection)
+            (set-single-selection~ tree 0))
         (assert default)
-        (add-view connections-view)
         (set-connection-change
           (lambda (connection)
             (set-connection~ (jiri-app-section) connection)))
