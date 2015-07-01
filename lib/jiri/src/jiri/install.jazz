@@ -183,13 +183,10 @@
 
 (define (install-root)
   (let ((from-exe (make-file (launch-exe)))
-        (from-repo (make-file (launch-repo)))
         (from-lib (make-directory (launch-lib)))
         (to-exe (make-file (root-exe)))
-        (to-repo (make-file (root-repo)))
         (to-lib (make-directory (root-lib))))
     (install-file~ from-exe to-exe)
-    (install-file~ from-repo to-repo)
     (install-directory~ from-lib to-lib
       filter: (lambda (action pathname)
                 (if (and (eq? action 'copy)
