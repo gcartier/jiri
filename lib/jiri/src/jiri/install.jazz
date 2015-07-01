@@ -48,7 +48,7 @@
 
 (define (prepare)
   (when (and TEST? kernel-source-accessible? (not (getenv-default "called-from")))
-    (setenv "root-dir" "C:/App/Sentio/")
+    (setenv "root-dir" "C:/Program Files (x86)/Sentio Test/")
     (setenv "called-from" "root"))
   
   (current-root-dir (getenv-default "root-dir"))
