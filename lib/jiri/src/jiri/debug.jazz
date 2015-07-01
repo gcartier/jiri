@@ -17,10 +17,11 @@
 
 
 (import (jazz.io)
-        (jiri.settings))
+        (jiri.settings)
+        (jiri.syntax (phase syntax)))
 
 
-(definition jiri-trace?
+(define-jiri jiri-trace?
   #f)
 
 
