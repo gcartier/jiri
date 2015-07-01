@@ -20,14 +20,16 @@
   
   
   (slot title       initialize #f getter generate)
+  (slot dir         initialize #f getter generate)
   (slot part        initialize #f getter generate)
   (slot connection  initialize #f accessors generate)
   (slot connections initialize #f getter generate)
   (slot default     initialize #f getter generate)
   
   
-  (method override (initialize (title: title #f) (part: part #f) (connection: connection #f) (connections: connections #f) (default: default #f))
+  (method override (initialize (title: title #f) (dir: dir #f) (part: part #f) (connection: connection #f) (connections: connections #f) (default: default #f))
     (set! title~self title)
+    (set! dir~self dir)
     (set! part~self part)
     (set! connection~self connection)
     (set! connections~self connections)

@@ -37,23 +37,28 @@
   #f)
 
 
+(definition (section-dir section)
+  (string-append (normalize-directory (get-dir~ section))
+                 (normalize-directory (get-dirname~ (get-connection~ section)))))
+
+
 (definition public (app-dir)
-  (string-append (current-root-dir) (normalize-directory (get-dir~ (get-connection~ (jiri-app-section))))))
+  (string-append (current-root-dir) (section-dir (jiri-app-section))))
 
 (definition public (install-dir)
-  (string-append (current-root-dir) (normalize-directory (get-dir~ (get-connection~ (jiri-install-section))))))
+  (string-append (current-root-dir) (section-dir (jiri-install-section))))
 
 (definition public (update-dir)
-  (string-append (current-root-dir) (normalize-directory (get-dir~ (get-connection~ (jiri-update-section))))))
+  (string-append (current-root-dir) (section-dir (jiri-update-section))))
 
 (definition public (world-dir)
-  (and (jiri-world-section) (string-append (current-root-dir) (normalize-directory (get-dir~ (get-connection~ (jiri-world-section)))))))
+  (and (jiri-world-section) (string-append (current-root-dir) (section-dir (jiri-world-section)))))
 
 (definition public (current-dir)
-  (string-append (current-root-dir) (normalize-directory (jiri-current-dir))))
+  (string-append (current-root-dir) (normalize-directory (jiri-install-current))))
 
 (definition public (root-exe)
-  (add-extension (string-append (current-root-dir) (jiri-application)) (executable-extension kernel-platform)))
+  (add-extension (string-append (current-root-dir) (jiri-launcher)) (executable-extension kernel-platform)))
 
 (definition public (root-repo)
   (string-append (current-root-dir) ".repository"))

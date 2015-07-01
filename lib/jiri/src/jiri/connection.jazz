@@ -31,7 +31,7 @@
   (slot title             initialize #f getter generate)
   (slot url               initialize #f getter generate)
   (slot branch            initialize #f getter generate)
-  (slot dir               initialize #f getter generate)
+  (slot dirname           initialize #f getter generate)
   (slot started?          initialize #f accessors generate)
   (slot working?          initialize #f accessors generate)
   (slot download-progress initialize #f accessors generate)
@@ -40,14 +40,14 @@
   (slot checkout-done     initialize #f accessors generate)
   
   
-  (method override (initialize (name: name #f) (title: title #f) (url: url #f) (branch: branch #f) (dir: dir #f))
+  (method override (initialize (name: name #f) (title: title #f) (url: url #f) (branch: branch #f) (dirname: dirname #f))
     (set! id~self connection-id)
     (increase! connection-id)
     (set! name~self name)
     (set! title~self title)
     (set! url~self url)
     (set! branch~self branch)
-    (set! dir~self dir)
+    (set! dirname~self dirname)
     (set! children~self (list (new Jiri-Task part: .5)
                               (new Jiri-Task part: .5))))
   

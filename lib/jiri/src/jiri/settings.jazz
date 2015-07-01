@@ -57,6 +57,9 @@
 (define-jiri jiri-application
   #f)
 
+(define-jiri jiri-launcher
+  #f)
+
 (define-jiri jiri-email
   #f)
 
@@ -105,7 +108,7 @@
 (define-jiri jiri-install-section
   #f)
 
-(define-jiri jiri-current-dir
+(define-jiri jiri-install-current
   #f)
 
 
