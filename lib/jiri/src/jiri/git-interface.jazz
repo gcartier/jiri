@@ -203,14 +203,6 @@
             (continuation-return cancel))
         (exit 1)))
     
-    (define (error-connection exc)
-      (if remote-exception?
-          (begin
-            (set-cursor :arrow)
-            (set-working?~ connection #f)
-            (throw exc))
-        (exit 1)))
-    
     (git-remote-setup-callbacks remote
       (new Git-Callbacks
         credentials-callback: (lambda ()
@@ -227,10 +219,15 @@
                             (message-box "Incorrect password")
                             (loop (+ try 1)))
                            (else
-                            (message-box (if (jiri-devel?)
-                                             (string-append "Unable to connect to server (" (git-remote-url remote) "):\n\n" err)
-                                           "Unable to connect to server"))
-                            (error-connection exc)))))
+                            (if remote-exception?
+                                (begin
+                                  (set-cursor :arrow)
+                                  (set-working?~ connection #f)
+                                  (throw exc))
+                              (message-box (if (jiri-devel?)
+                                               (string-append "Unable to connect to server (" (git-remote-url remote) "):\n\n" err)
+                                             "Unable to connect to server"))
+                              (exit 1))))))
             (git-remote-connect remote GIT_DIRECTION_FETCH)
             (current-password password)))))))
 

@@ -48,7 +48,7 @@
 
 (define (prepare)
   (when (and TEST? kernel-source-accessible? (not (getenv-default "called-from")))
-    (setenv "root-dir" "C:/Program Files (x86)/Sentio Test/")
+    (setenv "root-dir" "C:/Program Files (x86)/Sirius Test/")
     (setenv "called-from" "root"))
   
   (current-root-dir (getenv-default "root-dir"))
@@ -89,22 +89,40 @@
   (for-each set-done~ (get-children~ (get-connection~ (jiri-install-section)))))
 
 
+(define (work-offline)
+  (bell)
+  (set-cursor :arrow)
+  (set-title~ stage-view "Unable to connect to server")
+  (if (file-exists? (app-exe))
+      (begin
+        (set-work-done? #t)
+        (set-color~ stage-view stage-install-color)
+        (set-enabled?~ play-view #t))
+    (set-color~ stage-view stage-setup-color)
+    (set-title~ play-view "Not found")
+    (set-enabled?~ play-view #f)))
+
+
 ;;;
 ;;;; Install From Setup
 ;;;
 
 
 (define (install-from-setup)
-  (install-tasks-done)
-  (install-current)
-  (install-root)
-  (install-desktop)
-  (install-start-menu)
-  (update-start-menu)
-  (install-uninstall)
-  (install-application/world
-    (lambda (new-content?)
-      (install-done))))
+  (catch (Git-Exception exc
+           (if (jiri-offline?)
+               (work-offline)
+             (exit 1)))
+    (install-tasks-done)
+    (install-current)
+    (install-root)
+    (install-desktop)
+    (install-start-menu)
+    (update-start-menu)
+    (install-uninstall)
+    (install-application/world
+      (lambda (new-content?)
+        (install-done)))))
 
 
 ;;;
@@ -113,16 +131,21 @@
 
 
 (define (install-from-root)
-  (pull-repository (jiri-install-section) (current-password) (install-dir)
-    (lambda (new-content?)
-      (if new-content?
-          (delegate-install (current-root-dir) (current-password) "current")
-        (begin
-          (update-start-menu)
-          (rewind-start-menu)
-          (install-application/world
-            (lambda (new-content?)
-              (install-done))))))))
+  (catch (Git-Exception exc
+           (if (jiri-offline?)
+               (work-offline)
+             (exit 1)))
+    (pull-repository (jiri-install-section) (current-password) (install-dir)
+      (lambda (new-content?)
+        (if new-content?
+            (delegate-install (current-root-dir) (current-password) "current")
+          (begin
+            (update-start-menu)
+            (rewind-start-menu)
+            (install-application/world
+              (lambda (new-content?)
+                (install-done))))))
+      #t)))
 
 
 ;;;
@@ -131,14 +154,18 @@
 
 
 (define (install-from-current)
-  (install-tasks-done)
-  (install-current)
-  (install-root)
-  (update-start-menu)
-  (rewind-start-menu)
-  (install-application/world
-    (lambda (new-content?)
-      (install-done))))
+  (catch (Git-Exception exc
+           (if (jiri-offline?)
+               (work-offline)
+             (exit 1)))
+    (install-tasks-done)
+    (install-current)
+    (install-root)
+    (update-start-menu)
+    (rewind-start-menu)
+    (install-application/world
+      (lambda (new-content?)
+        (install-done)))))
 
 
 ;;;
@@ -151,9 +178,11 @@
     (lambda (new-content?)
       (cond ((world-dir)
              (pull-repository (jiri-world-section) (current-password) (world-dir)
-               cont))
+               cont
+               #t))
             ((jiri-world-work)
-             ((jiri-world-work) (jiri-world-section) 5 6 cont))))))
+             ((jiri-world-work) (jiri-world-section) 5 6 cont))))
+    #t))
 
 
 ;;;
