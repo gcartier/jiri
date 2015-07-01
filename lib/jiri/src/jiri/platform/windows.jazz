@@ -126,4 +126,40 @@ exit:
     free(pszFrom);
     
     ___result = ret;
+//#)
+
+
+;;;
+;;;; Shortcut
+;;;
+
+
+(c-external (create-shortcut wchar_t-string wchar_t-string wchar_t-string wchar_t-string) int
+  #/C/
+    HRESULT hres;
+    IShellLink* psl;
+    
+    hres = CoCreateInstance(&CLSID_ShellLink, NULL, CLSCTX_INPROC_SERVER, &IID_IShellLink, (void **) &psl);
+    if (SUCCEEDED(hres))
+    {
+        IPersistFile* ppf;
+
+        hres = psl->lpVtbl->QueryInterface(psl, &IID_IPersistFile, (void **) &ppf);
+        if (SUCCEEDED(hres))
+        {
+            hres = psl->lpVtbl->SetPath(psl, ___arg1);
+            if (___arg2)
+                psl->lpVtbl->SetArguments(psl, ___arg2);
+            psl->lpVtbl->SetDescription(psl, ___arg4);
+            psl->lpVtbl->SetIconLocation(psl, ___arg1, 0);
+            if (SUCCEEDED(hres))
+            {
+                hres=ppf->lpVtbl->Save(ppf, ___arg3, TRUE);
+            }
+            ppf->lpVtbl->Release(ppf);
+        }
+        psl->lpVtbl->Release(psl);
+    }
+    
+    ___result = hres;
 //#))

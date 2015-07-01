@@ -27,6 +27,7 @@
         (jiri.base)
         (jiri.git)
         (jiri.git-interface)
+        (jiri.platform)
         (jiri.view)
         (jiri.settings)
         (jiri.structure)
@@ -216,7 +217,6 @@
 
 
 (define (install-desktop)
-  @convert
   (let ((path (root-exe))
         (shortcut (desktop-shortcut)))
     (let ((hr (create-shortcut path #f shortcut (jiri-title))))
