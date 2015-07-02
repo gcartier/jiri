@@ -115,15 +115,17 @@
              (exit 1)))
     (set-cursor :wait)
     (install-tasks-done)
-    (install-current)
-    (install-root)
-    (install-desktop)
-    (install-start-menu)
-    (update-start-menu)
-    (install-uninstall)
-    (install-application/world
-      (lambda (new-content?)
-        (install-done)))))
+    (install-current
+      (lambda ()
+        (install-root
+          (lambda ()
+            (install-desktop)
+            (install-start-menu)
+            (update-start-menu)
+            (install-uninstall)
+            (install-application/world
+              (lambda (new-content?)
+                (install-done)))))))))
 
 
 ;;;
@@ -161,13 +163,15 @@
              (exit 1)))
     (set-cursor :wait)
     (install-tasks-done)
-    (install-current)
-    (install-root)
-    (update-start-menu)
-    (rewind-start-menu)
-    (install-application/world
-      (lambda (new-content?)
-        (install-done)))))
+    (install-current
+      (lambda ()
+        (install-root
+          (lambda ()
+            (update-start-menu)
+            (rewind-start-menu)
+            (install-application/world
+              (lambda (new-content?)
+                (install-done)))))))))
 
 
 ;;;
@@ -200,48 +204,58 @@
   (set-work-done? #t))
 
 
-(define (install-current)
-  (let ((install-dir (make-directory (install-dir)))
-        (current-dir (make-directory (current-dir))))
-    (install-directory~ install-dir current-dir
-      filter: (lambda (action pathname)
-                (if (and (eq? action 'copy)
-                         (pathname=? (get-parent~ pathname) install-dir)
-                         (filename=? (get-name~ pathname) ".git"))
-                    #f
-                  #t)))))
+(define (install-current cont)
+  (thread-start!
+    (new-thread
+      (lambda ()
+        (let ((install-dir (make-directory (install-dir)))
+              (current-dir (make-directory (current-dir))))
+          (install-directory~ install-dir current-dir
+            filter: (lambda (action pathname)
+                      (if (and (eq? action 'copy)
+                               (pathname=? (get-parent~ pathname) install-dir)
+                               (filename=? (get-name~ pathname) ".git"))
+                          #f
+                        #t))))
+        (post-event cont))
+      'current)))
 
 
-(define (install-root)
-  (let ((from-exe (make-file (launch-exe)))
-        (from-lib (make-directory (launch-lib)))
-        (to-exe (make-file (root-exe)))
-        (to-lib (make-directory (root-lib))))
-    (install-file~ from-exe to-exe)
-    (install-directory~ from-lib to-lib
-      filter: (lambda (action pathname)
-                (if (and (eq? action 'copy)
-                         (pathname=? (get-parent~ pathname) from-lib)
-                         (let ((filename (get-name~ pathname)))
-                           (member? filename '("jazz.catalog"
-                                               "jazz.debugger"
-                                               "jazz.debugger.jazz"
-                                               "jazz.designer"
-                                               "jazz.editor.jazz"
-                                               "jazz.editor.lisp"
-                                               "jazz.git"
-                                               "jazz.graphic"
-                                               "jazz.jml"
-                                               "jazz.jrm"
-                                               "jazz.library"
-                                               "jazz.media"
-                                               "jazz.profile"
-                                               "jazz.resources"
-                                               "jazz.system"
-                                               "jazz.ui")
-                             test: filename=?)))
-                    #f
-                  #t)))))
+(define (install-root cont)
+  (thread-start!
+    (new-thread
+      (lambda ()
+        (let ((from-exe (make-file (launch-exe)))
+              (from-lib (make-directory (launch-lib)))
+              (to-exe (make-file (root-exe)))
+              (to-lib (make-directory (root-lib))))
+          (install-file~ from-exe to-exe)
+          (install-directory~ from-lib to-lib
+            filter: (lambda (action pathname)
+                      (if (and (eq? action 'copy)
+                               (pathname=? (get-parent~ pathname) from-lib)
+                               (let ((filename (get-name~ pathname)))
+                                 (member? filename '("jazz.catalog"
+                                                     "jazz.debugger"
+                                                     "jazz.debugger.jazz"
+                                                     "jazz.designer"
+                                                     "jazz.editor.jazz"
+                                                     "jazz.editor.lisp"
+                                                     "jazz.git"
+                                                     "jazz.graphic"
+                                                     "jazz.jml"
+                                                     "jazz.jrm"
+                                                     "jazz.library"
+                                                     "jazz.media"
+                                                     "jazz.profile"
+                                                     "jazz.resources"
+                                                     "jazz.system"
+                                                     "jazz.ui")
+                                   test: filename=?)))
+                          #f
+                        #t))))
+        (post-event cont))
+      'root)))
 
 
 (define (install-desktop)
