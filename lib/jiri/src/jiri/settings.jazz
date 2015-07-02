@@ -132,6 +132,16 @@
 
 
 ;;;
+;;;; Transfer
+;;;
+
+
+;; quicky
+(define-jiri jiri-transfer-section
+  #f)
+
+
+;;;
 ;;;; Update
 ;;;
 

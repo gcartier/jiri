@@ -57,6 +57,11 @@
     (task-invalidater self))
   
   
+  (method public (increase-pos)
+    (set! pos (+ pos 1))
+    (task-invalidater self))
+  
+  
   (method public (done?)
     (= pos (get-end~ range)))
   

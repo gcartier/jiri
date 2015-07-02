@@ -31,6 +31,7 @@
         (jiri.view)
         (jiri.settings)
         (jiri.structure)
+        (jiri.task)
         (jiri.window)
         (jiri.work))
 
@@ -89,6 +90,15 @@
   (for-each set-done~ (get-children~ (get-connection~ (jiri-install-section)))))
 
 
+(define (transfer-tasks-setup proc)
+  (let ((section (jiri-transfer-section))
+        (app-section (jiri-app-section)))
+    (set-part~ section .1)
+    (set-part~ app-section (- (get-part~ app-section) .1))
+    (proc (add-task~ section (new Jiri-Task part: .8))
+          (add-task~ section (new Jiri-Task part: .2)))))
+
+
 (define (work-offline)
   (bell)
   (set-cursor :arrow)
@@ -115,17 +125,19 @@
              (exit 1)))
     (set-cursor :wait)
     (install-tasks-done)
-    (install-current
-      (lambda ()
-        (install-root
+    (transfer-tasks-setup
+      (lambda (current-task root-task)
+        (install-current current-task
           (lambda ()
-            (install-desktop)
-            (install-start-menu)
-            (update-start-menu)
-            (install-uninstall)
-            (install-application/world
-              (lambda (new-content?)
-                (install-done)))))))))
+            (install-root root-task
+              (lambda ()
+                (install-desktop)
+                (install-start-menu)
+                (update-start-menu)
+                (install-uninstall)
+                (install-application/world
+                  (lambda (new-content?)
+                    (install-done)))))))))))
 
 
 ;;;
@@ -163,15 +175,17 @@
              (exit 1)))
     (set-cursor :wait)
     (install-tasks-done)
-    (install-current
-      (lambda ()
-        (install-root
+    (transfer-tasks-setup
+      (lambda (current-task root-task)
+        (install-current current-task
           (lambda ()
-            (update-start-menu)
-            (rewind-start-menu)
-            (install-application/world
-              (lambda (new-content?)
-                (install-done)))))))))
+            (install-root root-task
+              (lambda ()
+                (update-start-menu)
+                (rewind-start-menu)
+                (install-application/world
+                  (lambda (new-content?)
+                    (install-done)))))))))))
 
 
 ;;;
@@ -204,58 +218,120 @@
   (set-work-done? #t))
 
 
-(define (install-current cont)
-  (thread-start!
-    (new-thread
-      (lambda ()
-        (let ((install-dir (make-directory (install-dir)))
-              (current-dir (make-directory (current-dir))))
-          (install-directory~ install-dir current-dir
-            filter: (lambda (action pathname)
-                      (if (and (eq? action 'copy)
-                               (pathname=? (get-parent~ pathname) install-dir)
-                               (filename=? (get-name~ pathname) ".git"))
-                          #f
-                        #t))))
-        (post-event cont))
-      'current)))
+(define (count-zero-deep dir (ignore: ignore #f))
+  (let ((count 0))
+    (iterate-directory~ dir
+      (lambda (path)
+        (let ((filename (get-name~ path)))
+          (unless (or (filename=? filename ".git")
+                      (and ignore
+                           (member? filename ignore
+                             test: filename=?)))
+            (increase! count))))
+      files?: #t
+      directories?: #t
+      recursive?: #f)
+    count))
 
 
-(define (install-root cont)
-  (thread-start!
-    (new-thread
-      (lambda ()
-        (let ((from-exe (make-file (launch-exe)))
-              (from-lib (make-directory (launch-lib)))
-              (to-exe (make-file (root-exe)))
-              (to-lib (make-directory (root-lib))))
+(define (count-one-deep dir)
+  (let ((count 0))
+    (iterate-directory~ dir
+      (lambda (path)
+        (increase! count)
+        (when (and (directory? path)
+                   (not (filename=? (get-name~ path) ".git")))
+          (iterate-directory~ path
+            (lambda (path)
+              (increase! count))
+            files?: #t
+            directories?: #t
+            recursive?: #f)))
+      files?: #t
+      directories?: #t
+      recursive?: #f
+      ignored-toplevel-dirnames: '(".git"))
+    count))
+
+
+(define (install-current task cont)
+  (let ((install-dir (make-directory (install-dir)))
+        (current-dir (make-directory (current-dir))))
+    (set-range~ task (new Range 0 (count-one-deep install-dir)))
+    (thread-start!
+      (new-thread
+        (lambda ()
+          (let ((first? #t))
+            (install-directory~ install-dir current-dir
+              filter: (lambda (action pathname)
+                        (if (and (eq? action 'copy)
+                                 (pathname=? (get-parent~ pathname) install-dir)
+                                 (filename=? (get-name~ pathname) ".git"))
+                            #f
+                          #t))
+              feedback: (lambda (action pathname)
+                          (let ((parent (get-parent~ pathname)))
+                            (when (or (pathname=? parent install-dir)
+                                      (pathname=? (get-parent~ parent) install-dir))
+                              (if first?
+                                  (set! first? #f)
+                                (increase-pos~ task)))))
+              force-feedback?: #t))
+          (increase-pos~ task)
+          (set-done~ task)
+          (post-event cont))
+        'current))))
+
+
+(define (install-root task cont)
+  (define ignored-packages
+    '("jazz.catalog"
+      "jazz.debugger"
+      "jazz.debugger.jazz"
+      "jazz.designer"
+      "jazz.editor.jazz"
+      "jazz.editor.lisp"
+      "jazz.git"
+      "jazz.graphic"
+      "jazz.jml"
+      "jazz.jrm"
+      "jazz.library"
+      "jazz.media"
+      "jazz.profile"
+      "jazz.resources"
+      "jazz.system"
+      "jazz.ui"))
+  
+  (let ((from-exe (make-file (launch-exe)))
+        (from-lib (make-directory (launch-lib)))
+        (to-exe (make-file (root-exe)))
+        (to-lib (make-directory (root-lib))))
+    (set-range~ task (new Range 0 (+ 1 (count-zero-deep from-lib ignore: ignored-packages))))
+    (thread-start!
+      (new-thread
+        (lambda ()
           (install-file~ from-exe to-exe)
-          (install-directory~ from-lib to-lib
-            filter: (lambda (action pathname)
-                      (if (and (eq? action 'copy)
-                               (pathname=? (get-parent~ pathname) from-lib)
-                               (let ((filename (get-name~ pathname)))
-                                 (member? filename '("jazz.catalog"
-                                                     "jazz.debugger"
-                                                     "jazz.debugger.jazz"
-                                                     "jazz.designer"
-                                                     "jazz.editor.jazz"
-                                                     "jazz.editor.lisp"
-                                                     "jazz.git"
-                                                     "jazz.graphic"
-                                                     "jazz.jml"
-                                                     "jazz.jrm"
-                                                     "jazz.library"
-                                                     "jazz.media"
-                                                     "jazz.profile"
-                                                     "jazz.resources"
-                                                     "jazz.system"
-                                                     "jazz.ui")
-                                   test: filename=?)))
-                          #f
-                        #t))))
-        (post-event cont))
-      'root)))
+          (increase-pos~ task)
+          (let ((first? #t))
+            (install-directory~ from-lib to-lib
+              filter: (lambda (action pathname)
+                        (if (and (eq? action 'copy)
+                                 (pathname=? (get-parent~ pathname) from-lib)
+                                 (let ((filename (get-name~ pathname)))
+                                   (member? filename ignored-packages
+                                     test: filename=?)))
+                            #f
+                          #t))
+              feedback: (lambda (action pathname)
+                          (when (pathname=? (get-parent~ pathname) from-lib)
+                            (if first?
+                                (set! first? #f)
+                              (increase-pos~ task))))
+              force-feedback?: #t))
+          (increase-pos~ task)
+          (set-done~ task)
+          (post-event cont))
+        'root))))
 
 
 (define (install-desktop)

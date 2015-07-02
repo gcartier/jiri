@@ -21,16 +21,21 @@
   
   (slot title       initialize #f getter generate)
   (slot dir         initialize #f getter generate)
-  (slot part        initialize #f getter generate)
+  (slot part        initialize #f accessors generate)
+  ;; quicky not sure this is the right structure
+  ;; amongst others because the sequence order is not well
+  ;; defined between which is first tasks or connections
+  (slot tasks       initialize #f accessors generate)
   (slot connection  initialize #f accessors generate)
   (slot connections initialize #f getter generate)
   (slot default     initialize #f getter generate)
   
   
-  (method override (initialize (title: title #f) (dir: dir #f) (part: part #f) (connection: connection #f) (connections: connections #f) (default: default #f))
+  (method override (initialize (title: title #f) (dir: dir #f) (part: part #f) (tasks: tasks #f) (connection: connection #f) (connections: connections #f) (default: default #f))
     (set! title~self title)
     (set! dir~self dir)
     (set! part~self part)
+    (set! tasks~self tasks)
     (set! connection~self connection)
     (set! connections~self connections)
     (set! default~self default))
@@ -39,4 +44,9 @@
   (method override (print output readably)
     (print-unreadable self output
       (lambda (output)
-        (format output "{s}" title))))))
+        (format output "{s}" title))))
+  
+  
+  (method public (add-task task)
+    (set! tasks (append (or tasks '()) (list task)))
+    task)))

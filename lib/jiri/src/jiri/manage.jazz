@@ -27,6 +27,12 @@
 (definition protected (count-tasks)
   (let ((count 0))
     (for-each (lambda (section)
+                ;; quicky
+                (let ((tasks (get-tasks~ section)))
+                  (when tasks
+                    (for-each (lambda (task)
+                                (increase! count))
+                              tasks)))
                 (let ((connection (get-connection~ section)))
                   (when connection
                     (for-each (lambda (task)
@@ -40,16 +46,26 @@
   (let ((step 0)
         (from 0.))
     (for-each (lambda (section)
-                (let ((part (get-part~ section))
-                      (connection (get-connection~ section)))
-                  (when connection
-                    (let ((from from))
-                      (for-each (lambda (task)
-                                  (let ((to (+ from (* part (get-part~ task)))))
-                                    (proc task step from to)
-                                    (increase! step)
-                                    (set! from to)))
-                                (get-children~ connection))))
+                ;; quicky
+                (let ((part (get-part~ section)))
+                  (let ((tasks (get-tasks~ section)))
+                    (when tasks
+                      (let ((from from))
+                        (for-each (lambda (task)
+                                    (let ((to (+ from (* part (get-part~ task)))))
+                                      (proc task step from to)
+                                      (increase! step)
+                                      (set! from to)))
+                                  tasks))))
+                  (let ((connection (get-connection~ section)))
+                    (when connection
+                      (let ((from from))
+                        (for-each (lambda (task)
+                                    (let ((to (+ from (* part (get-part~ task)))))
+                                      (proc task step from to)
+                                      (increase! step)
+                                      (set! from to)))
+                                  (get-children~ connection)))))
                   (increase! from part)))
               (get-sections~ (jiri-manager)))))
 
