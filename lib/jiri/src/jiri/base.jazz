@@ -92,6 +92,7 @@
   
   (if (not wait-and-exit?)
       (open redirect?: #f)
+    (jazz.ui.window:set-cursor :wait)
     (disable-window~ (jazz.system:get-toplevel))
     (let ((port (open redirect?: #t)))
       (thread-start!
