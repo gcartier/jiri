@@ -107,7 +107,7 @@
   
   
   (method override (cursor-update evt)
-    (set-cursor :arrow)))
+    (set-cursor (if (work-in-progress?) :wait :arrow))))
 
 
 ;;;

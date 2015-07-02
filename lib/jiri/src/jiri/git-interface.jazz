@@ -88,6 +88,7 @@
                           (git-remote-disconnect remote)
                           (git-remote-free remote)
                           (git-repository-free repo)
+                          (set-cursor :arrow)
                           (set-working?~ connection #f)))
                 (git-check-error result)
                 (set-status~ checkout-task (string-append "Installing " title))
@@ -102,6 +103,7 @@
                       (git-reference-free upstream)
                       (git-object-free commit)
                       (git-repository-free repo)
+                      (set-cursor :arrow)
                       (set-working?~ connection #f))
                     
                     (unless (git-branch-lookup repo branch GIT_BRANCH_LOCAL)
@@ -255,10 +257,6 @@
 ;;;
 
 
-(define quit-requested?
-  #f)
-
-
 (definition public (quit-confirm-abort title)
   (lambda ()
     (if (not (work-in-progress?))
@@ -278,7 +276,6 @@
 (define (request-quit title)
   (set-abort-requested (lambda () (exit)))
   (git-request-abort)
-  (set-cursor :wait)
   (set-title~ status-view title)
   (when minimize-view
     (set-enabled?~ minimize-view #f))
