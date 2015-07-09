@@ -2,6 +2,10 @@
 
 REL="$(dirname "$0")"
 
+if [ -f "$REL/.jam" ]; then
+    source "$REL/.jam"
+fi
+
 JAZ="$REL/jazz"
 JED="$REL/jedi"
 JAM="$JAZ/jam"
