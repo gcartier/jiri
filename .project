@@ -15,5 +15,4 @@
 
 (form
   (<Project> name: jiri description-file: {File :context ".repository"} active-project: jiri:Jiri
-    (<*>                tag-reference: {File :context "jazz" ".project"})
     (<*>                tag-reference: {File :context "lib" "jiri" ".project"}))))
