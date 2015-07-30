@@ -24,6 +24,7 @@
                           jiri.settings
                           (cond
                             (windows jiri.setup))
+                          jiri.splash
                           jiri.structure
                           jiri.task
                           (cond

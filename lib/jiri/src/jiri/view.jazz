@@ -32,7 +32,7 @@
         (jiri.window))
 
 
-(definition jiri-pane
+(definition protected jiri-pane
   #f)
 
 (definition public (set-jiri-pane pane)

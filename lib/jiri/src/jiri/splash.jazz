@@ -1,0 +1,91 @@
+;;;==============
+;;;  JiriScheme
+;;;==============
+;;;
+;;;; Splash
+;;;
+;;;  The Initial Developer of the Original Code is Guillaume Cartier.
+;;;  Portions created by the Initial Developer are Copyright (C) 1996-2015
+;;;  the Initial Developer. All Rights Reserved.
+;;;
+;;;  Contributor(s):
+;;;
+;;;  See www.jazzscheme.org for details.
+
+
+(module jiri.splash jazz
+
+
+(import (jazz.ui)
+        (jazz.ui.view)
+        (jazz.ui.window)
+        (jiri.view)
+        (jiri.window)
+        (jiri.work))
+
+
+(define (prepare)
+  )
+
+
+;;;
+;;;; Splash
+;;;
+
+
+(define (splash)
+  )
+
+
+;;;
+;;;; Done
+;;;
+
+
+(define (install-done)
+  (set-title~ stage-view "Ready to play!")
+  (set-color~ stage-view stage-ready-color)
+  (set-title~ status-view "Done")
+  (set-cursor :arrow))
+
+
+;;;
+;;;; Layout
+;;;
+
+
+(define (layout)
+  (add-view root-view)
+  (add-view invite-view)
+  (when close-view
+    (add-view close-view))
+  (when minimize-view
+    (add-view minimize-view))
+  (add-stage-view "Working" stage-install-color)
+  (add-view percentage-view)
+  (add-view downloaded-view)
+  (add-view status-view)
+  (add-view remaining-view)
+  (add-view progress-view)
+  (add-view play-view))
+
+
+;;;
+;;;; Init
+;;;
+
+
+(set-init
+  (lambda ()
+    (prepare)
+    (layout)))
+
+
+;;;
+;;;; Startup
+;;;
+
+
+(set-startup
+  (lambda ()
+    (splash))))

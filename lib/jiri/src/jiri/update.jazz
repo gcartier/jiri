@@ -58,6 +58,7 @@
 ;;     - .git
 
 
+@UPDATE_ALL_CODE (
 (define stage
   #f)
 
@@ -279,4 +280,4 @@
 
 (set-startup
   (lambda ()
-    (update))))
+    (update)))))
