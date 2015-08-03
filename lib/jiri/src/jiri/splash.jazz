@@ -19,34 +19,18 @@
 (import (jazz.ui)
         (jazz.ui.view)
         (jazz.ui.window)
+        (jiri.settings)
+        (jiri.task)
         (jiri.view)
         (jiri.window)
         (jiri.work))
 
 
 (define (prepare)
-  )
-
-
-;;;
-;;;; Splash
-;;;
-
-
-(define (splash)
-  )
-
-
-;;;
-;;;; Done
-;;;
-
-
-(define (install-done)
-  (set-title~ stage-view "Ready to play!")
-  (set-color~ stage-view stage-ready-color)
-  (set-title~ status-view "Done")
-  (set-cursor :arrow))
+  (let ((section (jiri-splash-section)))
+    (add-task~ section (let ((task (new Jiri-Task part: 1.)))
+                         (set-done~ task)
+                         task))))
 
 
 ;;;
@@ -61,13 +45,24 @@
     (add-view close-view))
   (when minimize-view
     (add-view minimize-view))
-  (add-stage-view "Working" stage-install-color)
+  (add-stage-view "Working" stage-ready-color)
   (add-view percentage-view)
   (add-view downloaded-view)
   (add-view status-view)
   (add-view remaining-view)
   (add-view progress-view)
-  (add-view play-view))
+  (add-view play-view)
+  (set-title~ play-view "Working")
+  (set-active?~ play-view #f))
+
+
+;;;
+;;;; Splash
+;;;
+
+
+(define (splash)
+  )
 
 
 ;;;

@@ -167,6 +167,15 @@
 
 
 ;;;
+;;;; Splash
+;;;
+
+
+(define-jiri jiri-splash-section
+  #f)
+
+
+;;;
 ;;;; Manager
 ;;;
 

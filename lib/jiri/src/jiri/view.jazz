@@ -176,12 +176,13 @@
 (class Jiri-Button extends View
   
   
-  (property action initialize #f accessors generate)
+  (property action  initialize #f accessors generate)
+  (property active? initialize #t accessors generate)
   
   
   (method override (draw surface context)
     (let ((bounds (get-bounds)))
-      (if (and enabled? (eq? self (mouse-view)))
+      (if (and enabled? active? (eq? self (mouse-view)))
           (fill-rect~ surface bounds {Color red: 230 green: 0 blue: 0})
         (gradient-fill-rect~ surface bounds
           (list (list 0 (if enabled? {Color red: 150 green: 0 blue: 0} {Color White}))
@@ -196,7 +197,9 @@
   
   
   (method override (cursor-update evt)
-    (set-cursor :arrow))
+    (if active?
+        (set-cursor :arrow)
+      (set-cursor (if (work-in-progress?) :wait :arrow))))
   
   
   (method override (mouse-enter)
@@ -208,7 +211,7 @@
   
   
   (method override (mouse-up evt)
-    (when enabled?
+    (when (and enabled? active?)
       (process-action self))))
 
 
