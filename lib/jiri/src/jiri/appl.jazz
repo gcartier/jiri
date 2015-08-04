@@ -16,7 +16,8 @@
 (module jiri.appl jazz
 
 
-(import (jazz.graphic)
+(import (jazz.event)
+        (jazz.graphic)
         (jazz.jml)
         (jazz.snapshot)
         (jazz.platform)
