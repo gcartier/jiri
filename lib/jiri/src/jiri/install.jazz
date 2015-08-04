@@ -16,7 +16,8 @@
 (module jiri.install jazz
 
 
-(import (jazz.git.foreign)
+(import (jazz.event)
+        (jazz.git.foreign)
         (jazz.graphic)
         (jazz.io)
         (jazz.platform)
