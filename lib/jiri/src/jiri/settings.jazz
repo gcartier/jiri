@@ -79,6 +79,15 @@
 
 
 ;;;
+;;;; Crashes
+;;;
+
+
+(define-jiri jiri-monitor-crashes
+  #f)
+
+
+;;;
 ;;;; Remote
 ;;;
 
