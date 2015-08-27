@@ -132,8 +132,7 @@
           (lambda ()
             (install-root root-task
               (lambda ()
-                (install-desktop)
-                (install-start-menu)
+                (install-platform)
                 (update-start-menu)
                 (install-uninstall)
                 (install-application/world
@@ -432,38 +431,51 @@
         'root))))
 
 
-(define (install-desktop)
-  (let ((path (root-exe))
-        (shortcut (desktop-shortcut)))
-    (let ((hr (create-shortcut path #f shortcut (jiri-title))))
-      (when (< hr 0)
-        (continuable-error (format "Unable to create desktop shortcut ({x})" hr))))))
+(cond-expand
+  (windows
+   (define (install-platform)
+     (install-desktop)
+     (install-start-menu))
+   
+   (define (install-desktop)
+     (let ((path (root-exe))
+           (shortcut (desktop-shortcut)))
+       (let ((hr (create-shortcut path #f shortcut (jiri-title))))
+         (when (< hr 0)
+           (continuable-error (format "Unable to create desktop shortcut ({x})" hr))))))
+   
+   (define (install-start-menu)
+     @convert
+     (let ((root (root-exe))
+           (appdir (start-menu-appdir)))
+       (when (file-exists? appdir)
+         ;; danger
+         (remove-directory appdir))
+       (create-directory appdir)
+       (let ((shortcut (start-menu-shortcut appdir)))
+         (let ((hr (create-shortcut root #f shortcut (jiri-title))))
+           (when (< hr 0)
+             (continuable-error (format "Unable to create start menu shortcut ({x})" hr))))))))
+  (else
+   (define (install-platform)
+     )))
 
 
-(define (install-start-menu)
-  @convert
-  (let ((root (root-exe))
-        (appdir (start-menu-appdir)))
-    (when (file-exists? appdir)
-      ;; danger
-      (remove-directory appdir))
-    (create-directory appdir)
-    (let ((shortcut (start-menu-shortcut appdir)))
-      (let ((hr (create-shortcut root #f shortcut (jiri-title))))
-        (when (< hr 0)
-          (continuable-error (format "Unable to create start menu shortcut ({x})" hr)))))))
-
-
-(define (update-start-menu)
-  @convert
-  (let ((root (root-exe))
-        (appdir (start-menu-appdir)))
-    (when (file-exists? appdir)
-      (let ((title "Video Card Information"))
-        (let ((shortcut (string-append appdir "/" title ".lnk")))
-          (let ((hr (create-shortcut root "-information" shortcut title)))
-            (when (< hr 0)
-              (continuable-error (format "Unable to create start menu shortcut ({x})" hr)))))))))
+(cond-expand
+  (windows
+   (define (update-start-menu)
+     @convert
+     (let ((root (root-exe))
+           (appdir (start-menu-appdir)))
+       (when (file-exists? appdir)
+         (let ((title "Video Card Information"))
+           (let ((shortcut (string-append appdir "/" title ".lnk")))
+             (let ((hr (create-shortcut root "-information" shortcut title)))
+               (when (< hr 0)
+                 (continuable-error (format "Unable to create start menu shortcut ({x})" hr))))))))))
+  (else
+   (define (update-start-menu)
+     )))
 
 
 ;; hack around windows taking forever to remove newly installed highlight
