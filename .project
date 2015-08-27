@@ -14,5 +14,5 @@
 
 
 (form
-  (<Project> name: jiri description-file: {File :context ".repository"} active-project: jiri:Jiri
+  (<Project> name: jiri description-file: {File :context ".repository"} depot-directory: {Directory :context} active-project: jiri:Jiri
     (<*>                tag-reference: {File :context "lib" "jiri" ".project"}))))
