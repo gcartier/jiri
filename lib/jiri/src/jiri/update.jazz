@@ -16,23 +16,6 @@
 (module jiri.update jazz
 
 
-(import (jazz.git.foreign)
-        (jazz.io)
-        (jazz.platform)
-        (jazz.system)
-        (jazz.ui)
-        (jazz.ui.view)
-        (jazz.ui.window)
-        (jiri.base)
-        (jiri.git)
-        (jiri.git-interface)
-        (jiri.view)
-        (jiri.settings)
-        (jiri.structure)
-        (jiri.window)
-        (jiri.work))
-
-
 ;; MAC
 ;; Contents
 ;; - Info.plist

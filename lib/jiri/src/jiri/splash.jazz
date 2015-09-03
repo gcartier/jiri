@@ -16,10 +16,7 @@
 (module jiri.splash jazz
 
 
-(import (jazz.ui)
-        (jazz.ui.view)
-        (jazz.ui.window)
-        (jiri.settings)
+(import (jiri.settings)
         (jiri.task)
         (jiri.view)
         (jiri.window)

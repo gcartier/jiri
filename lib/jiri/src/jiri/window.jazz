@@ -16,10 +16,6 @@
 (module jiri.window jazz
 
 
-(import (jazz.platform)
-        (jazz.system))
-
-
 ;;;
 ;;;; Init
 ;;;

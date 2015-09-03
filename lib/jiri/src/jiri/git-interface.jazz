@@ -16,7 +16,8 @@
 (module jiri.git-interface jazz
 
 
-(import (jazz.git.foreign)
+(import (jazz.application)
+        (jazz.git.foreign)
         (jazz.git.interface)
         (jazz.graphic)
         (jazz.jml)
@@ -30,8 +31,6 @@
         (jiri.manage)
         (jiri.settings)
         (jiri.structure)
-        (jiri.task)
-        (jiri.view)
         (jiri.window)
         (jiri.work))
 

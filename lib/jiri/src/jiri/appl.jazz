@@ -16,13 +16,10 @@
 (module jiri.appl jazz
 
 
-(import (jazz.event)
-        (jazz.graphic)
+(import (jazz.application)
+        (jazz.event)
         (jazz.jml)
         (jazz.snapshot)
-        (jazz.platform)
-        (jazz.system)
-        (jazz.system.application)
         (jazz.ui)
         (jazz.ui.skin)
         (jazz.ui.view)

@@ -16,15 +16,14 @@
 (module jiri.view jazz
 
 
-(import (jazz.geometry)
+(import (jazz.application)
+        (jazz.cairo)
+        (jazz.geometry)
         (jazz.graphic)
         (jazz.graphic.image)
         (jazz.jml)
-        (jazz.platform)
-        (jazz.platform.cairo)
         (jazz.system)
         (jazz.ui)
-        (jazz.ui.view)
         (jazz.ui.window)
         (jiri.font)
         (jiri.manage)

@@ -18,13 +18,10 @@
 
 (import (jazz.graphic)
         (jazz.snapshot)
-        (jazz.ui)
-        (jazz.ui.view)
         (jazz.ui.window)
         (jiri.base)
         (jiri.font)
         (jiri.manage)
-        (jiri.platform)
         (jiri.settings)
         (jiri.structure)
         (jiri.task)

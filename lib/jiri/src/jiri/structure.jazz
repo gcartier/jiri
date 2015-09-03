@@ -138,7 +138,7 @@
   (setenv "password" (or password ""))
   (setenv "called-from" called-from)
   (setenv "work-downloaded" (number->string (or (calculate-downloaded) 0)))
-  (let ((pos (get-position~ (jazz.system:get-toplevel))))
+  (let ((pos (get-position~ (jazz.application:get-toplevel))))
     (setenv "window-h" (number->string (get-h~ pos)))
     (setenv "window-v" (number->string (get-v~ pos))))
   (setenv "send-ready" "true")
