@@ -16,9 +16,16 @@
 (module jiri.setup jazz
 
 
-(import (jazz.git.interface)
+(import (jazz.io)
+        (jazz.git.interface)
+        (jazz.ui)
+        (jazz.ui.dialog)
+        (jazz.ui.skin)
+        (jazz.ui.view)
         (jazz.ui.window)
+        (jiri.base)
         (jiri.git-interface)
+        (jiri.platform)
         (jiri.settings)
         (jiri.structure)
         (jiri.view)

@@ -22,6 +22,7 @@
         (jiri.base)
         (jiri.font)
         (jiri.manage)
+        (jiri.platform)
         (jiri.settings)
         (jiri.structure)
         (jiri.task)
