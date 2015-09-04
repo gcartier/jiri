@@ -43,9 +43,9 @@
         (define (source-file path)
           (string-append source path))
         
-        (jazz:copy-file (source-file "foreign/windows/libgit2/lib/libgit2.dll") (build-file "libgit2.dll") feedback: jazz:feedback)
-        (jazz:copy-file (source-file "foreign/windows/openssl/lib/libeay32.dll") (build-file "libeay32.dll") feedback: jazz:feedback)
-        (jazz:copy-file (source-file "foreign/windows/openssl/lib/ssleay32.dll") (build-file "ssleay32.dll") feedback: jazz:feedback))))
+        (jazz:copy-file (source-file "lib/jazz.git/foreign/windows/libgit2/lib/libgit2.dll") (build-file "libgit2.dll") feedback: jazz:feedback)
+        (jazz:copy-file (source-file "lib/jazz.git/foreign/windows/openssl/lib/libeay32.dll") (build-file "libeay32.dll") feedback: jazz:feedback)
+        (jazz:copy-file (source-file "lib/jazz.git/foreign/windows/openssl/lib/ssleay32.dll") (build-file "ssleay32.dll") feedback: jazz:feedback))))
   (else
     (define (copy-jiri-files)
       )))
@@ -54,14 +54,14 @@
 (cond-expand
   (windows
     (define jiri-units
-      (let ((git-include-path (quote-jazz-pathname "foreign/windows/libgit2/include"))
-            (git-lib-path     (quote-jazz-pathname "foreign/windows/libgit2/lib")))
+      (let ((git-include-path (quote-jazz-pathname "lib/jazz.git/foreign/windows/libgit2/include"))
+            (git-lib-path     (quote-jazz-pathname "lib/jazz.git/foreign/windows/libgit2/lib")))
         `((jiri.platform.windows cc-options: "-DUNICODE -D_WIN32_WINNT=0x0502 -D_WIN32_IE=0x0400" ld-options: "-lgdi32 -lole32 -luuid")
           (jiri.git              cc-options: ,(string-append "-I" git-include-path) ld-options: ,(string-append "-L" git-lib-path " -lgit2"))))))
   (cocoa
     (define jiri-units
-      (let ((git-include-path (jazz:quote-jazz-pathname "foreign/mac/libgit2/include"))
-            (git-lib-path     (jazz:quote-jazz-pathname "foreign/mac/libgit2/lib")))
+      (let ((git-include-path (jazz:quote-jazz-pathname "lib/jazz.git/foreign/mac/libgit2/include"))
+            (git-lib-path     (jazz:quote-jazz-pathname "lib/jazz.git/foreign/mac/libgit2/lib")))
         `((jiri.git
             cc-options: ,(string-append "-I" git-include-path)
             ld-options: ,(string-append "-L" git-lib-path " -framework Cocoa -lgit2.22")

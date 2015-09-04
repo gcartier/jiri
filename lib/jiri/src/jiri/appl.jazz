@@ -19,6 +19,7 @@
 (import (jazz.application)
         (jazz.event)
         (jazz.jml)
+        (jazz.platform)
         (jazz.snapshot)
         (jazz.ui)
         (jazz.ui.skin)
