@@ -22,7 +22,6 @@
         (jazz.graphic)
         (jazz.graphic.image)
         (jazz.jml)
-        (jazz.system)
         (jazz.ui)
         (jazz.ui.window)
         (jiri.font)

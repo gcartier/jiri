@@ -81,7 +81,15 @@
     (when send-ready?
       (write 'ready)
       (newline)
-      (force-output))))
+      (force-output)))
+  
+  
+  (method override (user-notification wparam lparam)
+    (when notification-callback
+      (let ((id wparam)
+            (what (signed-loword lparam))
+            (result (signed-hiword lparam)))
+        (notification-callback id what result)))))
 
 
 ;;;
@@ -97,15 +105,7 @@
   
   
   (method override (effective-title)
-    "Jiri")
-  
-  
-  (method override (user-notification wparam lparam)
-    (when notification-callback
-      (let ((id wparam)
-            (what (signed-loword lparam))
-            (result (signed-hiword lparam)))
-        (notification-callback id what result)))))
+    "Jiri"))
 
 
 (cond-expand
