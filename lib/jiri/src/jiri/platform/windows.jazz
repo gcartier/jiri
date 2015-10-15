@@ -19,7 +19,7 @@
 (import (jazz.foreign)
         (jazz.platform)
         (jazz.platform.types)
-        (jazz.ui.view))
+        (jazz.view))
 
 
 (c-include "<shlobj.h>")

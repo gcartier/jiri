@@ -1,8 +1,12 @@
 (package jiri
   
+  (title "Jiri")
+  (description "Jazz Remote Installer")
+  (authors "Guillaume Cartier")
+  (stage alpha)
   (root "src")
   (products (jiri (title "Jiri")
-                  (unit jiri.product)
+                  (product jiri.product)
                   (update jiri.appl
                           jiri.base
                           jiri.connection
@@ -35,23 +39,26 @@
                           jiri.window
                           jiri.work)
                   (dependencies jazz
-                                jazz.catalog
-                                jazz.debuggee
-                                jazz.debuggee.jazz
-                                jazz.designer
-                                jazz.editor.jazz
-                                jazz.git
-                                jazz.graphic
-                                jazz.io
-                                jazz.jml
-                                jazz.jrm
-                                jazz.media
-                                jazz.network
-                                jazz.platform
-                                jazz.profile
-                                jazz.ui
-                                srfi-19
+                                ;jazz.catalog
+                                ;jazz.debuggee
+                                ;jazz.debuggee.jazz
+                                ;jazz.designer
+                                ;jazz.editor.jazz
+                                ;jazz.git
+                                ;jazz.graphic
+                                ;jazz.io
+                                ;jazz.jml
+                                ;jazz.jrm
+                                ;jazz.library
+                                ;jazz.media
+                                ;jazz.network
+                                ;jazz.platform
+                                ;jazz.profile
+                                ;jazz.system
+                                ;jazz.ui
+                                ;srfi-19
                                 ;; to run under the debugger
-                                profiler
-                                jazz.debugger.jazz)))
+                                ;profiler
+                                ;jazz.debugger.jazz
+                                )))
   (project ".project"))

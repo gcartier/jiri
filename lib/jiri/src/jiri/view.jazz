@@ -22,8 +22,10 @@
         (jazz.graphic)
         (jazz.graphic.image)
         (jazz.jml)
+        (jazz.tree)
         (jazz.ui)
-        (jazz.ui.window)
+        (jazz.view)
+        (jazz.window)
         (jiri.font)
         (jiri.manage)
         (jiri.settings)
@@ -53,6 +55,7 @@
 ;;;
 
 
+@skin-convert
 (class Jiri-Skin extends Jazz-Skin
   
   

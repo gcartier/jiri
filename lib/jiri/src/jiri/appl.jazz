@@ -20,11 +20,11 @@
         (jazz.event)
         (jazz.jml)
         (jazz.platform)
+        (jazz.skin)
         (jazz.snapshot)
-        (jazz.ui)
-        (jazz.ui.skin)
-        (jazz.ui.view)
-        (jazz.ui.window)
+        (jazz.view)
+        (jazz.window)
+        (jazz.workspace)
         (jiri.pane)
         (jiri.settings)
         (jiri.structure)
@@ -72,6 +72,7 @@
         (set-size~ toplevel (cache-background-size))))
     
     (nextmethod)
+    @skin-convert
     (set-skin (new Jiri-Skin))
     (maximize~ (current-stage))
     (set-jiri-pane (get-guest~ (new-frame Jiri-Pane)))
