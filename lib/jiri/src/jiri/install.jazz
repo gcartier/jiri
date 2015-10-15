@@ -19,6 +19,7 @@
 (import (jazz.event)
         (jazz.git.foreign)
         (jazz.io)
+        (jazz.tree)
         (jazz.ui)
         (jazz.view)
         (jazz.window)

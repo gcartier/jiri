@@ -81,7 +81,8 @@
   (windows
    (define (setup-root)
      (define (choose-dir)
-       (let ((dir (parse~ (parameterize ((current-skin (new Jazz-Skin))) (choose-directory title: "Please select the installation folder" selected-directory: (make-directory (or choosen-dir (get-special-folder CSIDL_PROGRAM_FILESX86))))))))
+       (let ((dir (parse~ @skin-convert (parameterize ((current-skin (new Jazz-Skin))) (choose-directory title: "Please select the installation folder" selected-directory: (make-directory (or choosen-dir (get-special-folder CSIDL_PROGRAM_FILESX86)))))
+                    (choose-directory title: "Please select the installation folder" selected-directory: (make-directory (or choosen-dir (get-special-folder CSIDL_PROGRAM_FILESX86)))))))
          (unless (equal? dir "")
            (set! choosen-dir dir)
            (normalize-directory (standardize-directory dir)))))
