@@ -379,20 +379,66 @@
 
 (define (install-root task cont)
   (define ignored-packages
-    '("jazz.catalog"
+    '("jazz.action"
+      "jazz.application"
+      "jazz.cairo"
+      "jazz.clipboard"
+      "jazz.component"
+      "jazz.core"
+      "jazz.crash"
+      "jazz.debuggee"
+      "jazz.debuggee.jazz"
+      "jazz.debuggee.stub"
       "jazz.debugger"
       "jazz.debugger.jazz"
-      "jazz.designer"
-      "jazz.editor.jazz"
-      "jazz.editor.lisp"
+      "jazz.document"
+      "jazz.event"
+      "jazz.exemplar"
+      "jazz.feedback"
+      "jazz.figure"
+      "jazz.fontconfig"
+      "jazz.fonts"
+      "jazz.foreign"
+      "jazz.freetype"
       "jazz.git"
       "jazz.graphic"
+      "jazz.handler"
+      "jazz.history"
+      "jazz.inspector"
       "jazz.jml"
       "jazz.jrm"
+      "jazz.layout"
+      "jazz.locale"
+      "jazz.locator"
+      "jazz.math"
       "jazz.media"
+      "jazz.menu"
+      "jazz.network"
+      "jazz.outline"
+      "jazz.preferences"
+      "jazz.print"
+      "jazz.process"
+      "jazz.product"
       "jazz.profile"
+      "jazz.reference"
+      "jazz.resource"
       "jazz.resources"
-      "jazz.ui"))
+      "jazz.runtime"
+      "jazz.screen"
+      "jazz.selection"
+      "jazz.settings"
+      "jazz.skin"
+      "jazz.snapshot"
+      "jazz.syntax"
+      "jazz.template"
+      "jazz.text"
+      "jazz.tree"
+      "jazz.undoer"
+      "jazz.ui"
+      "jazz.view"
+      "jazz.window"
+      "jazz.workspace"
+      "jazz.zlib"))
   
   (let ((from-exe (make-file (launch-exe)))
         (from-lib (make-directory (launch-lib)))
@@ -420,6 +466,12 @@
                                 (set! first? #f)
                               (increase-pos~ task))))
               force-feedback?: #t))
+          (for-each (lambda (ignored)
+                      (let ((dir (new-directory~ to-lib ignored)))
+                        (when (exists?~ dir)
+                          (delete-directory~ dir)
+                          (increase-pos~ task))))
+                    ignored-packages)
           (increase-pos~ task)
           (set-done~ task)
           (post-event cont))

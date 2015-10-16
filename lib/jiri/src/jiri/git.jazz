@@ -16,7 +16,7 @@
 (module jiri.git jazz
 
 
-(import (jazz.foreign)
+(import (jazz.foreign (phase syntax))
         (jazz.git.foreign)
         (jazz.git.syntax (phase syntax))
         (jazz.platform)

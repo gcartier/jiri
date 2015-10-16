@@ -18,6 +18,7 @@
 
 (import (jazz.application)
         (jazz.cairo)
+        (jazz.component)
         (jazz.geometry)
         (jazz.graphic)
         (jazz.graphic.image)
@@ -51,21 +52,19 @@
 
 
 ;;;
-;;;; Skin
+;;;; Look
 ;;;
 
 
-@skin-convert
-(class Jiri-Skin extends Jazz-Skin
-  
-  
-  (form
-    (<install>                          title: "Jiri"
-      (<!>     name: menu               background: {Color White} highlight: {Gradient vertical {Color red: .588 green: .000 blue: .000} {Color red: .196 green: .000 blue: .000}} text-font: {Font Label point-size: 24} text-color: {Color Red} disabled-text-color: {Color red: .522 green: .506 blue: .427})
-      (<!>     name: scrollbar          background: none)
-      (<!>     name: scrollbar/tool     background: none)
-      (<!>     name: scrollbar/document background: none)
-      (<!>     name: tree               background: none line-color: {Color White} text-color: {Color White} focused-color: {Gradient vertical {Color red: 180 green: 0 blue: 0} {Color red: 250 green: 0 blue: 0}} unfocused-color: {Gradient vertical {Color red: 180 green: 0 blue: 0} {Color red: 250 green: 0 blue: 0}}))))
+(definition public jiri-look
+  (<form>
+    (<Trait>     name: jiri
+      (<install>
+        (<!>     name: menu               background: {Color White} highlight: {Gradient vertical {Color red: .588 green: .000 blue: .000} {Color red: .196 green: .000 blue: .000}} text-font: {Font Label point-size: 24} text-color: {Color Red} disabled-text-color: {Color red: .522 green: .506 blue: .427})
+        (<!>     name: scrollbar          background: none)
+        (<!>     name: scrollbar/tool     background: none)
+        (<!>     name: scrollbar/document background: none)
+        (<!>     name: tree               background: none line-color: {Color White} text-color: {Color White} focused-color: {Gradient vertical {Color red: 180 green: 0 blue: 0} {Color red: 250 green: 0 blue: 0}} unfocused-color: {Gradient vertical {Color red: 180 green: 0 blue: 0} {Color red: 250 green: 0 blue: 0}})))))
 
 
 ;;;

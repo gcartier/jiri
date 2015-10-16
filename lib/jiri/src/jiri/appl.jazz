@@ -17,6 +17,7 @@
 
 
 (import (jazz.application)
+        (jazz.component)
         (jazz.event)
         (jazz.jml)
         (jazz.platform)
@@ -72,8 +73,6 @@
         (set-size~ toplevel (cache-background-size))))
     
     (nextmethod)
-    @skin-convert
-    (set-skin (new Jiri-Skin))
     (maximize~ (current-stage))
     (set-jiri-pane (get-guest~ (new-frame Jiri-Pane)))
     (init)
@@ -83,6 +82,14 @@
       (write 'ready)
       (newline)
       (force-output)))
+  
+  
+  (method override (install-skins)
+    (iterate-skins
+      (lambda (name skin)
+        (let ((trait (instantiate-trait Skin jiri-look)))
+          (set-parent~ trait (local-trait skin 'jazz))
+          (set-active-trait~ skin 'default.jazz.jiri)))))
   
   
   (method override (user-notification wparam lparam)

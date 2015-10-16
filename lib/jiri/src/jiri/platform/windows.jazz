@@ -16,7 +16,7 @@
 (module protected jiri.platform.windows jazz
 
 
-(import (jazz.foreign)
+(import (jazz.foreign (phase syntax))
         (jazz.platform)
         (jazz.platform.types)
         (jazz.view))
