@@ -31,7 +31,7 @@
     (if (or (not TEST?) (not kernel-source-accessible?))
         (nextmethod evt)
       (case (get-key~ evt)
-        ((#\v) (explore-views~ (jazz.debuggee:current-view-debugger))))))
+        ((#\v) (explore-views~ (jazz.debuggee.view:current-view-debugger))))))
   
   
   (method override (return-press evt)
