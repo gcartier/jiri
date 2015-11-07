@@ -56,7 +56,7 @@
     (define jiri-units
       (let ((git-include-path (quote-jazz-pathname "lib/jazz.git/foreign/windows/libgit2/include"))
             (git-lib-path     (quote-jazz-pathname "lib/jazz.git/foreign/windows/libgit2/lib")))
-        `((jiri.platform.windows cc-options: "-DUNICODE -D_WIN32_WINNT=0x0502 -D_WIN32_IE=0x0400" ld-options: "-lgdi32 -lole32 -luuid")
+        `((jiri.platform.windows cc-options: "-DUNICODE -D_WIN32_WINNT=0x0502 -D_WIN32_IE=0x0400 -fpermissive" ld-options: "-lgdi32 -lole32 -luuid")
           (jiri.git              cc-options: ,(string-append "-I" git-include-path) ld-options: ,(string-append "-L" git-lib-path " -lgit2"))))))
   (cocoa
     (define jiri-units
