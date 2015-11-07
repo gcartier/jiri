@@ -211,7 +211,7 @@
 (c-declare jiri.git #/C/
     void checkout_callback(const char *path, size_t completed_steps, size_t total_steps, void *payload)
     {
-        int id = (int) payload;
+        int id = *((int*)(&payload));
         lock_mutex();
         checkoutInfos[id].checkout_path = (char*) path;
         checkoutInfos[id].checkout_completed_steps = completed_steps;
@@ -222,7 +222,7 @@
 
     THREADPROC(checkout_head_proc, payload)
     {
-        int id = (int) payload;
+        int id = *((int*)(&payload));
         git_checkout_options options = GIT_CHECKOUT_OPTIONS_INIT;
         options.checkout_strategy = GIT_CHECKOUT_FORCE;
         options.progress_cb = checkout_callback;
@@ -246,7 +246,7 @@
     
     THREADPROC(reset_hard_proc, payload)
     {
-        int id = (int) payload;
+        int id = *((int*)(&payload));
         git_checkout_options options = GIT_CHECKOUT_OPTIONS_INIT;
         options.checkout_strategy = GIT_CHECKOUT_FORCE;
         options.progress_cb = checkout_callback;
@@ -312,7 +312,7 @@
 (c-declare jiri.git #/C/
     int remote_download_callback(const git_transfer_progress *stats, void *payload)
     {
-        int id = (int) payload;
+        int id = *((int*)(&payload));
         bool abort;
       
         lock_mutex();
@@ -333,7 +333,7 @@
 
     THREADPROC(remote_download_proc, payload)
     {
-        int id = (int) payload;
+        int id = *((int*)(&payload));
         git_remote* remote = downloadInfos[id].remote;
         git_remote_callbacks callbacks = GIT_REMOTE_CALLBACKS_INIT;
         callbacks.transfer_progress = remote_download_callback;
