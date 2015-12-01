@@ -70,7 +70,7 @@
               (set-cursor :arrow)
               (message-box (string-append (jiri-title) " was successfully removed from your computer.")
                            title: (string-append (jiri-title) " Uninstall"))
-              (seppuku-exit))))))))
+              (seppuku-quit))))))))
 
 
 @convert
@@ -103,7 +103,7 @@
         (message-box (string-append "Unable to delete installation folder (0x" (number->string code 16) "): " install-dir))))))
 
 
-(define (seppuku-exit)
+(define (seppuku-quit)
   (define (generate-remover uninstall remove)
     (call-with-output-file (path-settings path: remove)
       (lambda (output)
@@ -117,13 +117,13 @@
         (newline output)
         (force-output output))))
   
-  (exit)
+  (quit)
   @convert
   (let ((uninstall (executable-path))
         (remove (get-temporary-file (string-append (jiri-title) " remove") "bat")))
     (generate-remover uninstall remove)
     (create-console-process (string-append "cmd /c \"" remove "\""))
-    (exit)))
+    (quit)))
 
 
 ;;;
@@ -144,7 +144,7 @@
       (uninstall)))
   (set-quit-callback
     (lambda ()
-      (seppuku-exit))))
+      (seppuku-quit))))
 
 
 ;;;

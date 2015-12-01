@@ -130,7 +130,7 @@
   (setenv "password" (or password ""))
   (setenv "called-from" called-from)
   (delegate-process (current-exe))
-  (exit))
+  (quit))
 
 
 (definition public (delegate-install root-dir password called-from)
@@ -142,4 +142,4 @@
     (setenv "window-h" (number->string (get-h~ pos)))
     (setenv "window-v" (number->string (get-v~ pos))))
   (setenv "send-ready" "true")
-  (delegate-process (install-exe) wait-and-exit?: #t)))
+  (delegate-process (install-exe) wait-and-quit?: #t)))
