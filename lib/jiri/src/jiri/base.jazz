@@ -95,10 +95,11 @@
     (jazz.window:set-cursor :wait)
     (disable-window~ (jazz.application:get-toplevel))
     (let ((port (open redirect?: #t)))
-      (thread-start!
-        (new-thread
-          (lambda ()
-            (input-port-timeout-set! port max-wait)
-            (read port)
-            (quit))
-          'delegate))))))
+      (thread-join!
+        (thread-start!
+          (new-thread
+            (lambda ()
+              (input-port-timeout-set! port max-wait)
+              (read port))
+            'delegate)))
+      (quit)))))
