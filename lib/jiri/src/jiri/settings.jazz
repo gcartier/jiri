@@ -24,7 +24,7 @@
 ;;;
 
 
-(definition public (jiri-devel?)
+(define-jiri jiri-devel?
   (cond-expand
     (devel #t)
     (else #f)))
