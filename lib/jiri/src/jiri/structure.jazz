@@ -126,20 +126,26 @@
 
 
 (definition public (delegate-current root-dir password called-from)
-  (setenv "root-dir" root-dir)
-  (setenv "password" (or password ""))
-  (setenv "called-from" called-from)
-  (delegate-process (current-exe))
+  (let ((environment
+          (build-environment
+            (lambda (add)
+              (add "root-dir" root-dir)
+              (add "password" (or password ""))
+              (add "called-from" called-from)))))
+    (delegate-process (current-exe) environment: environment))
   (quit))
 
 
 (definition public (delegate-install root-dir password called-from)
-  (setenv "root-dir" root-dir)
-  (setenv "password" (or password ""))
-  (setenv "called-from" called-from)
-  (setenv "work-downloaded" (number->string (or (calculate-downloaded) 0)))
-  (let ((pos (get-position~ (jazz.application:get-toplevel))))
-    (setenv "window-h" (number->string (get-h~ pos)))
-    (setenv "window-v" (number->string (get-v~ pos))))
-  (setenv "send-ready" "true")
-  (delegate-process (install-exe) wait-and-quit?: #t)))
+  (let ((environment
+          (build-environment
+            (lambda (add)
+              (add "root-dir" root-dir)
+              (add "password" (or password ""))
+              (add "called-from" called-from)
+              (add "work-downloaded" (number->string (or (calculate-downloaded) 0)))
+              (let ((pos (get-position~ (jazz.application:get-toplevel))))
+                (add "window-h" (number->string (get-h~ pos)))
+                (add "window-v" (number->string (get-v~ pos))))
+              (add "send-ready" "true")))))
+    (delegate-process (install-exe) environment: environment wait-and-quit?: #t))))

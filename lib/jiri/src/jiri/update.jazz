@@ -111,16 +111,19 @@
 
 
 (definition public (delegate-update root-dir password called-from update-new?)
-  (setenv "root-dir" root-dir)
-  (setenv "password" (or password ""))
-  (setenv "called-from" called-from)
-  (setenv "update-new" (if update-new? "yes" "no"))
-  (setenv "work-downloaded" (number->string (or (calculate-downloaded) 0)))
-  (let ((pos (get-position~ (get-toplevel))))
-    (setenv "window-h" (number->string (get-h~ pos)))
-    (setenv "window-v" (number->string (get-v~ pos))))
-  (setenv "send-ready" "true")
-  (delegate-process (update-exe) wait-and-quit?: #t))
+  (let ((environment
+          (build-environment
+            (lambda (add)
+              (add "root-dir" root-dir)
+              (add "password" (or password ""))
+              (add "called-from" called-from)
+              (add "update-new" (if update-new? "yes" "no"))
+              (add "work-downloaded" (number->string (or (calculate-downloaded) 0)))
+              (let ((pos (get-position~ (get-toplevel))))
+                (add "window-h" (number->string (get-h~ pos)))
+                (add "window-v" (number->string (get-v~ pos))))
+              (add "send-ready" "true")))))
+    (delegate-process (update-exe) environment: environment wait-and-quit?: #t)))
 
 
 ;;;

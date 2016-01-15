@@ -74,7 +74,16 @@
   30)
 
 
-(definition public (delegate-process path (arguments: arguments '()) (wait-and-quit?: wait-and-quit? #f))
+(definition public (build-environment proc)
+  (let ((queue (new-queue)))
+    (define (add variable value)
+      (enqueue queue (string-append variable "=" value)))
+    
+    (proc add)
+    (queue-list queue)))
+
+
+(definition public (delegate-process path (arguments: arguments '()) (environment: environment #f) (wait-and-quit?: wait-and-quit? #f))
   (define (add-debugger arguments)
     (let ((debugger (command-argument "debugger")))
       (if (not debugger)
@@ -85,6 +94,7 @@
     (open-process (list
                     path: path
                     arguments: (add-debugger arguments)
+                    environment: environment
                     stdin-redirection: redirect?
                     stdout-redirection: redirect?
                     stderr-redirection: redirect?
