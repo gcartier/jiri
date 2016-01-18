@@ -139,7 +139,7 @@
       (lambda ()
         (update-launch .1 .2
           (lambda ()
-            (update-application/world .2 .3 .4
+            (update-app/data .2 .3 .4
               (lambda (new-content?)
                 (update-done)))))))))
 
@@ -193,12 +193,12 @@
     stage-install-color))
 
 
-(define (update-application/world limits cont)
+(define (update-app/data limits cont)
   (add-stage-view (string-append "Updating " (game-string)) (determine-stage-color (app-dir)))
   (pull-repository (jiri-app-section) (current-password) (app-dir)
     (lambda (new-content?)
-      (add-stage-view (string-append "Updating " (get-title~ (jiri-world-section))) (determine-stage-color (world-dir)))
-      (pull-repository (jiri-world-section) (current-password) (world-dir)
+      (add-stage-view (string-append "Updating " (get-title~ (jiri-data-section))) (determine-stage-color (data-dir)))
+      (pull-repository (jiri-data-section) (current-password) (data-dir)
         cont))))
 
 

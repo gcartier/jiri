@@ -51,8 +51,8 @@
 (definition public (update-dir)
   (string-append (current-root-dir) (section-dir (jiri-update-section))))
 
-(definition public (world-dir)
-  (and (jiri-world-section) (string-append (current-root-dir) (section-dir (jiri-world-section)))))
+(definition public (data-dir)
+  (and (jiri-data-section) (string-append (current-root-dir) (section-dir (jiri-data-section)))))
 
 (definition public (current-dir)
   (string-append (current-root-dir) (normalize-directory (jiri-install-current))))

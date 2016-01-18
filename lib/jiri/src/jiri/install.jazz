@@ -132,7 +132,7 @@
                 (install-platform)
                 (update-start-menu)
                 (install-uninstall)
-                (install-application/world
+                (install-app/data
                   (lambda (new-content?)
                     (install-done)))))))))))
 
@@ -155,7 +155,7 @@
             (start-send-crash-reports)
             (update-start-menu)
             (rewind-start-menu)
-            (install-application/world
+            (install-app/data
               (lambda (new-content?)
                 (install-done))))))
       #t)))
@@ -182,7 +182,7 @@
               (lambda ()
                 (update-start-menu)
                 (rewind-start-menu)
-                (install-application/world
+                (install-app/data
                   (lambda (new-content?)
                     (install-done)))))))))))
 
@@ -287,15 +287,15 @@
 ;;;
 
 
-(define (install-application/world cont)
+(define (install-app/data cont)
   (pull-repository (jiri-app-section) (current-password) (app-dir)
     (lambda (new-content?)
-      (cond ((world-dir)
-             (pull-repository (jiri-world-section) (current-password) (world-dir)
+      (cond ((data-dir)
+             (pull-repository (jiri-data-section) (current-password) (data-dir)
                cont
                #t))
-            ((jiri-world-work)
-             ((jiri-world-work) (jiri-world-section) 5 6 cont))))
+            ((jiri-data-work)
+             ((jiri-data-work) (jiri-data-section) 5 6 cont))))
     #t))
 
 

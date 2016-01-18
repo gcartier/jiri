@@ -62,9 +62,9 @@
 ;; - Setup : clone install, delegate Install
 ;; - Launch : delegate Current
 ;; - Current direct : incorrect
-;; - Current from Launch : pull install, if newer delegate Install else pull app/world
-;; - Install from Setup : clone app/world
-;; - Install from Current : pull app/world
+;; - Current from Launch : pull install, if newer delegate Install else pull app/data
+;; - Install from Setup : clone app/data
+;; - Install from Current : pull app/data
 ;; - Install direct : incorrect
 ;; - App : incorrect but could be correct when version is validated with server
 
