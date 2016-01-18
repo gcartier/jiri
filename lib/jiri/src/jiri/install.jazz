@@ -626,5 +626,4 @@
 
 (set-startup
   (lambda ()
-    (when (or TEST-INSTALL? (not kernel-source-accessible?))
-      (install)))))
+    (install))))
