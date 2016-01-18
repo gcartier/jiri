@@ -19,6 +19,7 @@
 (import (jazz.event)
         (jazz.git.foreign)
         (jazz.io)
+        (jazz.settings)
         (jazz.tree)
         (jazz.ui)
         (jazz.view)
@@ -34,25 +35,14 @@
         (jiri.work))
 
 
-(define TEST?
-  #f)
-
-(define TEST-INSTALL?
-  #f)
-
-
 (define stage
   #f)
 
 
 (define (prepare)
-  (when (and TEST? kernel-source-accessible? (not (getenv-default "called-from")))
-    (setenv "root-dir" "C:/Program Files (x86)/Sirius Test/")
-    (setenv "called-from" "root"))
-  
-  (current-root-dir (getenv-default "root-dir"))
-  (current-password (getenv-default "password"))
-  (called-from (getenv-default "called-from"))
+  (current-root-dir (string-argument "root-dir" #f))
+  (current-password (string-argument "password" #f))
+  (called-from (string-argument "called-from" #f))
   (set! stage (cond ((and (current-root-dir)
                           (equal? (called-from) "setup"))
                      'install-from-setup)
@@ -66,10 +56,10 @@
                      (message-box "It is incorrect to launch this application")
                      (exit 1))))
   (when (neq? stage 'install-from-root)
-    (set-work-downloaded (string->number (getenv-default "work-downloaded" "0")))
-    (set-window-h (string->number (getenv-default "window-h" "-1")))
-    (set-window-v (string->number (getenv-default "window-v" "-1")))
-    (set-send-ready? (getenv-default "send-ready" #f))))
+    (set-work-downloaded (integer-argument "work-downloaded" 0))
+    (set-window-h (integer-argument "window-h" -1))
+    (set-window-v (integer-argument "window-v" -1))
+    (set-send-ready? (boolean-argument "send-ready" #f))))
 
 
 ;;;

@@ -126,19 +126,19 @@
 
 
 (definition public (delegate-current root-dir password called-from)
-  (let ((environment
-          (build-environment
+  (let ((arguments
+          (build-arguments
             (lambda (add)
               (add "root-dir" root-dir)
               (add "password" (or password ""))
               (add "called-from" called-from)))))
-    (delegate-process (current-exe) environment: environment))
+    (delegate-process (current-exe) arguments: arguments))
   (quit))
 
 
 (definition public (delegate-install root-dir password called-from)
-  (let ((environment
-          (build-environment
+  (let ((arguments
+          (build-arguments
             (lambda (add)
               (add "root-dir" root-dir)
               (add "password" (or password ""))
@@ -148,4 +148,4 @@
                 (add "window-h" (number->string (get-h~ pos)))
                 (add "window-v" (number->string (get-v~ pos))))
               (add "send-ready" "true")))))
-    (delegate-process (install-exe) environment: environment wait-and-quit?: #t))))
+    (delegate-process (install-exe) arguments: arguments wait-and-quit?: #t))))

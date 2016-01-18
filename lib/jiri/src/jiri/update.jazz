@@ -16,6 +16,9 @@
 (module jiri.update jazz
 
 
+(import (jazz.settings))
+
+
 ;; MAC
 ;; Contents
 ;; - Info.plist
@@ -47,9 +50,9 @@
 
 
 (define (prepare)
-  (current-root-dir (getenv-default "root-dir"))
-  (current-password (getenv-default "password"))
-  (called-from (getenv-default "called-from"))
+  (current-root-dir (string-argument "root-dir" #f))
+  (current-password (string-argument "password" #f))
+  (called-from (string-argument "called-from" #f))
   (set! stage (cond ((and (not (current-root-dir))
                           (not (called-from)))
                      'launch)
@@ -60,14 +63,14 @@
                      (message-box "It is incorrect to launch this application")
                      (exit 1))))
   (when (eq? stage 'update)
-    (set-work-downloaded (string->number (getenv-default "work-downloaded" "0")))
-    (set-window-h (string->number (getenv-default "window-h" "-1")))
-    (set-window-v (string->number (getenv-default "window-v" "-1")))
-    (set-send-ready? (getenv-default "send-ready" #f))))
+    (set-work-downloaded (integer-argument "work-downloaded" 0))
+    (set-window-h (integer-argument "window-h" -1))
+    (set-window-v (integer-argument "window-v" -1))
+    (set-send-ready? (boolean-argument "send-ready" #f))))
 
 
 (define (was-update-new?)
-  (equal? (getenv-default "update-new" "yes") "yes"))
+  (equal? (string-argument "update-new" "yes") "yes"))
 
 
 ;;;
@@ -97,22 +100,22 @@
                  ""))
              
              (if (or (not (file-exists? (app-dir)))
-                     (not (file-exists? (world-dir))))
+                     (not (file-exists? (data-dir))))
                  (add-stage-view (string-append "Failed to install " (game-string) (debug-info)) stage-setup-color)
                (add-stage-view (string-append "Failed to update " (game-string) (debug-info)) stage-setup-color)))
       (pull-repository (jiri-update-section) (current-password) (update-dir)
         (lambda (new-content?)
           (if new-content?
               (delegate-update (current-root-dir) (current-password) "launch" update-new?)
-            (update-application/world (get-limits~ (jiri-app-section))
+            (update-app/data (get-limits~ (jiri-app-section))
               (lambda (new-content?)
                 (update-done)))))
         #t))))
 
 
 (definition public (delegate-update root-dir password called-from update-new?)
-  (let ((environment
-          (build-environment
+  (let ((arguments
+          (build-arguments
             (lambda (add)
               (add "root-dir" root-dir)
               (add "password" (or password ""))
@@ -123,7 +126,7 @@
                 (add "window-h" (number->string (get-h~ pos)))
                 (add "window-v" (number->string (get-v~ pos))))
               (add "send-ready" "true")))))
-    (delegate-process (update-exe) environment: environment wait-and-quit?: #t)))
+    (delegate-process (update-exe) arguments: arguments wait-and-quit?: #t)))
 
 
 ;;;
