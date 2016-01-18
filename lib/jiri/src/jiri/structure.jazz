@@ -63,6 +63,9 @@
 (definition public (root-lib)
   (string-append (current-root-dir) "lib/"))
 
+(definition public (root-file filename)
+  (string-append (current-root-dir) filename))
+
 (cond-expand
   (mac
     (definition public (app-exe)
@@ -86,6 +89,9 @@
 
 (definition public (launch-lib)
   (string-append (install-dir) "lib/"))
+
+(definition public (launch-file filename)
+  (string-append (install-dir) filename))
 
 (definition public (update-exe)
   (string-append (update-dir) "Contents/MacOS/" (jiri-update-exe)))

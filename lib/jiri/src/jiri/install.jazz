@@ -437,6 +437,14 @@
       (new-thread
         (lambda ()
           (install-file~ from-exe to-exe)
+          (cond-expand
+            (windows
+              (let ()
+                (define (install-dll filename)
+                  (install-file~ (make-file (launch-file filename)) (make-file (root-file filename))))
+                
+                (install-dll "libgcc_s_dw2-1.dll")
+                (install-dll "libstdc++-6.dll"))))
           (increase-pos~ task)
           (let ((first? #t))
             (install-directory~ from-lib to-lib
