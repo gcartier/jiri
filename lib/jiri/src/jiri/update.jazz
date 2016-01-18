@@ -118,7 +118,8 @@
           (build-arguments
             (lambda (add)
               (add "root-dir" root-dir)
-              (add "password" (or password ""))
+              (when password
+                (add "password" password))
               (add "called-from" called-from)
               (add "update-new" (if update-new? "yes" "no"))
               (add "work-downloaded" (number->string (or (calculate-downloaded) 0)))

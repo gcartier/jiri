@@ -136,7 +136,8 @@
           (build-arguments
             (lambda (add)
               (add "root-dir" root-dir)
-              (add "password" (or password ""))
+              (when password
+                (add "password" password))
               (add "called-from" called-from)))))
     (delegate-process (current-exe) arguments: arguments))
   (quit))
@@ -147,7 +148,8 @@
           (build-arguments
             (lambda (add)
               (add "root-dir" root-dir)
-              (add "password" (or password ""))
+              (when password
+                (add "password" password))
               (add "called-from" called-from)
               (add "work-downloaded" (number->string (or (calculate-downloaded) 0)))
               (let ((pos (get-position~ (jazz.application:get-toplevel))))
