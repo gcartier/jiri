@@ -117,7 +117,7 @@
                             ;; commented out as there is no way to interrupt the threaded checkout
                             ;; (safe-abort-point checkout-cleanup)
                             (git-checkout-state id
-                              (lambda (path completed-steps total-steps)
+                              (lambda (completed-steps total-steps)
                                 (when (> total-steps 0)
                                   (set! new-content? #t)
                                   (let ((remaining (- total-steps completed-steps)))

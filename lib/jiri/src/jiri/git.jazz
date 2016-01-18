@@ -177,17 +177,11 @@
     
     struct CheckoutInfo
     {
-        char* checkout_path;
         size_t checkout_completed_steps;
         size_t checkout_total_steps;
     };
     
     struct CheckoutInfo checkoutInfos[MAX_CONNECTIONS];
-//#)
-
-(git-external (git-checkout-path int) char-string
-  #/C/
-    ___result = checkoutInfos[___arg1].checkout_path;
 //#)
 
 (git-external (git-checkout-completed-steps int) int
@@ -202,20 +196,19 @@
 
 (definition public (git-checkout-state id proc)
   (git-lock-mutex)
-  (let ((path (git-checkout-path id))
-        (completed-steps (git-checkout-completed-steps id))
+  (let ((completed-steps (git-checkout-completed-steps id))
         (total-steps (git-checkout-total-steps id)))
     (git-unlock-mutex)
-    (proc path completed-steps total-steps)))
+    (proc completed-steps total-steps)))
 
 (c-declare jiri.git #/C/
     void checkout_callback(const char *path, size_t completed_steps, size_t total_steps, void *payload)
     {
         int id = *((int*)(&payload));
         lock_mutex();
-        checkoutInfos[id].checkout_path = (char*) path;
-        checkoutInfos[id].checkout_completed_steps = completed_steps;
-        checkoutInfos[id].checkout_total_steps = total_steps;
+        struct CheckoutInfo* info = &checkoutInfos[id];
+        info->checkout_completed_steps = completed_steps;
+        info->checkout_total_steps = total_steps;
         unlock_mutex();
         post_notification(id, CHECKOUT_PROGRESS, 0);
     }
@@ -260,9 +253,9 @@
 (git-external (git-reset-hard-threaded int git_repository* git_object*) void
   #/C/
     int id = ___arg1;
-    checkoutInfos[id].checkout_path = NULL;
-    checkoutInfos[id].checkout_completed_steps = 0;
-    checkoutInfos[id].checkout_total_steps = 0;
+    struct CheckoutInfo* info = &checkoutInfos[id];
+    info->checkout_completed_steps = 0;
+    info->checkout_total_steps = 0;
     reset_repository = ___arg2;
     reset_commit = ___arg3;
     create_thread(&reset_hard_proc, (void*) id);
