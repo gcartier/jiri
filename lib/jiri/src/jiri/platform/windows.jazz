@@ -139,6 +139,10 @@
 
 (c-external (create-shortcut wchar_t-string wchar_t-string wchar_t-string wchar_t-string) int
   #/C/
+// need to convert code to C++
+#ifdef __cplusplus
+    ___result = 0;
+#else
     HRESULT hres;
     IShellLink* psl;
     
@@ -165,4 +169,5 @@
     }
     
     ___result = hres;
+#endif
 //#))
