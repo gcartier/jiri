@@ -239,13 +239,12 @@
 
 
 (definition (notification-callback-function id what result)
-  (let ((connection (id->connection id)))
-    (cond ((= what DOWNLOAD_PROGRESS) ((get-download-progress~ connection) result))
-          ((= what DOWNLOAD_DONE)     ((get-download-done~ connection)     result))
-          ((= what CHECKOUT_PROGRESS) ((get-checkout-progress~ connection) result))
-          ((= what CHECKOUT_DONE)     (if (in-modal?)
-                                          (delay-modal-user-event id what result)
-                                        ((get-checkout-done~ connection) result))))))
+  (cond ((= what DOWNLOAD_PROGRESS) ((get-download-progress~ (id->connection id)) result))
+        ((= what DOWNLOAD_DONE)     ((get-download-done~ (id->connection id))     result))
+        ((= what CHECKOUT_PROGRESS) ((get-checkout-progress~ (id->connection id)) result))
+        ((= what CHECKOUT_DONE)     (if (in-modal?)
+                                        (delay-modal-user-event id what result)
+                                      ((get-checkout-done~ (id->connection id)) result)))))
 
 
 (set-notification-callback notification-callback-function)
