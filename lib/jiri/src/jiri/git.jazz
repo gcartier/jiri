@@ -133,10 +133,12 @@
 (c-declare jiri.git #/C/
     bool abortRequested = false;
     
-    #define DOWNLOAD_PROGRESS 0
-    #define DOWNLOAD_DONE     1
-    #define CHECKOUT_PROGRESS 2
-    #define CHECKOUT_DONE     3
+    // starting at 1000 is a hack around mac os x
+    // sending a user callback 0 0 on window creation
+    #define DOWNLOAD_PROGRESS 1000
+    #define DOWNLOAD_DONE     1001
+    #define CHECKOUT_PROGRESS 1002
+    #define CHECKOUT_DONE     1003
 //#)
 
 
