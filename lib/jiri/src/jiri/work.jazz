@@ -264,18 +264,25 @@
 (class Jiri-Status extends Jiri-Label
   
   
+  ;; minimize flicker
+  (definition last-title
+    #f)
+  
+  
   (method override (label-title)
-    (let ((of (count-tasks)))
-      (if (= of 0)
-          ""
-        (let ((info (current-task-info)))
-          (if (not info)
-              "Done"
-            (bind (task step from to) info
-              ;; quicky should not be necessary
-              (if (not (get-status~ task))
+    (let ((title
+            (let ((of (count-tasks)))
+              (if (= of 0)
                   ""
-                (string-append (get-status~ task) " (" (number->string (+ step 1)) "/" (number->string of) ")")))))))))
+                (let ((info (current-task-info)))
+                  (if (not info)
+                      "Done"
+                    (bind (task step from to) info
+                      (if (not (get-status~ task))
+                          (or last-title "")
+                        (string-append (get-status~ task) " (" (number->string (+ step 1)) "/" (number->string of) ")")))))))))
+      (set! last-title title)
+      title)))
 
 
 (definition public status-view
