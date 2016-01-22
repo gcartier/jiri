@@ -110,18 +110,30 @@
         pthread_mutex_unlock(&mutex);
     }
     
+    #define MAKELPARAM(a,b)	((long)(((unsigned short)(a))|(((unsigned long)((unsigned short)(b)))<<16)))
+    
     void post_notification(int id, int what, int result)
     {
-        NSEvent* event = [NSEvent otherEventWithType:NSApplicationDefined
+        NSEvent* event;
+        
+        // discard any unprocessed event
+        do {
+            event = [NSApp nextEventMatchingMask:NSApplicationDefinedMask
+                                       untilDate:nil
+                                          inMode:NSDefaultRunLoopMode
+                                         dequeue:YES];
+        } while (event);
+        
+        event = [NSEvent otherEventWithType:NSApplicationDefined
                                             location:NSMakePoint(0, 0)
                                        modifierFlags:0
                                            timestamp:0
                                         windowNumber:0
                                              context:nil
                                              subtype:0
-                                               data1:what
-                                               data2:result];
-        [NSApp postEvent:event atStart:NO];
+                                               data1:id
+                                               data2:MAKELPARAM(what, result)];
+        [NSApp postEvent:event atStart:YES];
     }
 //#)
 
