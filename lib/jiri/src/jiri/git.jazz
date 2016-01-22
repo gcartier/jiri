@@ -40,11 +40,29 @@
 ;;;
 
 
-(cond-expand
-  (windows
 (c-declare jiri.git #/C/
     #include <stdbool.h>
     
+    bool abortRequested = false;
+    
+    // starting at 1000 is a hack around mac os x
+    // sending a user callback 0 0 on window creation
+    #define DOWNLOAD_PROGRESS 1000
+    #define DOWNLOAD_DONE     1001
+    #define CHECKOUT_PROGRESS 1002
+    #define CHECKOUT_DONE     1003
+//#)
+
+
+(c-enumerant DOWNLOAD_PROGRESS)
+(c-enumerant DOWNLOAD_DONE)
+(c-enumerant CHECKOUT_PROGRESS)
+(c-enumerant CHECKOUT_DONE)
+
+
+(cond-expand
+  (windows
+(c-declare jiri.git #/C/
     HANDLE mutex = NULL;
     HWND hwnd = NULL;
     
@@ -71,6 +89,10 @@
     {
         PostMessage(hwnd, WM_USER, what, MAKELPARAM(id, result));
     }
+//#)
+
+(c-external (discard-application-events) void
+  #/C/
 //#)
 
 (c-external (git-callback-hwnd HWND) void
@@ -116,14 +138,6 @@
     {
         NSEvent* event;
         
-        // discard any unprocessed event
-        do {
-            event = [NSApp nextEventMatchingMask:NSApplicationDefinedMask
-                                       untilDate:nil
-                                          inMode:NSDefaultRunLoopMode
-                                         dequeue:YES];
-        } while (event);
-        
         event = [NSEvent otherEventWithType:NSApplicationDefined
                                             location:NSMakePoint(0, 0)
                                        modifierFlags:0
@@ -137,27 +151,21 @@
     }
 //#)
 
+(c-external (discard-application-events) void
+  #/C/
+    NSEvent* event;
+    
+    do {
+        event = [NSApp nextEventMatchingMask:NSApplicationDefinedMask
+                                   untilDate:nil
+                                      inMode:NSDefaultRunLoopMode
+                                     dequeue:YES];
+    } while (event);
+//#)
+
 (c-external (git-callback-hwnd scheme-object) void
   #/C/
 //#)))
-
-
-(c-declare jiri.git #/C/
-    bool abortRequested = false;
-    
-    // starting at 1000 is a hack around mac os x
-    // sending a user callback 0 0 on window creation
-    #define DOWNLOAD_PROGRESS 1000
-    #define DOWNLOAD_DONE     1001
-    #define CHECKOUT_PROGRESS 1002
-    #define CHECKOUT_DONE     1003
-//#)
-
-
-(c-enumerant DOWNLOAD_PROGRESS)
-(c-enumerant DOWNLOAD_DONE)
-(c-enumerant CHECKOUT_PROGRESS)
-(c-enumerant CHECKOUT_DONE)
 
 
 (c-external (git-lock-mutex) void

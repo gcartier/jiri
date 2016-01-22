@@ -26,6 +26,7 @@
         (jazz.view)
         (jazz.window)
         (jazz.workspace)
+        (jiri.git)
         (jiri.pane)
         (jiri.settings)
         (jiri.structure)
@@ -93,6 +94,9 @@
   
   
   (method override (user-notification wparam lparam)
+    ;; discard unprocessed application events
+    ;; this is necessary on mac to not overload event processing
+    (discard-application-events)
     (when notification-callback
       (let ((what wparam)
             (id (signed-loword lparam))
