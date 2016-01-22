@@ -138,9 +138,12 @@
         (lambda (new-content?)
           (if new-content?
               (delegate-update (current-root-dir) (current-password) "launch" update-new?)
-            (update-app/data
-              (lambda (new-content?)
-                (update-done)))))
+            (transfer-tasks-setup
+              (lambda (transfer-task)
+                (set-done~ transfer-task)
+                (update-app/data
+                  (lambda (new-content?)
+                    (update-done)))))))
         #t))))
 
 
@@ -210,6 +213,7 @@
         (install-file "Contents/Info.plist")
         (install-directory-macos "Contents/MacOS" libdir)
         (install-directory "Contents/Resources")
+        (set-done~ task)
         (post-event cont)))))
 
 

@@ -143,9 +143,13 @@
             (start-send-crash-reports)
             (update-start-menu)
             (rewind-start-menu)
-            (install-app/data
-              (lambda (new-content?)
-                (install-done))))))
+            (transfer-tasks-setup
+              (lambda (current-task root-task)
+                (set-done~ current-task)
+                (set-done~ root-task)
+                (install-app/data
+                  (lambda (new-content?)
+                    (install-done))))))))
       #t)))
 
 
