@@ -67,9 +67,9 @@
         ReleaseMutex(mutex);
     }
     
-    void post_notification(int id, int what, int result)
+    void post_notification(int what, int id, int result)
     {
-        PostMessage(hwnd, WM_USER, id, MAKELPARAM(what, result));
+        PostMessage(hwnd, WM_USER, what, MAKELPARAM(id, result));
     }
 //#)
 
@@ -112,7 +112,7 @@
     
     #define MAKELPARAM(a,b)	((long)(((unsigned short)(a))|(((unsigned long)((unsigned short)(b)))<<16)))
     
-    void post_notification(int id, int what, int result)
+    void post_notification(int what, int id, int result)
     {
         NSEvent* event;
         
@@ -131,9 +131,9 @@
                                         windowNumber:0
                                              context:nil
                                              subtype:0
-                                               data1:id
-                                               data2:MAKELPARAM(what, result)];
-        [NSApp postEvent:event atStart:NO];
+                                               data1:what
+                                               data2:MAKELPARAM(id, result)];
+        [NSApp postEvent:event atStart:YES];
     }
 //#)
 
@@ -224,7 +224,7 @@
         info->checkout_completed_steps = completed_steps;
         info->checkout_total_steps = total_steps;
         unlock_mutex();
-        post_notification(id, CHECKOUT_PROGRESS, 0);
+        post_notification(CHECKOUT_PROGRESS, id, 0);
     }
 
     THREADPROC(checkout_head_proc, payload)
@@ -235,7 +235,7 @@
         options.progress_cb = checkout_callback;
         options.progress_payload = payload;
         int result = git_checkout_head(checkout_repository, &options);
-        post_notification(id, CHECKOUT_DONE, result);
+        post_notification(CHECKOUT_DONE, id, result);
         return 0;
     }
 //#)
@@ -259,7 +259,7 @@
         options.progress_cb = checkout_callback;
         options.progress_payload = payload;
         int result = git_reset(reset_repository, reset_commit, GIT_RESET_HARD, &options);
-        post_notification(id, CHECKOUT_DONE, result);
+        post_notification(CHECKOUT_DONE, id, result);
         return 0;
     }
 //#)
@@ -331,7 +331,7 @@
         
         if (! abort)
         {
-            post_notification(id, DOWNLOAD_PROGRESS, 0);
+            post_notification(DOWNLOAD_PROGRESS, id, 0);
             return 0;
         }
         else
@@ -347,7 +347,7 @@
         callbacks.payload = payload;
         git_remote_set_callbacks(remote, &callbacks);
         int result = git_remote_download(remote, NULL);
-        post_notification(id, DOWNLOAD_DONE, result);
+        post_notification(DOWNLOAD_DONE, id, result);
         return 0;
     }
 //#)

@@ -94,10 +94,10 @@
   
   (method override (user-notification wparam lparam)
     (when notification-callback
-      (let ((id wparam)
-            (what (signed-loword lparam))
+      (let ((what wparam)
+            (id (signed-loword lparam))
             (result (signed-hiword lparam)))
-        (notification-callback id what result)))))
+        (notification-callback what id result)))))
 
 
 ;;;

@@ -238,7 +238,7 @@
 ;;;
 
 
-(definition (notification-callback-function id what result)
+(definition (notification-callback-function what id result)
   (cond ((= what DOWNLOAD_PROGRESS) ((get-download-progress~ (id->connection id)) result))
         ((= what DOWNLOAD_DONE)     ((get-download-done~ (id->connection id))     result))
         ((= what CHECKOUT_PROGRESS) ((get-checkout-progress~ (id->connection id)) result))
