@@ -104,11 +104,9 @@
 
 
 (define (transfer-tasks-setup proc)
-  (let ((section (jiri-transfer-section))
-        (app-section (jiri-app-section)))
-    (set-part~ section .1)
-    (set-part~ app-section (- (get-part~ app-section) .1))
-    (proc (add-task~ section (new Jiri-Task part: 1.)))))
+  (let ((section (jiri-transfer-section)))
+    (bind (transfer-task) (get-tasks~ section)
+      (proc transfer-task))))
 
 
 (define (work-offline exc)
@@ -205,6 +203,7 @@
         (new-directory~ update-dir dirname)
         (new-directory~ root-dir dirname)))
     
+    (set-status~ task "Updating sirius")
     (let ((libdir (new-directory~ update-dir "Contents/MacOS/lib")))
       (let ((package-count (count-directories~ libdir)))
         (set-range~ task (new Range 0 package-count))

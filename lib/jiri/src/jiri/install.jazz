@@ -80,12 +80,9 @@
 
 
 (define (transfer-tasks-setup proc)
-  (let ((section (jiri-transfer-section))
-        (app-section (jiri-app-section)))
-    (set-part~ section .1)
-    (set-part~ app-section (- (get-part~ app-section) .1))
-    (proc (add-task~ section (new Jiri-Task part: .8))
-          (add-task~ section (new Jiri-Task part: .2)))))
+  (let ((section (jiri-transfer-section)))
+    (bind (current-task root-task) (get-tasks~ section)
+      (proc current-task root-task))))
 
 
 (define (work-offline)
