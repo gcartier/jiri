@@ -1,0 +1,115 @@
+;;;==============
+;;;  JiriScheme
+;;;==============
+;;;
+;;;; Jiri Monitoring
+;;;
+;;;  The Initial Developer of the Original Code is Guillaume Cartier.
+;;;  Portions created by the Initial Developer are Copyright (C) 1996-2015
+;;;  the Initial Developer. All Rights Reserved.
+;;;
+;;;  Contributor(s):
+;;;
+;;;  See www.jazzscheme.org for details.
+
+
+(module jiri.monitor jazz
+
+
+(import (jazz.io)
+        (jiri.settings))
+
+
+;;;
+;;;; Crashes
+;;;
+
+
+(definition protected sending-crash-reports-mutex
+  (make-mutex 'sending-crash-reports))
+
+
+(definition public (start-send-crash-reports)
+  (thread-start!
+    (new-thread
+      (lambda ()
+        (mutex-lock! sending-crash-reports-mutex)
+        (send-crash-reports)
+        (mutex-unlock! sending-crash-reports-mutex))
+      'send-crash-reports)))
+
+
+(define (send-crash-reports)
+  (let ((monitor (jiri-monitor-crashes)))
+    (when monitor
+      (let ((curl (curl-path)))
+        (when (file-exists? curl)
+          (continuation-capture
+            (lambda (stop)
+              (define (send-all name crashes-dir remote)
+                (let ((draft-dir (new-directory~ crashes-dir "draft"))
+                      (sent-dir (new-directory~ crashes-dir "sent")))
+                  (define (send-report file draft?)
+                    (when (extension=? (get-extension~ file) "snapshot")
+                      (let ((port (open-process
+                                      (list
+                                        path: curl
+                                        arguments: (list "--silent" "-X" "PUT" "-T" (parse~ file) "-H" "Content-Type: text/plain" (string-append remote "/crashes/" (get-name~ file)))
+                                        show-console: #f))))
+                        @debug
+                        (let ((line (read-line port #f)))
+                          (call-with-output-file (path-settings {File Home "sirius.log"} append: #t)
+                            (lambda (port)
+                              (write line port)
+                              (newline port)
+                              (write file port)
+                              (newline port)
+                              (write curl port)
+                              (newline port)
+                              (write (list "--silent" "-X" "PUT" "-T" (parse~ file) "-H" "Content-Type: text/plain" (string-append remote "/crashes/" (get-name~ file))) port)
+                              (newline port))))
+                        (let ((status (process-status port)))
+                          (cond ((= status 0)
+                                 (create-directories~ sent-dir)
+                                 (move-pathname~ file (new-file~ sent-dir (get-name~ file))))
+                                (else
+                                 (unless draft?
+                                   (create-directories~ draft-dir)
+                                   (move-pathname~ file (new-file~ draft-dir (get-name~ file))))
+                                 (continuation-return stop #f)))))))
+                  
+                  (define (send-reports dir draft?)
+                    (when (exists?~ dir)
+                      (for-each (lambda (file)
+                                  (send-report file draft?))
+                                (collect-files~ dir
+                                  (lambda (file)
+                                    #t)))))
+                  
+                  (define (send-crashes)
+                    (send-reports crashes-dir #f))
+                  
+                  (define (send-drafts)
+                    (send-reports draft-dir #t))
+                  
+                  (send-crashes)
+                  (send-drafts)))
+              
+              (for-each (lambda (info)
+                          (bind (name dir remote) info
+                            (send-all name dir remote)))
+                        monitor))))))))
+
+
+;;;
+;;;; Curl
+;;;
+
+
+(cond-expand
+  (windows
+   (definition public (curl-path)
+     (parse~ {File Build "curl.exe"})))
+  (else
+   (definition public (curl-path)
+     "/usr/bin/curl"))))

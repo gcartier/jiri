@@ -20,6 +20,7 @@
                             (windows jiri.launch))
                           jiri.manage
                           jiri.manager
+                          jiri.monitor
                           jiri.pane
                           jiri.platform
                           jiri.product

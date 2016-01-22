@@ -46,4 +46,5 @@
         (<Jazz-File>         name: manager       source: {File :context "src" "jiri" "manager.jazz"})
         (<Jazz-File>         name: task          source: {File :context "src" "jiri" "task.jazz"})
         (<Jazz-File>         name: manage        source: {File :context "src" "jiri" "manage.jazz"})
-        (<Jazz-File>         name: splash        source: {File :context "src" "jiri" "splash.jazz"}))))))
+        (<Jazz-File>         name: splash        source: {File :context "src" "jiri" "splash.jazz"})
+        (<Jazz-File>         name: monitor       source: {File :context "src" "jiri" "monitor.jazz"}))))))
