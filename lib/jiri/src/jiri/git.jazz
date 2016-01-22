@@ -133,7 +133,7 @@
                                              subtype:0
                                                data1:id
                                                data2:MAKELPARAM(what, result)];
-        [NSApp postEvent:event atStart:YES];
+        [NSApp postEvent:event atStart:NO];
     }
 //#)
 
