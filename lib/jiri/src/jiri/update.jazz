@@ -21,6 +21,7 @@
         (jazz.git.foreign)
         (jazz.io)
         (jazz.settings)
+        (jazz.tree)
         (jazz.view)
         (jazz.window)
         (jiri.base)
@@ -28,6 +29,7 @@
         (jiri.manage)
         (jiri.settings)
         (jiri.structure)
+        (jiri.task)
         (jiri.view)
         (jiri.window)
         (jiri.work))
@@ -97,6 +99,30 @@
     ((update) (update-at-update))))
 
 
+(define (update-tasks-done)
+  (for-each set-done~ (get-children~ (get-connection~ (jiri-update-section)))))
+
+
+(define (transfer-tasks-setup proc)
+  (let ((section (jiri-transfer-section))
+        (app-section (jiri-app-section)))
+    (set-part~ section .1)
+    (set-part~ app-section (- (get-part~ app-section) .1))
+    (proc (add-task~ section (new Jiri-Task part: 1.)))))
+
+
+(define (work-offline exc)
+  (define (debug-info)
+    (if (jiri-devel?)
+        (string-append " (" (get-message~ exc) ")")
+      ""))
+  
+  (if (or (not (file-exists? (app-dir)))
+          (not (file-exists? (data-dir))))
+      (add-stage-view (string-append "Failed to install " (game-string) (debug-info)) stage-setup-color)
+    (add-stage-view (string-append "Failed to update " (game-string) (debug-info)) stage-setup-color)))
+
+
 ;;;
 ;;;; At Launch
 ;;;
@@ -107,15 +133,9 @@
   (let ((update-new? (not (file-exists? (update-dir)))))
     (add-stage-view (string-append "Updating " (jiri-title)) (determine-stage-color (update-dir)))
     (catch (Git-Exception exc
-             (define (debug-info)
-               (if (jiri-devel?)
-                   (string-append " (" (get-message~ exc) ")")
-                 ""))
-             
-             (if (or (not (file-exists? (app-dir)))
-                     (not (file-exists? (data-dir))))
-                 (add-stage-view (string-append "Failed to install " (game-string) (debug-info)) stage-setup-color)
-               (add-stage-view (string-append "Failed to update " (game-string) (debug-info)) stage-setup-color)))
+             (if (jiri-offline?)
+                 (work-offline exc)
+               (exit 1)))
       (pull-repository (jiri-update-section) (current-password) (update-dir)
         (lambda (new-content?)
           (if new-content?
@@ -150,18 +170,20 @@
 
 (define (update-at-update)
   (add-stage-view (string-append "Updating " (jiri-title)) (if (was-update-new?) stage-setup-color stage-install-color))
-  ;;convert-to-task(set-title~ status-view (updating-title (jiri-title) 1 6))
-  (thread-start!
-    (make-thread
-      (lambda ()
-        (update-launch
+  (update-tasks-done)
+  (transfer-tasks-setup
+    (lambda (transfer-task)
+      (thread-start!
+        (make-thread
           (lambda ()
-            (update-app/data
-              (lambda (new-content?)
-                (update-done)))))))))
+            (update-launch transfer-task
+              (lambda ()
+                (update-app/data
+                  (lambda (new-content?)
+                    (update-done)))))))))))
 
 
-(define (update-launch cont)
+(define (update-launch task cont)
   (let ((update-dir (make-directory (update-dir)))
         (root-dir (make-directory (current-root-dir))))
     (define (install-file filename)
@@ -176,11 +198,7 @@
         progress-feedback: (lambda (action dir)
                              (when (and (eq? action 'entering)
                                         (pathname=? (get-parent~ dir) libdir))
-                               (post-event
-                                 (lambda ()
-                                   ;;convert-to-task(increase-pos~ progress-view)
-                                   ;;convert-to-task(set-title~ remaining-view (string-append "Remaining: " (number->string (get-remaining~ progress-view))))
-                                   ))))))
+                               (increase-pos~ task)))))
     
     (define (install-directory dirname)
       (install-directory~
@@ -189,10 +207,7 @@
     
     (let ((libdir (new-directory~ update-dir "Contents/MacOS/lib")))
       (let ((package-count (count-directories~ libdir)))
-        (post-event
-          (lambda ()
-            ;;convert-to-task(set-info~ progress-view (new Range head tail) (new Range 0 package-count))
-            ))
+        (set-range~ task (new Range 0 package-count))
         (install-file "Contents/Info.plist")
         (install-directory-macos "Contents/MacOS" libdir)
         (install-directory "Contents/Resources")
@@ -244,6 +259,35 @@
     (add-view close-view))
   (when minimize-view
     (add-view minimize-view))
+  
+  (add-view connections-view)
+  (let ((section (jiri-app-section)))
+    (let ((connections (get-connections~ section))
+          (default (get-default~ section)))
+      (if (not connections)
+          (let ((connection (get-connection~ section))
+                (tree (locate~ connections-view 'tree)))
+            (add-row~ tree children: (list (new Tree-Node title: (get-title~ connection))) user-data: connection)
+            (set-single-selection~ tree 0))
+        (assert default)
+        (set-connection-change
+          (lambda (connection)
+            (set-connection~ (jiri-app-section) connection)))
+        (let ((tree (locate~ connections-view 'tree)))
+          (for-each (lambda (connection)
+                      (add-row~ tree children: (list (new Tree-Node title: (get-title~ connection))) user-data: connection))
+                    connections)
+          (let ((default-connection (find connections default key: get-title~ test: equal? return: 'item)))
+            (select-user-data-row~ tree default-connection)))
+        (set-connection-change
+          (lambda (connection)
+            (set-connection~ (jiri-app-section) connection)
+            (unless (get-started?~ connection)
+              (pull-repository (jiri-app-section) (current-password) (app-dir)
+                (lambda (new-content?)
+                  ))))))))
+  (add-stage-view (string-append "Updating " (game-string)) stage-install-color)
+  
   (add-view percentage-view)
   (add-view downloaded-view)
   (add-view status-view)
