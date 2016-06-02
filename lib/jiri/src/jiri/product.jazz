@@ -73,12 +73,32 @@
       '())))
 
 
-(definition (build descriptor (unit: unit #f) (force?: force? #f))
+(definition (build-jiri descriptor (unit: unit #f) (force?: force? #f))
   (let ((unit-specs jiri-units))
     (if (or (not unit) (assq unit unit-specs))
         (custom-compile/build unit-specs unit: unit pre-build: copy-jiri-files force?: force?))
     (if (or (not unit) (not (assq unit unit-specs)))
         (build-product-descriptor descriptor unit: unit force?: force?))))
+
+
+(definition (build-jiri-library descriptor)
+  (let ((ld-options
+          (cond-expand
+            (windows
+              (let ((git-lib-path (quote-jazz-pathname "lib/jazz.git/foreign/windows/libgit2/lib")))
+                (list (string-append "-L" git-lib-path) "-lgit2" "-lgdi32" "-lole32" "-luuid")))
+            (cocoa
+              (let ((git-lib-path (jazz:quote-jazz-pathname "lib/jazz.git/foreign/mac/libgit2/lib")))
+                (list (string-append "-L" git-lib-path) "-framework" "Cocoa" "-lgit2.22")))
+            (else
+             '())))
+        (unit-language
+          (cond-expand
+            (cocoa
+              '((jiri.git . objc)))
+            (else
+             #f))))
+    (build-library (product-descriptor-name descriptor) descriptor ld-options: ld-options unit-language: unit-language)))
 
 
 ;;;
@@ -87,4 +107,5 @@
 
 
 (register-product 'jiri
-  build: build))
+  build: build-jiri
+  build-library: build-jiri-library))
