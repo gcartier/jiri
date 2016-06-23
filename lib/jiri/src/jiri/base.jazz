@@ -37,12 +37,6 @@
   (new Directory (tokenise-filename dirname)))
 
 
-(definition public (normalize-directory directory)
-  (if (ends-with? directory "/")
-      directory
-    (string-append directory "/")))
-
-
 (definition public (standardize-directory path)
   (substitute #\\ #\/ path))
 

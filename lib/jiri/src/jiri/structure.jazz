@@ -16,7 +16,8 @@
 (module jiri.structure jazz
 
 
-(import (jiri.base)
+(import (jazz.io)
+        (jiri.base)
         (jiri.manage)
         (jiri.settings)
         (jiri.syntax (phase syntax)))
