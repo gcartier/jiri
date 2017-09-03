@@ -208,12 +208,12 @@
 
 (git-external (git-checkout-completed-steps int) int
   #/C/
-    ___result = checkoutInfos[___arg1].checkout_completed_steps;
+    ___return(checkoutInfos[___arg1].checkout_completed_steps);
 //#)
 
 (git-external (git-checkout-total-steps int) int
   #/C/
-    ___result = checkoutInfos[___arg1].checkout_total_steps;
+    ___return(checkoutInfos[___arg1].checkout_total_steps);
 //#)
 
 (definition public (git-checkout-state id proc)
@@ -303,17 +303,17 @@
 
 (git-external (git-remote-download-total-objects int) int
   #/C/
-    ___result = downloadInfos[___arg1].total_objects;
+    ___return(downloadInfos[___arg1].total_objects);
 //#)
 
 (git-external (git-remote-download-received-objects int) int
   #/C/
-    ___result = downloadInfos[___arg1].received_objects;
+    ___return(downloadInfos[___arg1].received_objects);
 //#)
 
 (git-external (git-remote-download-received-bytes int) int
   #/C/
-    ___result = downloadInfos[___arg1].received_bytes;
+    ___return(downloadInfos[___arg1].received_bytes);
 //#)
 
 (definition public (git-download-state id proc)

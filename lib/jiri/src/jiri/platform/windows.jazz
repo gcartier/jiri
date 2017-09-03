@@ -36,7 +36,7 @@
   #/C/
     wchar_t szDir[MAX_PATH];
     SHGetSpecialFolderPathW(0, szDir, ___arg1, FALSE);
-    ___result = szDir;
+    ___return(szDir);
 //#)
 
 
@@ -51,14 +51,14 @@
     
     if (!CreateDirectory(lpPath, NULL))
     {
-        ___result = FALSE;
+        ___return(FALSE);
         return;
     }
 
     HANDLE hDir = CreateFile(lpPath, READ_CONTROL|WRITE_DAC, 0, NULL, OPEN_EXISTING, FILE_FLAG_BACKUP_SEMANTICS, NULL);
     if (hDir == INVALID_HANDLE_VALUE)
     {
-        ___result = FALSE;
+        ___return(FALSE);
         return exit;
     }
 
@@ -96,7 +96,7 @@
     // LocalFree(pOldDACL);
     CloseHandle(hDir);
     
-    ___result = TRUE;
+    ___return(TRUE);
 //#)
 
 
@@ -128,7 +128,7 @@
     int ret = SHFileOperation(&fileop);
     free(pszFrom);
     
-    ___result = ret;
+    ___return(ret);
 //#)
 
 
@@ -141,7 +141,7 @@
   #/C/
 // need to convert code to C++
 #ifdef __cplusplus
-    ___result = 0;
+    int result = 0;
 #else
     HRESULT hres;
     IShellLink* psl;
@@ -168,6 +168,7 @@
         psl->lpVtbl->Release(psl);
     }
     
-    ___result = hres;
+    result = hres;
+    ___return(result);
 #endif
 //#))
