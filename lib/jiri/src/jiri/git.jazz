@@ -252,7 +252,10 @@
   #/C/
     int id = ___arg1;
     checkout_repository = ___arg2;
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wint-to-void-pointer-cast"
     create_thread(&checkout_head_proc, (void*) id);
+#pragma GCC diagnostic pop
 //#)
 
 (c-declare jiri.git #/C/
@@ -280,7 +283,10 @@
     info->checkout_total_steps = 0;
     reset_repository = ___arg2;
     reset_commit = ___arg3;
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wint-to-void-pointer-cast"
     create_thread(&reset_hard_proc, (void*) id);
+#pragma GCC diagnostic pop
 //#)
 
 
@@ -367,5 +373,8 @@
     downloadInfos[id].total_objects = 0;
     downloadInfos[id].received_objects = 0;
     downloadInfos[id].received_bytes = 0;
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wint-to-void-pointer-cast"
     create_thread(&remote_download_proc, (void*) id);
+#pragma GCC diagnostic pop
 //#))
