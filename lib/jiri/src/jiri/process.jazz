@@ -1,0 +1,75 @@
+;;;==============
+;;;  JiriScheme
+;;;==============
+;;;
+;;;; Jiri Process
+;;;
+;;;  The Initial Developer of the Original Code is Guillaume Cartier.
+;;;  Portions created by the Initial Developer are Copyright (C) 1996-2015
+;;;  the Initial Developer. All Rights Reserved.
+;;;
+;;;  Contributor(s):
+;;;
+;;;  See www.jazzscheme.org for details.
+
+
+(module jiri.process jazz
+
+
+(import (jazz.component)
+        (jazz.event)
+        (jazz.jml)
+        (jazz.process)
+        (jazz.snapshot)
+        (jiri.git)
+        (jiri.settings)
+        (jiri.structure)
+        (jiri.window))
+
+
+;;;
+;;;; Process
+;;;
+
+
+(class Jiri-Process extends Process
+  
+  
+  (method override (process-name)
+    "Jiri")
+  
+  
+  (method override (process-email)
+    "gucartier@gmail.com")
+  
+  
+  (method override (prepare-settings)
+    (nextmethod)
+    (when (jiri-process-name)
+      (current-process-name-set! (jiri-process-name)))
+    (when (jiri-snapshots-directory)
+      (snapshots-directory (jiri-snapshots-directory)))
+    (unless kernel-source-accessible?
+      (set-exception-debugger (application-exception-debugger))
+      (set-exception-hook exception-debugger-hook)))
+  
+  
+  (method override (finish-process)
+    (nextmethod)
+    (init)
+    (delay-event startup)
+    (when send-ready?
+      (write 'ready)
+      (newline)
+      (force-output)))
+  
+  
+  (method override (user-notification wparam lparam)
+    ;; discard unprocessed application events
+    ;; this is necessary on mac to not overload event processing
+    (discard-application-events)
+    (when notification-callback
+      (let ((what wparam)
+            (id (signed-loword lparam))
+            (result (signed-hiword lparam)))
+        (notification-callback what id result))))))
