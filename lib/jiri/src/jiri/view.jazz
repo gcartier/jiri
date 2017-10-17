@@ -128,7 +128,8 @@
   
   (method override (draw surface context)
     (set-font~ surface default-title-font)
-    (draw-text~ surface 0 0 title {Color White}))
+    ;; the or is a quick hack until debugged
+    (draw-text~ surface 0 0 (or title "") {Color White}))
   
   
   (cond-expand
