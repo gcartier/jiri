@@ -16,12 +16,17 @@
 (module jiri.syntax jazz
 
 
-(macro public (define-jiri name . rest)
-  (let ((expr (if (null? rest) #f (car rest)))
-        (global (compose-identifier name 'setting)))
-    `(begin
-       (define ,global ,expr)
-       (definition public (,name . rest)
-         (if (null? rest)
-             ,global
-           (set! ,global (car rest))))))))
+(syntax public define-jiri
+  (lambda (form-src usage-environment macro-environment)
+    (bind (name . rest) (cdr (source-code form-src))
+      (let ((name (source-code name)))
+        (let ((expr (if (null? rest) #f (car rest)))
+              (global (compose-identifier name 'setting)))
+          (sourcify-deep-if
+            `(begin
+               (define ,global ,expr)
+               (definition public (,name . rest)
+                 (if (null? rest)
+                     ,global
+                   (set! ,global (car rest)))))
+            form-src)))))))
