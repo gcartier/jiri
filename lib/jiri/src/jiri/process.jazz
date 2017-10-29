@@ -35,16 +35,16 @@
 (class Jiri-Process extends Process
   
   
-  (method override (process-name)
+  (method override (process-name self)
     "Jiri")
   
   
-  (method override (process-email)
+  (method override (process-email self)
     "gucartier@gmail.com")
   
   
-  (method override (prepare-settings)
-    (nextmethod)
+  (method override (prepare-settings self)
+    (nextmethod self)
     (when (jiri-process-name)
       (current-process-name-set! (jiri-process-name)))
     (when (jiri-snapshots-directory)
@@ -54,17 +54,17 @@
       (set-exception-hook exception-debugger-hook)))
   
   
-  (method override (finish-process)
-    (nextmethod)
-    (init)
-    (delay-event startup)
+  (method override (finish-process self)
+    (nextmethod self)
+    (jiri-init)
+    (delay-event jiri-startup)
     (when send-ready?
       (write 'ready)
       (newline)
       (force-output)))
   
   
-  (method override (user-notification wparam lparam)
+  (method override (user-notification self wparam lparam)
     ;; discard unprocessed application events
     ;; this is necessary on mac to not overload event processing
     (discard-application-events)

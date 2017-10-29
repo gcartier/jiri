@@ -16,8 +16,11 @@
 (module jiri.work jazz
 
 
-(import (jazz.graphic)
+(import (jazz.event)
+        (jazz.graphic)
         (jazz.snapshot)
+        (jazz.tree)
+        (jazz.view)
         (jazz.window)
         (jiri.base)
         (jiri.font)
@@ -157,11 +160,11 @@
 (class Jiri-Connections extends Jiri-Tree
   
   
-  (method (on-selection-change evt)
-    (let ((tree (get-sender~ evt)))
-      (let ((selection (get-single-selection~ tree)))
-        (let ((row (get-row~ tree selection)))
-          (let ((connection (get-user-data~ row)))
+  (method package (on-selection-change self evt)
+    (let ((tree (get-sender evt)))
+      (let ((selection (get-single-selection tree)))
+        (let ((row (get-row tree selection)))
+          (let ((connection (get-user-data row)))
             (when connection-change
               (connection-change connection))))))))
 
@@ -204,10 +207,10 @@
 
 
 (definition public (add-stage-view title color)
-  (add-view stage-view)
-  (set-title~ stage-view title)
-  (set-color~ stage-view color)
-  (set-font~ stage-view {Font font-name: tahoma point-size: 20 hint-style: full}))
+  (add-pane-view stage-view)
+  (set-title stage-view title)
+  (set-color stage-view color)
+  (set-font stage-view {Font font-name: tahoma point-size: 20 hint-style: full}))
 
 
 ;;;
@@ -218,11 +221,11 @@
 (class Jiri-Percentage extends Jiri-Label
   
   
-  (method override (label-title)
+  (method override (label-title self)
     (let ((percentage 0.))
       (for-each-task-info
         (lambda (task step from to)
-          (increase! percentage (* (- to from) (progress-done~ task)))))
+          (increase! percentage (* (- to from) (progress-done task)))))
       (string-append (number->string (fxround (* percentage 100.))) "%"))))
 
 
@@ -242,7 +245,7 @@
 (class Jiri-Downloaded extends Jiri-Label
   
   
-  (method override (label-title)
+  (method override (label-title self)
     (let ((downloaded (calculate-downloaded)))
       (if (not downloaded)
           "Downloaded: "
@@ -269,7 +272,7 @@
     #f)
   
   
-  (method override (label-title)
+  (method override (label-title self)
     (let ((title
             (let ((of (count-tasks)))
               (if (= of 0)
@@ -278,9 +281,9 @@
                   (if (not info)
                       "Done"
                     (bind (task step from to) info
-                      (if (not (get-status~ task))
+                      (if (not (get-status task))
                           (or last-title "")
-                        (string-append (get-status~ task) " (" (number->string (+ step 1)) "/" (number->string of) ")")))))))))
+                        (string-append (get-status task) " (" (number->string (+ step 1)) "/" (number->string of) ")")))))))))
       (set! last-title title)
       title)))
 
@@ -302,7 +305,7 @@
 (class Jiri-Remaining extends Jiri-Label
   
   
-  (method override (label-title)
+  (method override (label-title self)
     (let ((remaining (calculate-remaining)))
       (if (not remaining)
           "Remaining: "
@@ -334,12 +337,12 @@
 
 
 (definition protected (invalidate-task task)
-  (invalidate-view~ percentage-view)
-  (invalidate-view~ downloaded-view)
-  (invalidate-view~ status-view)
-  (invalidate-view~ remaining-view)
-  (invalidate-view~ progress-view)
-  (set-enabled?~ play-view (all-tasks-done?)))
+  (invalidate-view percentage-view)
+  (invalidate-view downloaded-view)
+  (invalidate-view status-view)
+  (invalidate-view remaining-view)
+  (invalidate-view progress-view)
+  (set-enabled? play-view (all-tasks-done?)))
 
 
 (set-task-invalidater invalidate-task)
@@ -357,7 +360,7 @@
     size: (new Dimension 135 40)
     enabled?: #f
     action-handler: (lambda (view)
-                      (play))))
+                      (play-app))))
 
 
 ;;;
@@ -391,7 +394,7 @@
 ;;;
 
 
-(definition public (play)
+(definition public (play-app)
   (set-cursor :wait)
   (delegate-process (app-exe))
   (quit-callback))
@@ -424,37 +427,4 @@
     (cleanup)
     (when (not (work-in-progress?))
       (abort-requested))
-    #t))
-
-
-;;;
-;;;; Callback
-;;;
-
-
-(definition public download-progress
-  #f)
-
-(definition public (set-download-progress proc)
-  (set! download-progress proc))
-
-
-(definition public download-done
-  #f)
-
-(definition public (set-download-done proc)
-  (set! download-done proc))
-
-
-(definition public checkout-progress
-  #f)
-
-(definition public (set-checkout-progress proc)
-  (set! checkout-progress proc))
-
-
-(definition public checkout-done
-  #f)
-
-(definition public (set-checkout-done proc)
-  (set! checkout-done proc)))
+    #t)))

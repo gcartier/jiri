@@ -16,7 +16,8 @@
 (module jiri.base jazz
 
 
-(import (jazz.io))
+(import (jazz.io)
+        (jazz.window))
 
 
 ;;;
@@ -24,7 +25,7 @@
 ;;;
 
 
-(definition public (make-file filename)
+(definition public (filename->file filename)
   (new File (tokenise-filename filename)))
 
 
@@ -33,7 +34,7 @@
 ;;;
 
 
-(definition public (make-directory dirname)
+(definition public (dirname->directory dirname)
   (new Directory (tokenise-filename dirname)))
 
 
@@ -79,7 +80,7 @@
   (if (not wait-and-quit?)
       (open redirect?: #f)
     (jazz.window:set-cursor :wait)
-    (disable-window~ (jazz.application:get-toplevel))
+    (disable-window (jazz.application:current-toplevel))
     (let ((port (open redirect?: #t)))
       (thread-join!
         (thread-start!

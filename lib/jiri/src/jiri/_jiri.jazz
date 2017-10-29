@@ -1,0 +1,69 @@
+;;;==============
+;;;  JiriScheme
+;;;==============
+;;;
+;;;; Jiri
+;;;
+;;;  The Initial Developer of the Original Code is Guillaume Cartier.
+;;;  Portions created by the Initial Developer are Copyright (C) 1996-2015
+;;;  the Initial Developer. All Rights Reserved.
+;;;
+;;;  Contributor(s):
+;;;
+;;;  See www.jazzscheme.org for details.
+
+
+(module jiri jazz
+
+
+(hub add-child)
+(hub add-task)
+(hub done?)
+(hub get-action)
+(hub get-active?)
+(hub get-branch)
+(hub get-checkout-done)
+(hub get-checkout-progress)
+(hub get-checkout-task)
+(hub get-children)
+(hub get-connection)
+(hub get-connections)
+(hub get-default)
+(hub get-dir)
+(hub get-dirname)
+(hub get-download-done)
+(hub get-download-progress)
+(hub get-download-task)
+(hub get-downloaded)
+(hub get-id)
+(hub get-name)
+(hub get-part)
+(hub get-pos)
+(hub get-range)
+(hub get-remaining)
+(hub get-sections)
+(hub get-started?)
+(hub get-status)
+(hub get-tasks)
+(hub get-title)
+(hub get-url)
+(hub get-working?)
+(hub increase-pos)
+(hub on-selection-change)
+(hub progress-done)
+(hub set-action)
+(hub set-active?)
+(hub set-checkout-done)
+(hub set-checkout-progress)
+(hub set-children)
+(hub set-connection)
+(hub set-done)
+(hub set-download-done)
+(hub set-download-progress)
+(hub set-downloaded)
+(hub set-pos)
+(hub set-range)
+(hub set-remaining)
+(hub set-started?)
+(hub set-status)
+(hub set-working?))

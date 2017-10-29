@@ -17,6 +17,7 @@
 
 
 (import (jazz.io)
+        (jiri)
         (jiri.base)
         (jiri.manage)
         (jiri.settings)
@@ -39,8 +40,8 @@
 
 
 (definition (section-dir section)
-  (string-append (normalize-directory (get-dir~ section))
-                 (normalize-directory (get-dirname~ (get-connection~ section)))))
+  (string-append (normalize-directory (get-dir section))
+                 (normalize-directory (get-dirname (get-connection section)))))
 
 
 (definition public (app-dir)
@@ -153,8 +154,8 @@
                 (add "password" password))
               (add "called-from" called-from)
               (add "work-downloaded" (number->string (or (calculate-downloaded) 0)))
-              (let ((pos (get-position~ (jazz.application:get-toplevel))))
-                (add "window-h" (number->string (get-h~ pos)))
-                (add "window-v" (number->string (get-v~ pos))))
+              (let ((pos (get-position (jazz.application:current-toplevel))))
+                (add "window-h" (number->string (get-h pos)))
+                (add "window-v" (number->string (get-v pos))))
               (add "send-ready" "true")))))
     (delegate-process (install-exe) arguments: arguments wait-and-quit?: #t))))

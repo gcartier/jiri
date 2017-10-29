@@ -17,13 +17,16 @@
 
 
 (import (jazz.application)
+        (jazz.component)
         (jazz.event)
         (jazz.git.foreign)
         (jazz.io)
+        (jazz.outline)
         (jazz.settings)
         (jazz.tree)
         (jazz.view)
         (jazz.window)
+        (jiri)
         (jiri.base)
         (jiri.git-interface)
         (jiri.manage)
@@ -64,7 +67,7 @@
   #f)
 
 
-(define (prepare)
+(define (jiri-prepare)
   (current-root-dir (string-argument "root-dir" #f))
   (current-password (string-argument "password" #f))
   (called-from (string-argument "called-from" #f))
@@ -100,19 +103,19 @@
 
 
 (define (update-tasks-done)
-  (for-each set-done~ (get-children~ (get-connection~ (jiri-update-section)))))
+  (for-each set-done (get-children (get-connection (jiri-update-section)))))
 
 
 (define (transfer-tasks-setup proc)
   (let ((section (jiri-transfer-section)))
-    (bind (transfer-task) (get-tasks~ section)
+    (bind (transfer-task) (get-tasks section)
       (proc transfer-task))))
 
 
 (define (work-offline exc)
   (define (debug-info)
     (if (jiri-devel?)
-        (string-append " (" (get-message~ exc) ")")
+        (string-append " (" (get-message exc) ")")
       ""))
   
   (if (or (not (file-exists? (app-dir)))
@@ -140,7 +143,7 @@
               (delegate-update (current-root-dir) (current-password) "launch" update-new?)
             (transfer-tasks-setup
               (lambda (transfer-task)
-                (set-done~ transfer-task)
+                (set-done transfer-task)
                 (update-app/data
                   (lambda (new-content?)
                     (update-done)))))))
@@ -157,9 +160,9 @@
               (add "called-from" called-from)
               (add "update-new" (if update-new? "yes" "no"))
               (add "work-downloaded" (number->string (or (calculate-downloaded) 0)))
-              (let ((pos (get-position~ (get-toplevel))))
-                (add "window-h" (number->string (get-h~ pos)))
-                (add "window-v" (number->string (get-v~ pos))))
+              (let ((pos (get-position (current-toplevel))))
+                (add "window-h" (number->string (get-h pos)))
+                (add "window-v" (number->string (get-v pos))))
               (add "send-ready" "true")))))
     (delegate-process (update-exe) arguments: arguments wait-and-quit?: #t)))
 
@@ -185,35 +188,35 @@
 
 
 (define (update-launch task cont)
-  (let ((update-dir (make-directory (update-dir)))
-        (root-dir (make-directory (current-root-dir))))
-    (define (install-file filename)
-      (install-file~
-        (new-file~ update-dir filename)
-        (new-file~ root-dir filename)))
+  (let ((update-dir (dirname->directory (update-dir)))
+        (root-dir (dirname->directory (current-root-dir))))
+    (define (install-filename filename)
+      (install-file
+        (new-file update-dir filename)
+        (new-file root-dir filename)))
     
-    (define (install-directory-macos dirname libdir)
-      (install-directory~
-        (new-directory~ update-dir dirname)
-        (new-directory~ root-dir dirname)
+    (define (install-dirname-macos dirname libdir)
+      (install-directory
+        (new-directory update-dir dirname)
+        (new-directory root-dir dirname)
         progress-feedback: (lambda (action dir)
                              (when (and (eq? action 'entering)
-                                        (pathname=? (get-parent~ dir) libdir))
-                               (increase-pos~ task)))))
+                                        (pathname=? (get-parent dir) libdir))
+                               (increase-pos task)))))
     
-    (define (install-directory dirname)
-      (install-directory~
-        (new-directory~ update-dir dirname)
-        (new-directory~ root-dir dirname)))
+    (define (install-dirname dirname)
+      (install-directory
+        (new-directory update-dir dirname)
+        (new-directory root-dir dirname)))
     
-    (set-status~ task "Updating sirius")
-    (let ((libdir (new-directory~ update-dir "Contents/MacOS/lib")))
-      (let ((package-count (count-directories~ libdir)))
-        (set-range~ task (new Range 0 package-count))
-        (install-file "Contents/Info.plist")
-        (install-directory-macos "Contents/MacOS" libdir)
-        (install-directory "Contents/Resources")
-        (set-done~ task)
+    (set-status task "Updating sirius")
+    (let ((libdir (new-directory update-dir "Contents/MacOS/lib")))
+      (let ((package-count (count-directories libdir)))
+        (set-range task (new Range 0 package-count))
+        (install-filename "Contents/Info.plist")
+        (install-dirname-macos "Contents/MacOS" libdir)
+        (install-dirname "Contents/Resources")
+        (set-done task)
         (post-event cont)))))
 
 
@@ -232,7 +235,7 @@
   (add-stage-view (string-append "Updating " (game-string)) (determine-stage-color (app-dir)))
   (pull-repository (jiri-app-section) (current-password) (app-dir)
     (lambda (new-content?)
-      (add-stage-view (string-append "Updating " (get-title~ (jiri-data-section))) (determine-stage-color (data-dir)))
+      (add-stage-view (string-append "Updating " (get-title (jiri-data-section))) (determine-stage-color (data-dir)))
       (pull-repository (jiri-data-section) (current-password) (data-dir)
         cont))))
 
@@ -243,9 +246,9 @@
 
 
 (define (update-done)
-  (set-title~ stage-view (or (jiri-play-ready) "Ready to play!"))
-  (set-color~ stage-view stage-ready-color)
-  (set-title~ status-view "Done")
+  (set-title stage-view (or (jiri-play-ready) "Ready to play!"))
+  (set-color stage-view stage-ready-color)
+  (set-title status-view "Done")
   (set-cursor :arrow)
   (set-work-done? #t))
 
@@ -255,59 +258,59 @@
 ;;;
 
 
-(define (layout)
-  (add-view root-view)
-  (add-view invite-view)
+(define (jiri-layout)
+  (add-pane-view root-view)
+  (add-pane-view invite-view)
   (when close-view
-    (add-view close-view))
+    (add-pane-view close-view))
   (when minimize-view
-    (add-view minimize-view))
+    (add-pane-view minimize-view))
   
-  (add-view connections-view)
+  (add-pane-view connections-view)
   (let ((section (jiri-app-section)))
-    (let ((connections (get-connections~ section))
-          (default (get-default~ section)))
+    (let ((connections (get-connections section))
+          (default (get-default section)))
       (if (not connections)
-          (let ((connection (get-connection~ section))
-                (tree (locate~ connections-view 'tree)))
-            (add-row~ tree children: (list (new Tree-Node title: (get-title~ connection))) user-data: connection)
-            (set-single-selection~ tree 0))
+          (let ((connection (get-connection section))
+                (tree (locate connections-view 'tree)))
+            (add-row tree children: (list (new Tree-Node title: (get-title connection))) user-data: connection)
+            (set-single-selection tree 0))
         (assert default)
         (set-connection-change
           (lambda (connection)
-            (set-connection~ (jiri-app-section) connection)))
-        (let ((tree (locate~ connections-view 'tree)))
+            (set-connection (jiri-app-section) connection)))
+        (let ((tree (locate connections-view 'tree)))
           (for-each (lambda (connection)
-                      (add-row~ tree children: (list (new Tree-Node title: (get-title~ connection))) user-data: connection))
+                      (add-row tree children: (list (new Tree-Node title: (get-title connection))) user-data: connection))
                     connections)
-          (let ((default-connection (find connections default key: get-title~ test: equal? return: 'item)))
-            (select-user-data-row~ tree default-connection)))
+          (let ((default-connection (find connections default key: get-title test: equal? return: 'item)))
+            (select-user-data-row tree default-connection)))
         (set-connection-change
           (lambda (connection)
-            (set-connection~ (jiri-app-section) connection)
-            (unless (get-started?~ connection)
+            (set-connection (jiri-app-section) connection)
+            (unless (get-started? connection)
               (pull-repository (jiri-app-section) (current-password) (app-dir)
                 (lambda (new-content?)
                   ))))))))
   (add-stage-view (string-append "Updating " (game-string)) stage-install-color)
   
-  (add-view percentage-view)
-  (add-view downloaded-view)
-  (add-view status-view)
-  (add-view remaining-view)
-  (add-view progress-view)
-  (add-view play-view)
+  (add-pane-view percentage-view)
+  (add-pane-view downloaded-view)
+  (add-pane-view status-view)
+  (add-pane-view remaining-view)
+  (add-pane-view progress-view)
+  (add-pane-view play-view)
   ;; mimick launcher state
   (when (eq? stage 'update)
-    ;;convert-to-task(set-title~ downloaded-view (string-append "Downloaded: " (number->string work-downloaded) "M"))
-    ;;convert-to-task(set-title~ status-view (installing-title (jiri-update-title) 1 6))
-    ;;convert-to-task(set-info~ progress-view (new Range 0. .1) (new Range 1 6))
-    ;;convert-to-task(set-done~ progress-view)
+    ;;convert-to-task(set-title downloaded-view (string-append "Downloaded: " (number->string work-downloaded) "M"))
+    ;;convert-to-task(set-title status-view (installing-title (jiri-update-title) 1 6))
+    ;;convert-to-task(set-info progress-view (new Range 0. .1) (new Range 1 6))
+    ;;convert-to-task(set-done progress-view)
     )
   (set-return-callback
     (lambda ()
       (when work-done?
-        (play))))
+        (play-app))))
   (set-quit-callback
     (quit-safely)))
 
@@ -317,10 +320,10 @@
 ;;;
 
 
-(set-init
+(set-jiri-init
   (lambda ()
-    (prepare)
-    (layout)))
+    (jiri-prepare)
+    (jiri-layout)))
 
 
 ;;;
@@ -328,6 +331,6 @@
 ;;;
 
 
-(set-startup
+(set-jiri-startup
   (lambda ()
     (update))))

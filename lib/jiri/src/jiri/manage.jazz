@@ -16,7 +16,8 @@
 (module jiri.manage jazz
 
 
-(import (jiri.settings))
+(import (jiri)
+        (jiri.settings))
 
 
 ;;;
@@ -28,17 +29,17 @@
   (let ((count 0))
     (for-each (lambda (section)
                 ;; quicky
-                (let ((tasks (get-tasks~ section)))
+                (let ((tasks (get-tasks section)))
                   (when tasks
                     (for-each (lambda (task)
                                 (increase! count))
                               tasks)))
-                (let ((connection (get-connection~ section)))
+                (let ((connection (get-connection section)))
                   (when connection
                     (for-each (lambda (task)
                                 (increase! count))
-                              (get-children~ connection)))))
-              (get-sections~ (jiri-manager)))
+                              (get-children connection)))))
+              (get-sections (jiri-manager)))
     count))
 
 
@@ -47,27 +48,27 @@
         (from 0.))
     (for-each (lambda (section)
                 ;; quicky
-                (let ((part (get-part~ section)))
-                  (let ((tasks (get-tasks~ section)))
+                (let ((part (get-part section)))
+                  (let ((tasks (get-tasks section)))
                     (when tasks
                       (let ((from from))
                         (for-each (lambda (task)
-                                    (let ((to (+ from (* part (get-part~ task)))))
+                                    (let ((to (+ from (* part (get-part task)))))
                                       (proc task step from to)
                                       (increase! step)
                                       (set! from to)))
                                   tasks))))
-                  (let ((connection (get-connection~ section)))
+                  (let ((connection (get-connection section)))
                     (when connection
                       (let ((from from))
                         (for-each (lambda (task)
-                                    (let ((to (+ from (* part (get-part~ task)))))
+                                    (let ((to (+ from (* part (get-part task)))))
                                       (proc task step from to)
                                       (increase! step)
                                       (set! from to)))
-                                  (get-children~ connection)))))
+                                  (get-children connection)))))
                   (increase! from part)))
-              (get-sections~ (jiri-manager)))))
+              (get-sections (jiri-manager)))))
 
 
 (definition protected (current-task-info)
@@ -75,7 +76,7 @@
     (lambda (return)
       (for-each-task-info
         (lambda (task step from to)
-          (when (not (done?~ task))
+          (when (not (done? task))
             (continuation-return return (list task step from to)))))
       #f)))
 
@@ -88,7 +89,7 @@
   (let ((downloaded #f))
     (for-each-task-info
       (lambda (task step from to)
-        (let ((down (get-downloaded~ task)))
+        (let ((down (get-downloaded task)))
           (when down
             (set! downloaded (+ (or downloaded 0) down))))))
     downloaded))
@@ -98,7 +99,7 @@
   (let ((remaining #f))
     (for-each-task-info
       (lambda (task step from to)
-        (let ((rem (get-remaining~ task)))
+        (let ((rem (get-remaining task)))
           (when rem
             (set! remaining (+ (or remaining 0) rem))))))
     remaining))
@@ -111,13 +112,13 @@
 
 (definition protected (for-each-connection proc)
   (for-each (lambda (section)
-              (let ((connection (get-connection~ section)))
+              (let ((connection (get-connection section)))
                 (when connection
                   (proc connection)))
-              (let ((connections (get-connections~ section)))
+              (let ((connections (get-connections section)))
                 (when connections
                   (for-each proc connections))))
-            (get-sections~ (jiri-manager))))
+            (get-sections (jiri-manager))))
 
 
 (definition protected (id->connection id)
@@ -125,7 +126,7 @@
     (lambda (return)
       (for-each-connection
         (lambda (connection)
-          (when (= (get-id~ connection) id)
+          (when (= (get-id connection) id)
             (continuation-return return connection))))
       #f)))
 
@@ -135,6 +136,6 @@
     (lambda (return)
       (for-each-connection
         (lambda (connection)
-          (when (get-working?~ connection)
+          (when (get-working? connection)
             (continuation-return return #t))))
       #f))))

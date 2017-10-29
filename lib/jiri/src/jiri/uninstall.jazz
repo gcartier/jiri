@@ -131,7 +131,7 @@
 ;;;
 
 
-(define (layout)
+(define (jiri-layout)
   (add-view root-view)
   (add-view invite-view)
   (when close-view
@@ -152,9 +152,9 @@
 ;;;
 
 
-(set-init
+(set-jiri-init
   (lambda ()
-    (layout)))
+    (jiri-layout)))
 
 
 ;;;
@@ -162,7 +162,7 @@
 ;;;
 
 
-(set-startup
+(set-jiri-startup
   (lambda ()
     ;; (uninstall)
     )))

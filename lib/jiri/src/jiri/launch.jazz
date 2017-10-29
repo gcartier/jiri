@@ -68,7 +68,7 @@
   (define (check-running)
     (let ((pid (current-process-id))
           (root-exe (add-extension (string-append kernel-install (jiri-launcher)) (executable-extension kernel-platform)))
-          (install-dir (string-append kernel-install (get-dir~ (jiri-install-section)))))
+          (install-dir (string-append kernel-install (get-dir (jiri-install-section)))))
       (iterate-table (collect-processes-info)
                      (lambda (id info)
                        (bind (id name exe) info

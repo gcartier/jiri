@@ -27,6 +27,7 @@
         (jazz.ui)
         (jazz.view)
         (jazz.window)
+        (jiri)
         (jiri.font)
         (jiri.manage)
         (jiri.settings)
@@ -40,15 +41,15 @@
   (set! jiri-pane pane))
 
 
-(definition public (add-view view)
-  (unless (get-parent~ view)
-    (set-parent~ view jiri-pane)
-    (invalidate-view~ view)))
+(definition public (add-pane-view view)
+  (unless (get-parent view)
+    (set-parent view jiri-pane)
+    (invalidate-view view)))
 
 
-(definition public (remove-view view)
-  (set-parent~ view #f)
-  (invalidate-view~ view))
+(definition public (remove-pane-view view)
+  (set-parent view #f)
+  (invalidate-view view))
 
 
 ;;;
@@ -99,14 +100,14 @@
 (class Jiri-Root extends View
   
   
-  (method override (draw surface context)
-    (draw-surface~ surface (cache-background) 0 0)
+  (method override (draw self surface context)
+    (draw-surface surface (cache-background) 0 0)
     (when (jiri-dark-overlay?)
-      (let ((rect (get-bounds)))
-        (gradient-fill-rect~ surface (new Rect (get-left~ rect) (- (get-bottom~ rect) 350) (get-right~ rect) (get-bottom~ rect)) (list (list 0 {Color Black alpha: 0.}) (list 1 {Color Black})) direction: 'vertical))))
+      (let ((rect (get-bounds self)))
+        (gradient-fill-rect surface (new Rect (get-left rect) (- (get-bottom rect) 350) (get-right rect) (get-bottom rect)) (list (list 0 {Color Black alpha: 0.}) (list 1 {Color Black})) direction: 'vertical))))
   
   
-  (method override (cursor-update evt)
+  (method override (cursor-update self evt)
     (set-cursor (if (work-in-progress?) :wait :arrow))))
 
 
@@ -126,10 +127,10 @@
     (else))
   
   
-  (method override (draw surface context)
-    (set-font~ surface default-title-font)
+  (method override (draw self surface context)
+    (set-font surface default-title-font)
     ;; the or is a quick hack until debugged
-    (draw-text~ surface 0 0 (or title "") {Color White}))
+    (draw-text surface 0 0 (or title "") {Color White}))
   
   
   (cond-expand
@@ -138,17 +139,17 @@
        (set-cursor :all))
 
      (method override (mouse-down evt)
-       (set! cursor-pos (to-desktop (get-position~ evt)))
-       (set! window-pos (get-position~ (get-toplevel)))
+       (set! cursor-pos (to-desktop (get-position evt)))
+       (set! window-pos (get-position (current-toplevel)))
        (set! moving? #t)
        (acquire-capture))
      
      (method override (drag-move evt)
        (when moving?
-         (let ((current (to-desktop (get-position~ evt))))
+         (let ((current (to-desktop (get-position evt))))
            (let ((delta (nu- current cursor-pos)))
              (let ((pos (nu+ window-pos delta)))
-               (set-position~ (get-toplevel) pos))))))
+               (set-position (current-toplevel) pos))))))
 
      (method override (mouse-up evt)
        (when moving?
@@ -181,39 +182,39 @@
   (property active? initialize #t accessors generate)
   
   
-  (method override (draw surface context)
-    (let ((bounds (get-bounds)))
-      (if (and enabled? active? (eq? self (mouse-view)))
-          (fill-rect~ surface bounds {Color red: 230 green: 0 blue: 0})
-        (gradient-fill-rect~ surface bounds
+  (method override (draw self surface context)
+    (let ((bounds (get-bounds self)))
+      (if (and enabled? active? (eq? self (mouse-view self)))
+          (fill-rect surface bounds {Color red: 230 green: 0 blue: 0})
+        (gradient-fill-rect surface bounds
           (list (list 0 (if enabled? {Color red: 150 green: 0 blue: 0} {Color White}))
                 (list 1 (if enabled? {Color red: 220 green: 0 blue: 0} {Color White})))
           direction: 'horizontal)))
-    (set-font~ surface default-button-font)
+    (set-font surface default-button-font)
     (when title
-      (let ((pos (justify-lazy (lambda () (get-text-extent~ surface title))
-                               (lambda () (get-size))
+      (let ((pos (justify-lazy (lambda () (get-text-extent surface title))
+                               (lambda () (get-size self))
                                'center)))
-        (draw-text~ surface (get-h~ pos) (get-v~ pos) title (if enabled? {Color White} {Color red: 160 green: 160 blue: 160})))))
+        (draw-text surface (get-h pos) (get-v pos) title (if enabled? {Color White} {Color red: 160 green: 160 blue: 160})))))
   
   
-  (method override (cursor-update evt)
+  (method override (cursor-update self evt)
     (if active?
         (set-cursor :arrow)
       (set-cursor (if (work-in-progress?) :wait :arrow))))
   
   
-  (method override (mouse-enter)
-    (invalidate-view))
+  (method override (mouse-enter self)
+    (invalidate-view self))
   
   
-  (method override (mouse-leave)
-    (invalidate-view))
+  (method override (mouse-leave self)
+    (invalidate-view self))
   
   
-  (method override (mouse-up evt)
+  (method override (mouse-up self evt)
     (when (and enabled? active?)
-      (process-action self))))
+      (process-action self self))))
 
 
 ;;;
@@ -244,23 +245,23 @@
 (class Jiri-Close extends Jiri-Button
   
   
-  (method override (draw surface context)
-    (let ((rect (get-bounds)))
-      (let ((left (+ (get-left~ rect) 6))
-            (top (+ (get-top~ rect) 6))
-            (right (- (get-right~ rect) 6))
-            (bottom (- (get-bottom~ rect) 6)))
+  (method override (draw self surface context)
+    (let ((rect (get-bounds self)))
+      (let ((left (+ (get-left rect) 6))
+            (top (+ (get-top rect) 6))
+            (right (- (get-right rect) 6))
+            (bottom (- (get-bottom rect) 6)))
         (define (draw-x width color)
-          (set-line-width~ surface width)
-          (set-color~ surface color)
-          (line~ surface left top right bottom)
-          (line~ surface right top left bottom))
+          (set-line-width surface width)
+          (set-color surface color)
+          (line surface left top right bottom)
+          (line surface right top left bottom))
         
         @not-needed (draw-x 4. {Color red: 150 green: 150 blue: 150})
-        (draw-x 2. (if (eq? self (mouse-view)) {Color red: 200 green: 0 blue: 0} {Color red: 255 green: 255 blue: 255})))))
+        (draw-x 2. (if (eq? self (mouse-view self)) {Color red: 200 green: 0 blue: 0} {Color red: 255 green: 255 blue: 255})))))
   
   
-  (method override (process-action sender (properties (action-properties)))
+  (method override (process-action self sender (properties (action-properties self)))
     (quit-callback)))
 
 
@@ -272,23 +273,23 @@
 (class Jiri-Minimize extends Jiri-Button
   
   
-  (method override (draw surface context)
-    (let ((rect (get-bounds)))
-      (let ((left (+ (get-left~ rect) 6))
-            (top (+ (get-top~ rect) 6))
-            (right (- (get-right~ rect) 6))
-            (bottom (- (get-bottom~ rect) 6)))
+  (method override (draw self surface context)
+    (let ((rect (get-bounds self)))
+      (let ((left (+ (get-left rect) 6))
+            (top (+ (get-top rect) 6))
+            (right (- (get-right rect) 6))
+            (bottom (- (get-bottom rect) 6)))
         (define (draw-line width color)
-          (set-line-width~ surface width)
-          (set-color~ surface color)
-          (line~ surface left (- bottom 1) right (- bottom 1)))
+          (set-line-width surface width)
+          (set-color surface color)
+          (line surface left (- bottom 1) right (- bottom 1)))
         
         @not-needed (draw-line 4. {Color red: 150 green: 150 blue: 150})
-        (draw-line 2. (if (eq? self (mouse-view)) {Color red: 200 green: 0 blue: 0} {Color red: 255 green: 255 blue: 255})))))
+        (draw-line 2. (if (eq? self (mouse-view self)) {Color red: 200 green: 0 blue: 0} {Color red: 255 green: 255 blue: 255})))))
   
   
-  (method override (process-action sender (properties (action-properties)))
-    (minimize~ (get-toplevel))))
+  (method override (process-action self sender (properties (action-properties self)))
+    (minimize (current-toplevel))))
 
 
 ;;;
@@ -299,13 +300,13 @@
 (class Jiri-Progress extends View
   
   
-  (method override (draw surface context)
-    (let ((rect (get-bounds)))
-      (fill-rect~ surface rect {Color White})
-      (let ((left (get-left~ rect))
-            (top (get-top~ rect))
-            (right (get-right~ rect))
-            (bottom (get-bottom~ rect))
+  (method override (draw self surface context)
+    (let ((rect (get-bounds self)))
+      (fill-rect surface rect {Color White})
+      (let ((left (get-left rect))
+            (top (get-top rect))
+            (right (get-right rect))
+            (bottom (get-bottom rect))
             (width (rect-width rect))
             (head {Color red: 150 green: 0 blue: 0})
             (tail {Color red: 220 green: 0 blue: 0}))
@@ -313,10 +314,10 @@
           (lambda (task step from to)
             (let ((l (+ left (fxfloor (* width from))))
                   (r (+ left (fxceiling (* width to)))))
-              (let ((r (+ l (fxceiling (* (- r l) (progress-done~ task))))))
-                (with-clip~ surface (new Rect l top r bottom)
+              (let ((r (+ l (fxceiling (* (- r l) (progress-done task))))))
+                (with-clip surface (new Rect l top r bottom)
                   (lambda ()
-                    (gradient-fill-rect~ surface (new Rect left top right bottom)
+                    (gradient-fill-rect surface (new Rect left top right bottom)
                       (list (list 0 head)
                             (list 1 tail))
                       direction: 'horizontal))))))))))))

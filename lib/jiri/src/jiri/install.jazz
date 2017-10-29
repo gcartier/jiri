@@ -40,7 +40,7 @@
   #f)
 
 
-(define (prepare)
+(define (jiri-prepare)
   (current-root-dir (string-argument "root-dir" #f))
   (current-password (string-argument "password" #f))
   (called-from (string-argument "called-from" #f))
@@ -68,7 +68,7 @@
 ;;;
 
 
-(define (install)
+(define (jiri-install)
   (case stage
     ((install-from-setup) (install-from-setup))
     ((install-from-root) (install-from-root))
@@ -76,26 +76,26 @@
 
 
 (define (install-tasks-done)
-  (for-each set-done~ (get-children~ (get-connection~ (jiri-install-section)))))
+  (for-each set-done~ (get-children (get-connection (jiri-install-section)))))
 
 
 (define (transfer-tasks-setup proc)
   (let ((section (jiri-transfer-section)))
-    (bind (current-task root-task) (get-tasks~ section)
+    (bind (current-task root-task) (get-tasks section)
       (proc current-task root-task))))
 
 
 (define (work-offline)
   (bell)
   (set-cursor :arrow)
-  (set-title~ stage-view "Unable to connect to server")
+  (set-title stage-view "Unable to connect to server")
   (if (file-exists? (app-exe))
       (begin
         (set-work-done? #t)
-        (set-color~ stage-view stage-install-color)
+        (set-color stage-view stage-install-color)
         (set-enabled?~ play-view #t))
-    (set-color~ stage-view stage-setup-color)
-    (set-title~ play-view "Not found")
+    (set-color stage-view stage-setup-color)
+    (set-title play-view "Not found")
     (set-enabled?~ play-view #f)))
 
 
@@ -145,8 +145,8 @@
             (rewind-start-menu)
             (transfer-tasks-setup
               (lambda (current-task root-task)
-                (set-done~ current-task)
-                (set-done~ root-task)
+                (set-done current-task)
+                (set-done root-task)
                 (install-app/data
                   (lambda (new-content?)
                     (install-done))))))))
@@ -202,18 +202,18 @@
 
 
 (define (install-done)
-  (set-title~ stage-view (or (jiri-play-ready) "Ready to play!"))
-  (set-color~ stage-view stage-ready-color)
-  (set-title~ status-view "Done")
+  (set-title stage-view (or (jiri-play-ready) "Ready to play!"))
+  (set-color stage-view stage-ready-color)
+  (set-title status-view "Done")
   (set-cursor :arrow)
   (set-work-done? #t))
 
 
 (define (count-zero-deep dir (ignore: ignore #f))
   (let ((count 0))
-    (iterate-directory~ dir
+    (iterate-directory dir
       (lambda (path)
-        (let ((filename (get-name~ path)))
+        (let ((filename (get-name path)))
           (unless (or (filename=? filename ".git")
                       (and ignore
                            (member? filename ignore
@@ -227,12 +227,12 @@
 
 (define (count-one-deep dir)
   (let ((count 0))
-    (iterate-directory~ dir
+    (iterate-directory dir
       (lambda (path)
         (increase! count)
         (when (and (directory? path)
-                   (not (filename=? (get-name~ path) ".git")))
-          (iterate-directory~ path
+                   (not (filename=? (get-name path) ".git")))
+          (iterate-directory path
             (lambda (path)
               (increase! count))
             files?: #t
@@ -248,28 +248,28 @@
 (define (install-current task cont)
   (let ((install-dir (make-directory (install-dir)))
         (current-dir (make-directory (current-dir))))
-    (set-range~ task (new Range 0 (count-one-deep install-dir)))
+    (set-range task (new Range 0 (count-one-deep install-dir)))
     (thread-start!
       (new-thread
         (lambda ()
           (let ((first? #t))
-            (install-directory~ install-dir current-dir
+            (install-directory install-dir current-dir
               filter: (lambda (action pathname)
                         (if (and (eq? action 'copy)
-                                 (pathname=? (get-parent~ pathname) install-dir)
-                                 (filename=? (get-name~ pathname) ".git"))
+                                 (pathname=? (get-parent pathname) install-dir)
+                                 (filename=? (get-name pathname) ".git"))
                             #f
                           #t))
               feedback: (lambda (action pathname)
-                          (let ((parent (get-parent~ pathname)))
+                          (let ((parent (get-parent pathname)))
                             (when (or (pathname=? parent install-dir)
-                                      (pathname=? (get-parent~ parent) install-dir))
+                                      (pathname=? (get-parent parent) install-dir))
                               (if first?
                                   (set! first? #f)
-                                (increase-pos~ task)))))
+                                (increase-pos task)))))
               force-feedback?: #t))
-          (increase-pos~ task)
-          (set-done~ task)
+          (increase-pos task)
+          (set-done task)
           (post-event cont))
         'current))))
 
@@ -339,44 +339,44 @@
         (from-lib (make-directory (launch-lib)))
         (to-exe (make-file (root-exe)))
         (to-lib (make-directory (root-lib))))
-    (set-range~ task (new Range 0 (+ 1 (count-zero-deep from-lib ignore: ignored-packages))))
+    (set-range task (new Range 0 (+ 1 (count-zero-deep from-lib ignore: ignored-packages))))
     (thread-start!
       (new-thread
         (lambda ()
-          (install-file~ from-exe to-exe)
+          (install-file from-exe to-exe)
           (cond-expand
             (windows
               (let ()
                 (define (install-dll filename)
-                  (install-file~ (make-file (launch-file filename)) (make-file (root-file filename))))
+                  (install-file (make-file (launch-file filename)) (make-file (root-file filename))))
                 
                 (install-dll "libgcc_s_dw2-1.dll")
                 (install-dll "libstdc++-6.dll"))))
-          (increase-pos~ task)
+          (increase-pos task)
           (let ((first? #t))
-            (install-directory~ from-lib to-lib
+            (install-directory from-lib to-lib
               filter: (lambda (action pathname)
                         (if (and (eq? action 'copy)
-                                 (pathname=? (get-parent~ pathname) from-lib)
-                                 (let ((filename (get-name~ pathname)))
+                                 (pathname=? (get-parent pathname) from-lib)
+                                 (let ((filename (get-name pathname)))
                                    (member? filename ignored-packages
                                      test: filename=?)))
                             #f
                           #t))
               feedback: (lambda (action pathname)
-                          (when (pathname=? (get-parent~ pathname) from-lib)
+                          (when (pathname=? (get-parent pathname) from-lib)
                             (if first?
                                 (set! first? #f)
-                              (increase-pos~ task))))
+                              (increase-pos task))))
               force-feedback?: #t))
           (for-each (lambda (ignored)
-                      (let ((dir (new-directory~ to-lib ignored)))
+                      (let ((dir (new-directory to-lib ignored)))
                         (when (exists?~ dir)
-                          (delete-directory~ dir)
-                          (increase-pos~ task))))
+                          (delete-directory dir)
+                          (increase-pos task))))
                     ignored-packages)
-          (increase-pos~ task)
-          (set-done~ task)
+          (increase-pos task)
+          (set-done task)
           (post-event cont))
         'root))))
 
@@ -457,7 +457,7 @@
 ;;;
 
 
-(define (layout)
+(define (jiri-layout)
   (add-view root-view)
   (add-view invite-view)
   (when close-view
@@ -466,26 +466,26 @@
     (add-view minimize-view))
   (add-view connections-view)
   (let ((section (jiri-app-section)))
-    (let ((connections (get-connections~ section))
-          (default (get-default~ section)))
+    (let ((connections (get-connections section))
+          (default (get-default section)))
       (if (not connections)
-          (let ((connection (get-connection~ section))
-                (tree (locate~ connections-view 'tree)))
-            (add-row~ tree children: (list (new Tree-Node title: (get-title~ connection))) user-data: connection)
-            (set-single-selection~ tree 0))
+          (let ((connection (get-connection section))
+                (tree (locate connections-view 'tree)))
+            (add-row tree children: (list (new Tree-Node title: (get-title connection))) user-data: connection)
+            (set-single-selection tree 0))
         (assert default)
         (set-connection-change
           (lambda (connection)
-            (set-connection~ (jiri-app-section) connection)))
-        (let ((tree (locate~ connections-view 'tree)))
+            (set-connection (jiri-app-section) connection)))
+        (let ((tree (locate connections-view 'tree)))
           (for-each (lambda (connection)
-                      (add-row~ tree children: (list (new Tree-Node title: (get-title~ connection))) user-data: connection))
+                      (add-row tree children: (list (new Tree-Node title: (get-title connection))) user-data: connection))
                     connections)
           (let ((default-connection (find connections default key: get-title~ test: equal? return: 'item)))
-            (select-user-data-row~ tree default-connection)))
+            (select-user-data-row tree default-connection)))
         (set-connection-change
           (lambda (connection)
-            (set-connection~ (jiri-app-section) connection)
+            (set-connection (jiri-app-section) connection)
             (unless (get-started?~ connection)
               (pull-repository (jiri-app-section) (current-password) (app-dir)
                 (lambda (new-content?)
@@ -500,9 +500,9 @@
   (add-view progress-view)
   (add-view play-view)
   (when (neq? stage 'install-from-root)
-    ;;convert-to-task(set-title~ downloaded-view (string-append "Downloaded: " (number->string work-downloaded) "M"))
-    ;;convert-to-task(set-title~ status-view (downloading-title (get-title~ (jiri-app-section)) 3 6))
-    ;;convert-to-task(set-info~ progress-view (new Range (first (get-limits~ (jiri-app-section))) (third (get-limits~ (jiri-app-section)))) (new Range 0 10))
+    ;;convert-to-task(set-title downloaded-view (string-append "Downloaded: " (number->string work-downloaded) "M"))
+    ;;convert-to-task(set-title status-view (downloading-title (get-title (jiri-app-section)) 3 6))
+    ;;convert-to-task(set-info progress-view (new Range (first (get-limits (jiri-app-section))) (third (get-limits (jiri-app-section)))) (new Range 0 10))
     )
   (set-return-callback
     (lambda ()
@@ -520,10 +520,10 @@
 ;;;
 
 
-(set-init
+(set-jiri-init
   (lambda ()
-    (prepare)
-    (layout)))
+    (jiri-prepare)
+    (jiri-layout)))
 
 
 ;;;
@@ -531,6 +531,6 @@
 ;;;
 
 
-(set-startup
+(set-jiri-startup
   (lambda ()
-    (install))))
+    (jiri-install))))

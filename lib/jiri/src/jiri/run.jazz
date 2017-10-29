@@ -16,11 +16,12 @@
 (module jiri.run jazz
 
 
-(import (jiri.appl))
+(import (jazz.process)
+        (jiri.appl))
 
 
-(definition (run descriptor)
-  (boot-environment~ (new Jiri-Application)))
+(definition (run-jiri descriptor)
+  (boot-environment (new Jiri-Application)))
 
 
-(register-product-run 'jiri run))
+(register-product-run 'jiri run-jiri))

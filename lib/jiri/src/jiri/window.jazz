@@ -21,11 +21,11 @@
 ;;;
 
 
-(definition public init
+(definition public jiri-init
   #f)
 
-(definition public (set-init thunk)
-  (set! init thunk))
+(definition public (set-jiri-init thunk)
+  (set! jiri-init thunk))
 
 
 ;;;
@@ -33,11 +33,11 @@
 ;;;
 
 
-(definition public startup
+(definition public jiri-startup
   #f)
 
-(definition public (set-startup thunk)
-  (set! startup thunk))
+(definition public (set-jiri-startup thunk)
+  (set! jiri-startup thunk))
 
 
 ;;;
@@ -79,7 +79,7 @@
         (when delayed-modal-user-event
           (bind (id what result) delayed-modal-user-event
             (set! delayed-modal-user-event #f)
-            (PostMessage (get-handle~ (get-toplevel)) WM_USER id what result)))
+            (PostMessage (get-handle (current-toplevel)) WM_USER id what result)))
         code)))
   (else
     (definition public (with-modal thunk)

@@ -57,7 +57,7 @@
     (continuation-capture
       (lambda (cancel)
         (validate-password cancel)
-        (remove-view setup-view)
+        (remove-pane-view setup-view)
         (add-stage-view "Setup in progress" stage-setup-color)
         (add-view percentage-view)
         (add-view downloaded-view)
@@ -81,7 +81,7 @@
   (windows
    (define (setup-root)
      (define (choose-dir)
-       (let ((dir (parse~ (choose-directory title: "Please select the installation folder" selected-directory: (make-directory (or choosen-dir (get-special-folder CSIDL_PROGRAM_FILESX86)))))))
+       (let ((dir (parse (choose-directory title: "Please select the installation folder" selected-directory: (make-directory (or choosen-dir (get-special-folder CSIDL_PROGRAM_FILESX86)))))))
          (unless (equal? dir "")
            (set! choosen-dir dir)
            (normalize-directory (standardize-directory dir)))))
@@ -128,11 +128,11 @@
             (remote #f)
             (successful? #f)
             (dir (install-dir))
-            (connection (get-connection~ (jiri-install-section))))
+            (connection (get-connection (jiri-install-section))))
         (dynamic-wind
           (lambda ()
             (set! repo (git-repository-init dir))
-            (set! remote (git-remote-create repo "origin" (get-url~ connection))))
+            (set! remote (git-remote-create repo "origin" (get-url connection))))
           (lambda ()
             (git-remote-connect-with-retries connection remote cancel))
           (lambda ()
@@ -161,8 +161,8 @@
 
 
 (define (setup-done)
-  (set-title~ stage-view "Setup successful!")
-  (set-color~ stage-view stage-install-color)
+  (set-title stage-view "Setup successful!")
+  (set-color stage-view stage-install-color)
   (set-cursor :arrow)
   (set-work-done? #t)
   (delegate-install (current-root-dir) (current-password) "setup"))
@@ -173,7 +173,7 @@
 ;;;
 
 
-(define (layout)
+(define (jiri-layout)
   (add-view root-view)
   (add-view invite-view)
   (when close-view
@@ -194,9 +194,9 @@
 ;;;
 
 
-(set-init
+(set-jiri-init
   (lambda ()
-    (layout)))
+    (jiri-layout)))
 
 
 ;;;
@@ -204,6 +204,6 @@
 ;;;
 
 
-(set-startup
+(set-jiri-startup
   (lambda ()
     )))

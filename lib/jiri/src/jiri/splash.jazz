@@ -16,17 +16,19 @@
 (module jiri.splash jazz
 
 
-(import (jiri.settings)
+(import (jazz.view)
+        (jiri)
+        (jiri.settings)
         (jiri.task)
         (jiri.view)
         (jiri.window)
         (jiri.work))
 
 
-(define (prepare)
+(define (jiri-prepare)
   (let ((section (jiri-splash-section)))
-    (add-task~ section (let ((task (new Jiri-Task part: 1.)))
-                         (set-done~ task)
+    (add-task section (let ((task (new Jiri-Task part: 1.)))
+                         (set-done task)
                          task))))
 
 
@@ -35,22 +37,22 @@
 ;;;
 
 
-(define (layout)
-  (add-view root-view)
-  (add-view invite-view)
+(define (jiri-layout)
+  (add-pane-view root-view)
+  (add-pane-view invite-view)
   (when close-view
-    (add-view close-view))
+    (add-pane-view close-view))
   (when minimize-view
-    (add-view minimize-view))
+    (add-pane-view minimize-view))
   (add-stage-view "Working" stage-ready-color)
-  (add-view percentage-view)
-  (add-view downloaded-view)
-  (add-view status-view)
-  (add-view remaining-view)
-  (add-view progress-view)
-  (add-view play-view)
-  (set-title~ play-view "Working")
-  (set-active?~ play-view #f))
+  (add-pane-view percentage-view)
+  (add-pane-view downloaded-view)
+  (add-pane-view status-view)
+  (add-pane-view remaining-view)
+  (add-pane-view progress-view)
+  (add-pane-view play-view)
+  (set-title play-view "Working")
+  (set-active? play-view #f))
 
 
 ;;;
@@ -67,10 +69,10 @@
 ;;;
 
 
-(set-init
+(set-jiri-init
   (lambda ()
-    (prepare)
-    (layout)))
+    (jiri-prepare)
+    (jiri-layout)))
 
 
 ;;;
@@ -78,6 +80,6 @@
 ;;;
 
 
-(set-startup
+(set-jiri-startup
   (lambda ()
     (splash))))

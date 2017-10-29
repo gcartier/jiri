@@ -47,14 +47,14 @@
           (continuation-capture
             (lambda (stop)
               (define (send-all name crashes-dir remote)
-                (let ((draft-dir (new-directory~ crashes-dir "draft"))
-                      (sent-dir (new-directory~ crashes-dir "sent")))
+                (let ((draft-dir (new-directory crashes-dir "draft"))
+                      (sent-dir (new-directory crashes-dir "sent")))
                   (define (send-report file draft?)
-                    (when (extension=? (get-extension~ file) "snapshot")
+                    (when (extension=? (get-extension file) "snapshot")
                       (let ((port (open-process
                                       (list
                                         path: curl
-                                        arguments: (list "--silent" "-X" "PUT" "-T" (parse~ file) "-H" "Content-Type: text/plain" (string-append remote "/crashes/" (get-name~ file)))
+                                        arguments: (list "--silent" "-X" "PUT" "-T" (parse file) "-H" "Content-Type: text/plain" (string-append remote "/crashes/" (get-name file)))
                                         show-console: #f))))
                         @debug
                         (let ((line (read-line port #f)))
@@ -66,23 +66,23 @@
                               (newline port)
                               (write curl port)
                               (newline port)
-                              (write (list "--silent" "-X" "PUT" "-T" (parse~ file) "-H" "Content-Type: text/plain" (string-append remote "/crashes/" (get-name~ file))) port)
+                              (write (list "--silent" "-X" "PUT" "-T" (parse file) "-H" "Content-Type: text/plain" (string-append remote "/crashes/" (get-name file))) port)
                               (newline port))))
                         (let ((status (process-status port)))
                           (cond ((= status 0)
-                                 (create-directories~ sent-dir)
-                                 (move-pathname~ file (new-file~ sent-dir (get-name~ file))))
+                                 (create-directories sent-dir)
+                                 (move-pathname file (new-file sent-dir (get-name file))))
                                 (else
                                  (unless draft?
-                                   (create-directories~ draft-dir)
-                                   (move-pathname~ file (new-file~ draft-dir (get-name~ file))))
+                                   (create-directories draft-dir)
+                                   (move-pathname file (new-file draft-dir (get-name file))))
                                  (continuation-return stop #f)))))))
                   
                   (define (send-reports dir draft?)
-                    (when (exists?~ dir)
+                    (when (exists? dir)
                       (for-each (lambda (file)
                                   (send-report file draft?))
-                                (collect-files~ dir
+                                (collect-files dir
                                   (lambda (file)
                                     #t)))))
                   
@@ -109,7 +109,7 @@
 (cond-expand
   (windows
    (definition public (curl-path)
-     (parse~ {File Build "curl.exe"})))
+     (parse {File Build "curl.exe"})))
   (else
    (definition public (curl-path)
      "/usr/bin/curl"))))

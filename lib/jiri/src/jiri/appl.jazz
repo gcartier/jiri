@@ -42,20 +42,20 @@
 (class Jiri-Application extends Application
   
   
-  (method override (process-name)
+  (method override (process-name self)
     "Jiri")
   
   
-  (method override (process-email)
+  (method override (process-email self)
     "gucartier@gmail.com")
 
 
-  (method override (new-toplevel)
+  (method override (new-toplevel self)
     (new Jiri-Toplevel))
   
   
-  (method override (prepare-settings)
-    (nextmethod)
+  (method override (prepare-settings self)
+    (nextmethod self)
     (when (jiri-process-name)
       (current-process-name-set! (jiri-process-name)))
     (when (jiri-snapshots-directory)
@@ -65,35 +65,35 @@
       (set-exception-hook exception-debugger-hook)))
   
   
-  (method override (finish-process)
+  (method override (finish-process self)
     (define (setup-toplevel)
-      (let ((toplevel (get-toplevel)))
+      (let ((toplevel (get-toplevel self)))
         (when (and (/= window-h -1)
                    (/= window-v -1))
-          (set-position~ toplevel (new Point window-h window-v)))
-        (set-size~ toplevel (cache-background-size))))
+          (set-position toplevel (new Point window-h window-v)))
+        (set-size toplevel (cache-background-size))))
     
-    (nextmethod)
-    (maximize~ (current-stage))
-    (set-jiri-pane (get-guest~ (new-frame Jiri-Pane)))
-    (init)
+    (nextmethod self)
+    (maximize (current-stage))
+    (set-jiri-pane (get-guest (new-frame Jiri-Pane)))
+    (jiri-init)
     (setup-toplevel)
-    (delay-event startup)
+    (delay-event jiri-startup)
     (when send-ready?
       (write 'ready)
       (newline)
       (force-output)))
   
   
-  (method override (install-skins)
+  (method override (install-skins self)
     (iterate-skins
       (lambda (name skin)
         (let ((trait (instantiate-trait Skin jiri-look)))
-          (set-parent~ trait (local-trait skin 'jazz))
-          (set-active-trait~ skin 'default.jazz.jiri)))))
+          (set-parent trait (local-trait skin 'jazz))
+          (set-active-trait skin 'default.jazz.jiri)))))
   
   
-  (method override (user-notification wparam lparam)
+  (method override (user-notification self wparam lparam)
     ;; discard unprocessed application events
     ;; this is necessary on mac to not overload event processing
     (discard-application-events)
@@ -116,7 +116,7 @@
     (<install> position: {Point 100 100} size: {Dimension 800 625}))
   
   
-  (method override (effective-title)
+  (method override (effective-title self)
     "Jiri"))
 
 

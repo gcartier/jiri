@@ -23,6 +23,6 @@
   (slot sections initialize #f getter generate)
   
   
-  (method override (initialize (title: title #f) (sections: sections #f))
-    (set! title~self title)
-    (set! sections~self sections))))
+  (method override (initialize self (title: title #f) (sections: sections #f))
+    (set! self.title title)
+    (set! self.sections sections))))

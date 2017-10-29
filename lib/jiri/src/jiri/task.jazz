@@ -35,55 +35,55 @@
   (slot children   initialize '() accessors generate)
   
   
-  (method override (initialize (part: part #f))
-    (set! part~self part)
-    (set! range~self (new Range 0 1))
-    (set! pos~self 0))
+  (method override (initialize self (part: part #f))
+    (set! self.part part)
+    (set! self.range (new Range 0 1))
+    (set! self.pos 0))
   
   
-  (method override (print output readably)
+  (method override (print self output readably)
     (print-unreadable self output
       (lambda (output)
         (format output "{s}" status))))
   
   
-  (method public (set-range range)
-    (set! range~self range)
-    (set! pos~self (get-start~ range)))
+  (method public (set-range self range)
+    (set! self.range range)
+    (set! self.pos (get-start range)))
   
   
-  (method public (set-pos pos)
-    (set! pos~self pos)
+  (method public (set-pos self pos)
+    (set! self.pos pos)
     (task-invalidater self))
   
   
-  (method public (increase-pos)
+  (method public (increase-pos self)
     (set! pos (+ pos 1))
     (task-invalidater self))
   
   
-  (method public (done?)
-    (= pos (get-end~ range)))
+  (method public (done? self)
+    (= pos (get-end range)))
   
   
-  (method public (set-done)
-    (set-pos (get-end~ range)))
+  (method public (set-done self)
+    (set-pos self (get-end range)))
   
   
-  (method public (progress-done)
-    (/ (fixnum->flonum (- pos (get-start~ range))) (fixnum->flonum (extent~ range))))
+  (method public (progress-done self)
+    (/ (fixnum->flonum (- pos (get-start range))) (fixnum->flonum (extent range))))
   
   
-  (method public (set-downloaded value)
+  (method public (set-downloaded self value)
     (set! downloaded value)
     (task-invalidater self))
   
   
-  (method public (set-remaining value)
+  (method public (set-remaining self value)
     (set! remaining value)
     (task-invalidater self))
   
   
-  (method public (add-child child)
+  (method public (add-child self child)
     (set! children (append children (list child)))
     child)))
