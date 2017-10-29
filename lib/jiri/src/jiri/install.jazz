@@ -93,10 +93,10 @@
       (begin
         (set-work-done? #t)
         (set-color stage-view stage-install-color)
-        (set-enabled?~ play-view #t))
+        (set-enabled? play-view #t))
     (set-color stage-view stage-setup-color)
     (set-title play-view "Not found")
-    (set-enabled?~ play-view #f)))
+    (set-enabled? play-view #f)))
 
 
 ;;;
@@ -371,7 +371,7 @@
               force-feedback?: #t))
           (for-each (lambda (ignored)
                       (let ((dir (new-directory to-lib ignored)))
-                        (when (exists?~ dir)
+                        (when (exists? dir)
                           (delete-directory dir)
                           (increase-pos task))))
                     ignored-packages)
@@ -486,7 +486,7 @@
         (set-connection-change
           (lambda (connection)
             (set-connection (jiri-app-section) connection)
-            (unless (get-started?~ connection)
+            (unless (get-started? connection)
               (pull-repository (jiri-app-section) (current-password) (app-dir)
                 (lambda (new-content?)
                   ))))))))
