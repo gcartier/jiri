@@ -7,7 +7,8 @@
   (root "src")
   (products (jiri (title "Jiri")
                   (product jiri.product)
-                  (update jiri.appl
+                  (update jiri
+                          jiri.appl
                           jiri.base
                           jiri.connection
                           jiri.debug
