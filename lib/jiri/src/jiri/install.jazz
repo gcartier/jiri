@@ -372,7 +372,7 @@
           (for-each (lambda (ignored)
                       (let ((dir (new-directory to-lib ignored)))
                         (when (exists? dir)
-                          (delete-directory dir)
+                          (delete dir)
                           (increase-pos task))))
                     ignored-packages)
           (increase-pos task)

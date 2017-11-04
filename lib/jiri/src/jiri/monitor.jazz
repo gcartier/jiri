@@ -71,11 +71,11 @@
                         (let ((status (process-status port)))
                           (cond ((= status 0)
                                  (create-directories sent-dir)
-                                 (move-pathname file (new-file sent-dir (get-name file))))
+                                 (rename file (new-file sent-dir (get-name file))))
                                 (else
                                  (unless draft?
                                    (create-directories draft-dir)
-                                   (move-pathname file (new-file draft-dir (get-name file))))
+                                   (rename file (new-file draft-dir (get-name file))))
                                  (continuation-return stop #f)))))))
                   
                   (define (send-reports dir draft?)

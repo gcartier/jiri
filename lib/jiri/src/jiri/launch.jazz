@@ -104,6 +104,6 @@
 @convert
 (define (delegate-uninstall uninstall)
   (let ((uninstall-temp (get-temporary-file (string-append (jiri-title) " uninstall") "exe")))
-    (copy-file uninstall uninstall-temp)
+    (duplicate uninstall uninstall-temp)
     (delegate-process uninstall-temp)
     (quit))))

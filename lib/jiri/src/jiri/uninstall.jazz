@@ -78,7 +78,7 @@
   (let ((shortcut (desktop-shortcut)))
     (when (file-exists? shortcut)
       ;; danger
-      (delete-file shortcut))))
+      (delete shortcut))))
 
 
 @convert
