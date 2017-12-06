@@ -22,7 +22,7 @@
         (jazz.geometry)
         (jazz.graphic)
         (jazz.graphic.image)
-        (jazz.jml)
+        (jazz.markup)
         (jazz.tree)
         (jazz.ui)
         (jazz.view)

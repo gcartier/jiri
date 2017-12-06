@@ -18,7 +18,7 @@
 
 (import (jazz.component)
         (jazz.event)
-        (jazz.jml)
+        (jazz.markup)
         (jazz.process)
         (jazz.snapshot)
         (jiri.git)

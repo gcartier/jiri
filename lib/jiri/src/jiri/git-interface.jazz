@@ -22,7 +22,7 @@
         (jazz.git.interface)
         (jazz.graphic)
         (jazz.handler)
-        (jazz.jml)
+        (jazz.markup)
         (jazz.text)
         (jazz.ui)
         (jazz.ui.dialog)

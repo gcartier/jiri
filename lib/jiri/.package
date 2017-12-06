@@ -56,10 +56,9 @@
                                 jazz.handler
                                 jazz.history
                                 jazz.io
-                                jazz.jml
-                                jazz.jrm
                                 jazz.layout
                                 jazz.locale
+                                jazz.markup
                                 jazz.math
                                 jazz.media
                                 jazz.menu
@@ -69,6 +68,7 @@
                                 jazz.product
                                 jazz.profile
                                 jazz.reference
+                                jazz.remote
                                 jazz.resource
                                 jazz.runtime
                                 jazz.settings
