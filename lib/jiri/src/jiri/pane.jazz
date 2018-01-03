@@ -16,23 +16,11 @@
 (module jiri.pane jazz
 
 
-(import (jazz.debuggee.ui)
-        (jazz.view)
+(import (jazz.view)
         (jiri.window))
 
 
-(define TEST?
-  #f)
-
-
 (class Jiri-Pane extends View
-  
-  
-  (method override (key-press self evt)
-    (if (or (not TEST?) (not kernel-source-accessible?))
-        (nextmethod self evt)
-      (case (get-key evt)
-        ((#\v) (explore-views (jazz.debuggee.view:current-view-debugger))))))
   
   
   (method override (return-press self evt)
