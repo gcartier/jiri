@@ -16,6 +16,7 @@
 (module jiri.launch jazz
 
 
+@CONVERT (
 (import (jazz.io)
         (jazz.platform)
         (jiri.base)
@@ -106,4 +107,4 @@
   (let ((uninstall-temp (get-temporary-file (string-append (jiri-title) " uninstall") "exe")))
     (duplicate uninstall uninstall-temp)
     (delegate-process uninstall-temp)
-    (quit))))
+    (quit)))))

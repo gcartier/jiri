@@ -16,6 +16,7 @@
 (module jiri.install jazz
 
 
+@CONVERT (
 (import (jazz.event)
         (jazz.git.foreign)
         (jazz.io)
@@ -534,4 +535,4 @@
 
 (set-jiri-startup
   (lambda ()
-    (jiri-install))))
+    (jiri-install)))))

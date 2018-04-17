@@ -16,6 +16,7 @@
 (module jiri.setup jazz
 
 
+@CONVERT (
 (import (jazz.io)
         (jazz.git.interface)
         (jazz.skin)
@@ -206,4 +207,4 @@
 
 (set-jiri-startup
   (lambda ()
-    )))
+    ))))
