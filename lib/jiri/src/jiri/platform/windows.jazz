@@ -143,6 +143,7 @@
 #ifdef __cplusplus
     int result = 0;
 #else
+    int result = 0;
     HRESULT hres;
     IShellLink* psl;
     
@@ -169,6 +170,6 @@
     }
     
     result = hres;
-    ___return(result);
 #endif
+    ___return(result);
 //#))

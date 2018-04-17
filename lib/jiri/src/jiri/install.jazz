@@ -29,6 +29,7 @@
         (jiri.monitor)
         (jiri.platform)
         (jiri.view)
+        (jiri.section)
         (jiri.settings)
         (jiri.structure)
         (jiri.task)
@@ -76,7 +77,7 @@
 
 
 (define (install-tasks-done)
-  (for-each set-done~ (get-children (get-connection (jiri-install-section)))))
+  (for-each set-done (get-children (get-connection (jiri-install-section)))))
 
 
 (define (transfer-tasks-setup proc)
