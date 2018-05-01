@@ -72,10 +72,9 @@
   (mac
     (definition public (app-exe)
       (add-extension (string-append (app-dir) "Contents/MacOS/" (jiri-application)) (executable-extension kernel-platform))))
-  (windows
+  (else
     (definition public (app-exe)
-      (add-extension (string-append (app-dir) (jiri-application)) (executable-extension kernel-platform))))
-  (else))
+      (add-extension (string-append (app-dir) (jiri-application)) (executable-extension kernel-platform)))))
 
 (definition public (current-exe)
   (add-extension (string-append (current-dir) "Install") (executable-extension kernel-platform)))
