@@ -157,7 +157,7 @@
     
     do {
         event = [NSApp nextEventMatchingMask:NSApplicationDefinedMask
-                                   untilDate:nil
+                                   untilDate:[NSDate distantPast]
                                       inMode:NSDefaultRunLoopMode
                                      dequeue:YES];
     } while (event);
