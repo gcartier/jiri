@@ -154,12 +154,21 @@
 (c-external (discard-application-events) void
   #/C/
     NSEvent* event;
+    int what;
     
     do {
         event = [NSApp nextEventMatchingMask:NSApplicationDefinedMask
                                    untilDate:[NSDate distantPast]
                                       inMode:NSDefaultRunLoopMode
                                      dequeue:YES];
+        what = [event data1];
+        // we only discard the progress events so
+        // repost any other and break out of loop
+        if (what != DOWNLOAD_PROGRESS && what != CHECKOUT_PROGRESS)
+        {
+            [NSApp postEvent:event atStart:YES];
+            break;
+        }
     } while (event);
 //#)
 
