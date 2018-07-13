@@ -209,9 +209,7 @@
     (git-remote-setup-callbacks remote
       (new Git-Callbacks
         credentials-callback: (lambda ()
-                                (with-gambit-os-interrupts
-                                  (lambda ()
-                                    (git-cred-userpass-plaintext-new (jiri-username) (or (jiri-password) (ask-password))))))))
+                                (git-cred-userpass-plaintext-new (jiri-username) (or (jiri-password) (ask-password))))))
     (let ((max-tries 3))
       (let loop ((try 1))
         (if (> try max-tries)
