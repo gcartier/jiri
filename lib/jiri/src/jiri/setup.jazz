@@ -24,6 +24,7 @@
         (jazz.ui.dialog)
         (jazz.view)
         (jazz.window)
+        (jiri)
         (jiri.base)
         (jiri.git-interface)
         (jiri.platform)

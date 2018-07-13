@@ -19,6 +19,7 @@
 @CONVERT (
 (import (jazz.io)
         (jazz.platform)
+        (jiri)
         (jiri.base)
         (jiri.settings)
         (jiri.structure))
