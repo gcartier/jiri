@@ -266,7 +266,8 @@
   (when minimize-view
     (add-pane-view minimize-view))
   
-  (add-pane-view connections-view)
+  (when (jiri-connections?)
+    (add-pane-view connections-view))
   (let ((section (jiri-app-section)))
     (let ((connections (get-connections section))
           (default (get-default section)))
