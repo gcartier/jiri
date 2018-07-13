@@ -187,8 +187,8 @@
                     content: content
                     content-spacing: 2
                     sound: #f))))
-      (when (eq? code 'yes)
-        (get-string-content password)))))
+      (and (eq? code 'yes)
+           (get-string-content password)))))
 
 
 (definition public (git-remote-connect-with-retries connection remote cancel (remote-exception? #f))

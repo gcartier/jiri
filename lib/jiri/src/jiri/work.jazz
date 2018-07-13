@@ -423,8 +423,9 @@
 
 
 (definition protected (safe-abort-point cleanup)
-  (when abort-requested
-    (cleanup)
-    (when (not (work-in-progress?))
-      (abort-requested))
-    #t)))
+  (and abort-requested
+       (begin
+         (cleanup)
+         (when (not (work-in-progress?))
+           (abort-requested))
+         #t))))

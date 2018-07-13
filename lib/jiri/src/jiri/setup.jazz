@@ -88,31 +88,32 @@
            (normalize-directory (standardize-directory dir)))))
      
      (let ((dir (choose-dir)))
-       (when dir
-         (let ((root-dir (normalize-directory (string-append dir (jiri-title)))))
-           (if (not (file-exists? root-dir))
-               (begin
-                 (create-directory-with-acl root-dir)
-                 (current-root-dir root-dir)
-                 root-dir)
-             (let ((code (if (current-root-dir)
-                             'yes
-                           (message-box (string-append "Installation folder already exists: " root-dir "\n\nDo you want to replace?") type: 'confirmation))))
-               (when (eq? code 'yes)
-                 (set-cursor :wait)
-                 ;;convert-to-task(set-work-in-progress? #t)
-                 ;; danger
-                 (let ((code (remove-directory root-dir)))
-                   (if (= code 0)
+       (and dir
+            (let ((root-dir (normalize-directory (string-append dir (jiri-title)))))
+              (if (not (file-exists? root-dir))
+                  (begin
+                    (create-directory-with-acl root-dir)
+                    (current-root-dir root-dir)
+                    root-dir)
+                (let ((code (if (current-root-dir)
+                                'yes
+                              (message-box (string-append "Installation folder already exists: " root-dir "\n\nDo you want to replace?") type: 'confirmation))))
+                  (and (eq? code 'yes)
                        (begin
-                         (create-directory-with-acl root-dir)
-                         (current-root-dir root-dir)
-                         root-dir)
-                     (begin
-                       (set-cursor :arrow)
-                       ;;convert-to-task(set-work-in-progress? #f)
-                       (message-box (string-append "Unable to delete installation folder (0x" (number->string code 16) ")"))
-                       #f)))))))))))
+                         (set-cursor :wait)
+                         ;;convert-to-task(set-work-in-progress? #t)
+                         ;; danger
+                         (let ((code (remove-directory root-dir)))
+                           (if (= code 0)
+                               (begin
+                                 (create-directory-with-acl root-dir)
+                                 (current-root-dir root-dir)
+                                 root-dir)
+                             (begin
+                               (set-cursor :arrow)
+                               ;;convert-to-task(set-work-in-progress? #f)
+                               (message-box (string-append "Unable to delete installation folder (0x" (number->string code 16) ")"))
+                               #f))))))))))))
   (else
    (define (setup-root)
      )))
