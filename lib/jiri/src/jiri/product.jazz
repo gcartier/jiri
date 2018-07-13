@@ -69,12 +69,12 @@
       '())))
 
 
-(definition (build-jiri descriptor (unit: unit #f) (force?: force? #f))
+(definition (build-jiri descriptor (unit: unit #f) (skip-references?: skip-references? #f) (force?: force? #f))
   (let ((unit-specs jiri-units))
     (if (or (not unit) (assq unit unit-specs))
         (custom-compile/build unit-specs unit: unit pre-build: copy-jiri-files force?: force?))
     (if (or (not unit) (not (assq unit unit-specs)))
-        (build-product-descriptor descriptor unit: unit force?: force?))))
+        (build-product-descriptor descriptor unit: unit skip-references?: skip-references? force?: force?))))
 
 
 (definition (jiri-library-options descriptor add-language)
