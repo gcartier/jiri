@@ -25,10 +25,12 @@
 ;;;
 
 
+@curl
 (definition protected sending-crash-reports-mutex
   (make-mutex 'sending-crash-reports))
 
 
+@curl
 (definition public (start-send-crash-reports)
   (thread-start!
     (new-thread
@@ -39,6 +41,7 @@
       'send-crash-reports)))
 
 
+@curl
 (define (send-crash-reports)
   (let ((monitor (jiri-monitor-crashes)))
     (when monitor
@@ -106,6 +109,7 @@
 ;;;
 
 
+@curl
 (cond-expand
   (windows
    (definition public (curl-path)

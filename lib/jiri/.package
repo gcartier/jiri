@@ -15,8 +15,10 @@
                           jiri.font
                           jiri.git
                           jiri.git-interface
+                          #; ;; unified
                           (cond
                             (windows jiri.install))
+                          #; ;; unified
                           (cond
                             (windows jiri.launch))
                           jiri.manage
@@ -29,15 +31,16 @@
                           jiri.run
                           jiri.section
                           jiri.settings
+                          #; ;; unified
                           (cond
                             (windows jiri.setup))
                           jiri.splash
                           jiri.structure
                           jiri.task
+                          #; ;; unified
                           (cond
                             (windows jiri.uninstall))
-                          (cond
-                            (mac jiri.update))
+                          jiri.update
                           jiri.view
                           jiri.window
                           jiri.work)

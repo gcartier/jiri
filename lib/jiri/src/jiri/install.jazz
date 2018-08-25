@@ -143,6 +143,7 @@
         (if new-content?
             (delegate-install (current-root-dir) (current-password) "current")
           (begin
+            @curl
             (start-send-crash-reports)
             (update-start-menu)
             (rewind-start-menu)

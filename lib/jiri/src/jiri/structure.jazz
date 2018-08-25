@@ -94,8 +94,13 @@
 (definition public (launch-file filename)
   (string-append (install-dir) filename))
 
-(definition public (update-exe)
-  (string-append (update-dir) "Contents/MacOS/" (jiri-update-exe)))
+(cond-expand
+  (mac
+    (definition public (update-exe)
+      (string-append (update-dir) "Contents/MacOS/" (jiri-update-exe))))
+  (else
+    (definition public (update-exe)
+      (string-append (update-dir) (jiri-update-exe)))))
 
 (definition public (game-string)
   (or (jiri-game) "game"))

@@ -40,7 +40,6 @@
 
 ;; MAC
 ;; Contents
-;; - Info.plist
 ;; - App
 ;;   - update.app
 ;;     - Contents
@@ -48,18 +47,51 @@
 ;;         - .git
 ;;         - Yownu (update)
 ;;         - lib
+;;       - Resources
 ;;   - yownu.app
 ;;     - Contents
 ;;       - MacOS
 ;;         - .git
-;;         - Yownu
+;;         - Yownu (app)
 ;;         - lib
+;;       - Resources
 ;; - MacOS
 ;;   - Yownu (launch)
 ;;   - lib
 ;; - Resources
 ;; - Worlds
 ;;   - yownu
+;;     - .git
+
+;; UNIFIED
+;; Yownu (launch)
+;; app
+;; - update
+;;   - .git
+;;   - Yownu (update)
+;;   - lib
+;; - yownu
+;;   - .git
+;;   - Yownu (app)
+;;   - lib
+;; lib
+;; worlds
+;; - yownu
+;;   - .git
+
+;; WINDOWS
+;; Yownu (launch)
+;; lib
+;; sirius
+;; - current
+;; - sirius-install
+;;   - .git
+;; worlds
+;; - together
+;;   - .git
+;; yownu (why not app)
+;; - test
+;;   - Yownu (app)
 ;;     - .git
 
 
@@ -130,7 +162,9 @@
 
 
 (define (update-at-launch)
-  (current-root-dir kernel-bundle-root)
+  (current-root-dir (cond-expand
+                      (mac kernel-bundle-root)
+                      (else jazz:kernel-install)))
   (let ((update-new? (not (file-exists? (update-dir)))))
     (add-stage-view (string-append "Updating " (jiri-title)) (determine-stage-color (update-dir)))
     (catch (Git-Exception exc
@@ -210,12 +244,17 @@
         (new-directory root-dir dirname)))
     
     (set-status task "Updating sirius")
-    (let ((libdir (new-directory update-dir "Contents/MacOS/lib")))
+    (let ((libdir (new-directory update-dir (cond-expand
+                                              (mac "Contents/MacOS/lib")
+                                              (else "lib")))))
       (let ((package-count (count-directories libdir)))
         (set-range task (new Range 0 package-count))
-        (install-filename "Contents/Info.plist")
-        (install-dirname-macos "Contents/MacOS" libdir)
-        (install-dirname "Contents/Resources")
+        (cond-expand
+          (mac
+           (install-filename "Contents/Info.plist")
+           (install-dirname-macos "Contents/MacOS" libdir)
+           (install-dirname "Contents/Resources"))
+          (else))
         (set-done task)
         (post-event cont)))))
 
