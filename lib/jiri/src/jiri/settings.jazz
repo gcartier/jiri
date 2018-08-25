@@ -24,10 +24,12 @@
 ;;;
 
 
+(definition public jiri-environment
+  (getf jazz:kernel-properties environment:))
+
+
 (define-jiri jiri-devel?
-  (cond-expand
-    (devel #t)
-    (else #f)))
+  (eq? jiri-environment 'devel))
 
 
 ;;;
