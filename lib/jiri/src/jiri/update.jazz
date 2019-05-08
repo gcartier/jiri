@@ -28,7 +28,7 @@
         (jazz.window)
         (jiri)
         (jiri.base)
-        (jiri.git-interface)
+        (jiri.git)
         (jiri.manage)
         (jiri.settings)
         (jiri.structure)

@@ -51,19 +51,10 @@
 (cond-expand
   (windows
     (define jiri-units
-      (let ((git-include-path (quote-jazz-pathname "lib/jazz.git/foreign/windows/libgit2/include"))
-            (git-lib-path     (quote-jazz-pathname "lib/jazz.git/foreign/windows/libgit2/lib")))
-        `((jiri.platform.windows cc-options: "-DUNICODE -D_WIN32_WINNT=0x0502 -D_WIN32_IE=0x0400" ld-options: "-lgdi32 -lole32 -luuid")
-          (jiri.git              cc-options: ,(string-append "-I" git-include-path) ld-options: ,(string-append "-L" git-lib-path " -lgit2"))))))
+      `((jiri.platform.windows cc-options: "-DUNICODE -D_WIN32_WINNT=0x0502 -D_WIN32_IE=0x0400" ld-options: "-lgdi32 -lole32 -luuid"))))
   (cocoa
     (define jiri-units
-      (let ((git-include-path (jazz:quote-jazz-pathname "lib/jazz.git/foreign/mac/libgit2/include"))
-            (git-lib-path     (jazz:quote-jazz-pathname "lib/jazz.git/foreign/mac/libgit2/lib")))
-        `((jiri.git
-            cc-options: ,(string-append "-I" git-include-path)
-            ld-options: ,(string-append "-L" git-lib-path " -framework Cocoa -lgit2.22")
-            custom-cc: ,custom-cc
-            output-language: objc)))))
+      '()))
   (else
     (define jiri-units
       '())))
@@ -79,16 +70,10 @@
 
 (definition (jiri-library-options descriptor add-language)
   (cond-expand
-    (cocoa
-      (add-language 'jiri.git 'objc))
-    (else))
-  (cond-expand
     (windows
-      (let ((git-lib-path (jazz-pathname "lib/jazz.git/foreign/windows/libgit2/lib")))
-        (list (string-append "-L" git-lib-path) "-lgit2" "-lgdi32" "-lole32" "-luuid")))
+     (list "-lgdi32" "-lole32" "-luuid"))
     (cocoa
-      (let ((git-lib-path (jazz-pathname "lib/jazz.git/foreign/mac/libgit2/lib")))
-        (list (string-append "-L" git-lib-path) "-framework" "Cocoa" "-lgit2.22")))
+     (list "-framework" "Cocoa"))
     (else
      '())))
 

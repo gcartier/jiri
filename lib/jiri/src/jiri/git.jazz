@@ -2,7 +2,7 @@
 ;;;  JiriScheme
 ;;;==============
 ;;;
-;;;; Git
+;;;; Git Interface
 ;;;
 ;;;  The Initial Developer of the Original Code is Guillaume Cartier.
 ;;;  Portions created by the Initial Developer are Copyright (C) 1996-2018
@@ -16,287 +16,127 @@
 (module jiri.git jazz
 
 
-(import (jazz.foreign)
+(import (jazz.application)
+        (jazz.component)
         (jazz.git.foreign)
-        (jazz.git.syntax (phase syntax))
-        (jazz.platform)
-        (jazz.platform.types))
-
-
-(c-include "<git2.h>")
-
-
-;;;
-;;;; Error
-;;;
-
-
-(c-definition (jiri-git-call-error-handler error) (int) void "git_call_error_handler" ""
-  (handle-git-error error))
-
-
-;;;
-;;;; Thread
-;;;
-
-
-(c-declare jiri.git #/C/
-    #include <stdbool.h>
-    
-    bool abortRequested = false;
-    
-    // starting at 1000 is a hack around mac os x
-    // sending a user callback 0 0 on window creation
-    #define DOWNLOAD_PROGRESS 1000
-    #define DOWNLOAD_DONE     1001
-    #define CHECKOUT_PROGRESS 1002
-    #define CHECKOUT_DONE     1003
-//#)
-
-
-(c-enumerant DOWNLOAD_PROGRESS)
-(c-enumerant DOWNLOAD_DONE)
-(c-enumerant CHECKOUT_PROGRESS)
-(c-enumerant CHECKOUT_DONE)
-
-
-(cond-expand
-  (windows
-(c-declare jiri.git #/C/
-    HANDLE mutex = NULL;
-    HWND hwnd = NULL;
-    
-    #define THREADPROC(name, payload) DWORD WINAPI name(LPVOID payload)
-    
-    void create_thread(LPTHREAD_START_ROUTINE proc, void* payload)
-    {
-        CreateThread(NULL, 0, proc, payload, 0, NULL);
-    }
-    
-    void lock_mutex()
-    {
-        if (! mutex)
-            mutex = CreateMutex(NULL, FALSE, NULL);
-        WaitForSingleObject(mutex, INFINITE);
-    }
-    
-    void unlock_mutex()
-    {
-        ReleaseMutex(mutex);
-    }
-    
-    void post_notification(int what, int id, int result)
-    {
-        PostMessage(hwnd, WM_USER, what, MAKELPARAM(id, result));
-    }
-//#)
-
-(c-external (discard-application-events) void
-  #/C/
-//#)
-
-(c-external (git-callback-hwnd HWND) void
-  #/C/
-    hwnd = ___arg1;
-//#))
-  (else
-(c-declare jiri.git #/C/
-    #import <Cocoa/Cocoa.h>
-    #include <pthread.h>
-    
-    pthread_mutex_t mutex;
-    bool mutexInited = false;
-    
-    #define THREADPROC(name, payload) void* name(void* payload)
-    
-    typedef void*(*threadproc)(void*);
-    
-    void create_thread(threadproc proc, void* payload)
-    {
-        pthread_t thread;
-        pthread_create(&thread, NULL, proc, payload);
-    }
-    
-    void lock_mutex()
-    {
-        if (! mutexInited)
-        {
-            pthread_mutex_init(&mutex, NULL);
-            mutexInited = true;
-        }
-        pthread_mutex_lock(&mutex);
-    }
-    
-    void unlock_mutex()
-    {
-        pthread_mutex_unlock(&mutex);
-    }
-    
-    #define MAKELPARAM(a,b)	((long)(((unsigned short)(a))|(((unsigned long)((unsigned short)(b)))<<16)))
-    
-    void post_notification(int what, int id, int result)
-    {
-        NSEvent* event;
-        
-        event = [NSEvent otherEventWithType:NSApplicationDefined
-                                            location:NSMakePoint(0, 0)
-                                       modifierFlags:0
-                                           timestamp:0
-                                        windowNumber:0
-                                             context:nil
-                                             subtype:0
-                                               data1:what
-                                               data2:MAKELPARAM(id, result)];
-        [NSApp postEvent:event atStart:YES];
-    }
-//#)
-
-(c-external (discard-application-events) void
-  #/C/
-    NSEvent* event;
-    int what;
-    
-    do {
-        event = [NSApp nextEventMatchingMask:NSApplicationDefinedMask
-                                   untilDate:[NSDate distantPast]
-                                      inMode:NSDefaultRunLoopMode
-                                     dequeue:YES];
-        what = [event data1];
-        // we only discard the progress events so
-        // repost any other and break out of loop
-        if (what != DOWNLOAD_PROGRESS && what != CHECKOUT_PROGRESS)
-        {
-            [NSApp postEvent:event atStart:YES];
-            break;
-        }
-    } while (event);
-//#)
-
-(c-external (git-callback-hwnd scheme-object) void
-  #/C/
-//#)))
-
-
-(c-external (git-lock-mutex) void
-  #/C/
-    lock_mutex();
-//#)
-
-(c-external (git-unlock-mutex) void
-  #/C/
-    unlock_mutex();
-//#)
-
-
-(git-external (git-request-abort) void
-  #/C/
-    lock_mutex();
-    abortRequested = true;
-    unlock_mutex();
-//#)
+        (jazz.git.interface)
+        (jazz.graphic)
+        (jazz.handler)
+        (jazz.markup)
+        (jazz.text)
+        (jazz.ui)
+        (jazz.ui.dialog)
+        (jazz.view)
+        (jazz.window)
+        (jiri)
+        (jiri.manage)
+        (jiri.settings)
+        (jiri.structure)
+        (jiri.window)
+        (jiri.work))
 
 
 ;;;
-;;;; Checkout
+;;;; Pull
 ;;;
 
 
-(c-declare jiri.git #/C/
-    #define MAX_CONNECTIONS 16
-    
-    git_repository* checkout_repository = NULL;
-    
-    struct CheckoutInfo
-    {
-        size_t checkout_completed_steps;
-        size_t checkout_total_steps;
-    };
-    
-    struct CheckoutInfo checkoutInfos[MAX_CONNECTIONS];
-//#)
-
-(git-external (git-checkout-completed-steps int) int
-  #/C/
-    ___return(checkoutInfos[___arg1].checkout_completed_steps);
-//#)
-
-(git-external (git-checkout-total-steps int) int
-  #/C/
-    ___return(checkoutInfos[___arg1].checkout_total_steps);
-//#)
-
-(definition public (git-checkout-state id proc)
-  (git-lock-mutex)
-  (let ((completed-steps (git-checkout-completed-steps id))
-        (total-steps (git-checkout-total-steps id)))
-    (git-unlock-mutex)
-    (proc completed-steps total-steps)))
-
-(c-declare jiri.git #/C/
-    void checkout_callback(const char *path, size_t completed_steps, size_t total_steps, void *payload)
-    {
-        int id = *((int*)(&payload));
-        lock_mutex();
-        struct CheckoutInfo* info = &checkoutInfos[id];
-        info->checkout_completed_steps = completed_steps;
-        info->checkout_total_steps = total_steps;
-        unlock_mutex();
-        post_notification(CHECKOUT_PROGRESS, id, 0);
-    }
-
-    THREADPROC(checkout_head_proc, payload)
-    {
-        int id = *((int*)(&payload));
-        git_checkout_options options = GIT_CHECKOUT_OPTIONS_INIT;
-        options.checkout_strategy = GIT_CHECKOUT_FORCE;
-        options.progress_cb = checkout_callback;
-        options.progress_payload = payload;
-        int result = git_checkout_head(checkout_repository, &options);
-        post_notification(CHECKOUT_DONE, id, result);
-        return 0;
-    }
-//#)
-
-(git-external (git-checkout-head-force-threaded int git_repository*) void
-  #/C/
-    int id = ___arg1;
-    checkout_repository = ___arg2;
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wint-to-void-pointer-cast"
-    create_thread(&checkout_head_proc, (void*) id);
-#pragma GCC diagnostic pop
-//#)
-
-(c-declare jiri.git #/C/
-    git_repository* reset_repository = NULL;
-    git_object* reset_commit = NULL;
-    
-    THREADPROC(reset_hard_proc, payload)
-    {
-        int id = *((int*)(&payload));
-        git_checkout_options options = GIT_CHECKOUT_OPTIONS_INIT;
-        options.checkout_strategy = GIT_CHECKOUT_FORCE;
-        options.progress_cb = checkout_callback;
-        options.progress_payload = payload;
-        int result = git_reset(reset_repository, reset_commit, GIT_RESET_HARD, &options);
-        post_notification(CHECKOUT_DONE, id, result);
-        return 0;
-    }
-//#)
-
-(git-external (git-reset-hard-threaded int git_repository* git_object*) void
-  #/C/
-    int id = ___arg1;
-    struct CheckoutInfo* info = &checkoutInfos[id];
-    info->checkout_completed_steps = 0;
-    info->checkout_total_steps = 0;
-    reset_repository = ___arg2;
-    reset_commit = ___arg3;
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wint-to-void-pointer-cast"
-    create_thread(&reset_hard_proc, (void*) id);
-#pragma GCC diagnostic pop
-//#)
+(definition public (pull-repository section password dir cont (remote-exception? #f))
+  (let ((title (get-title section))
+        (connection (get-connection section)))
+    (let ((id (get-id connection))
+          (name (get-name connection))
+          (url (get-url connection))
+          (branch (get-branch connection))
+          (download-task (get-download-task connection))
+          (checkout-task (get-checkout-task connection)))
+      (define (open/init-repository proc)
+        (let ((existing? (file-exists? dir)))
+          (cond (existing?
+                  (let ((repo (git-repository-open dir)))
+                    (proc repo (git-remote-lookup repo "origin"))))
+                (else
+                 (let ((repo (git-repository-init dir)))
+                   (proc repo (git-remote-create repo "origin" url)))))))
+      
+      (set-cursor :wait)
+      (set-started? connection #t)
+      (set-working? connection #t)
+      (set-status download-task (string-append "Downloading " title))
+      (git-callback-hwnd (get-handle (current-toplevel)))
+      (open/init-repository
+        (lambda (repo remote)
+          (git-remote-connect-with-retries connection remote #f remote-exception?)
+          (set-range download-task (new Range 0 1))
+          (set-download-progress connection
+            (let ((inited? #f))
+              (lambda (result)
+                (git-download-state id
+                  (lambda (total-objects received-objects received-bytes)
+                    (let ((downloaded (fxfloor (/ (exact->inexact received-bytes) (* 1024. 1024.))))
+                          (remaining (- total-objects received-objects)))
+                      (set-downloaded download-task downloaded)
+                      (set-remaining download-task remaining))
+                    (when (not inited?)
+                      (set-range download-task (new Range 0 total-objects))
+                      (set! inited? #t))
+                    (set-pos download-task received-objects))))))
+          (set-download-done connection
+            (lambda (result)
+              (unless (safe-abort-point
+                        (lambda ()
+                          (git-remote-disconnect remote)
+                          (git-remote-free remote)
+                          (git-repository-free repo)
+                          (set-cursor :arrow)
+                          (set-working? connection #f)))
+                (git-check-error result)
+                (set-status checkout-task (string-append "Installing " title))
+                (set-done download-task)
+                (git-remote-disconnect remote)
+                (git-remote-update-tips remote)
+                (git-remote-free remote)
+                (git-repository-set-head repo (string-append "refs/heads/" branch))
+                (let ((upstream (git-reference-lookup repo (string-append "refs/remotes/origin/" branch))))
+                  (let ((commit (git-object-lookup repo (git-reference->id repo upstream) GIT_OBJ_COMMIT)))
+                    (define (checkout-cleanup)
+                      (git-reference-free upstream)
+                      (git-object-free commit)
+                      (git-repository-free repo)
+                      (set-cursor :arrow)
+                      (set-working? connection #f))
+                    
+                    (unless (git-branch-lookup repo branch GIT_BRANCH_LOCAL)
+                      (git-branch-create repo branch commit 1))
+                    (let ((new-content? #f))
+                      (set-range checkout-task (new Range 0 1))
+                      (set-checkout-progress connection
+                        (let ((inited? #f))
+                          (lambda (result)
+                            ;; from a discusion on freenode, aborting a checkout could leave the worktree in an arbitrary
+                            ;; state, but the next checkout force should overwrite whatever is present in the worktree...
+                            ;; commented out as there is no way to interrupt the threaded checkout
+                            ;; (safe-abort-point checkout-cleanup)
+                            (git-checkout-state id
+                              (lambda (completed-steps total-steps)
+                                (when (> total-steps 0)
+                                  (set! new-content? #t)
+                                  (let ((remaining (- total-steps completed-steps)))
+                                    (set-remaining checkout-task remaining))
+                                  (when (not inited?)
+                                    (set-range checkout-task (new Range 0 total-steps))
+                                    (set! inited? #t))
+                                  (set-pos checkout-task completed-steps)))))))
+                      (set-checkout-done connection
+                        (lambda (result)
+                          (unless (safe-abort-point checkout-cleanup)
+                            (git-check-error result)
+                            (set-done checkout-task)
+                            (checkout-cleanup)
+                            (cont new-content?))))
+                      @convert-to-listeners
+                      (git-reset-hard-threaded id repo commit)))))))
+          (git-remote-download-threaded id remote))))))
 
 
 ;;;
@@ -304,86 +144,141 @@
 ;;;
 
 
-(c-declare jiri.git #/C/
-    struct DownloadInfo
-    {
-        git_remote* remote;
-        unsigned int total_objects;
-        unsigned int received_objects;
-        size_t received_bytes;
-    };
+(class Password-Box extends Message-Box
+  
+  
+  (method override (focus-box self)
+    (acquire-focus (locate user-content 'password)))
+  
+  
+  (method override (get-modal-result self)
+    (get-string-content (locate user-content 'password))))
+
+
+(class Password-Border extends Border-View
+  
+  
+  (form
+    (<install>                                 border-type: solid border-color: {Color Entry-Border}
+      (<Scroller-View>          name: scroller hscroll?: #f vscroll?: #f
+        (<!>                    name: content  layout-type: fill
+          (<Password-Text-View> name: password return-press-handler: {Event-Handler :form on-return-press} escape-press-handler: {Event-Handler :form on-escape-press})))))
+  
+  
+  (method override (on-return-press self evt)
+    (process-action (child (get-guest self) 'yes) self))
+  
+  
+  (method override (on-escape-press self evt)
+    (process-action (child (get-guest self) 'cancel) self)))
+
+
+(definition public (password-dialog)
+  (let ((content (new Password-Border size: {Dimension 460 21})))
+    (let ((password (locate content 'password))
+          (code (catch (Cancel-Signal exc
+                         'cancel)
+                  (message-box
+                    (or (jiri-password-message) `(<span> (<paragraph> "Please enter your password:")))
+                    class: Password-Box
+                    type: 'error
+                    title: (or (jiri-password-title) "Password")
+                    yes: (or (jiri-password-yes) "OK")
+                    content: content
+                    content-spacing: 2
+                    sound: #f))))
+      (and (eq? code 'yes)
+           (get-string-content password)))))
+
+
+(definition public (git-remote-connect-with-retries connection remote cancel (remote-exception? #f))
+  (let ((password #f))
+    (define (ask-password)
+      (set! password (or (current-password) (password-dialog)))
+      (or password
+          (cancel-connection)))
     
-    struct DownloadInfo downloadInfos[MAX_CONNECTIONS];
-//#)
+    (define (cancel-connection)
+      (if cancel
+          (begin
+            (set-cursor :arrow)
+            (set-working? connection #f)
+            (continuation-return cancel))
+        (exit 1)))
+    
+    (let ((callbacks
+            (new Git-Callbacks
+              credentials-callback: (lambda ()
+                                      (git-cred-userpass-plaintext-new (jiri-username) (or (jiri-password) (ask-password))))))
+          (max-tries 3))
+      (let loop ((try 1))
+        (if (> try max-tries)
+            (exit 1)
+          (catch (Git-Exception exc
+                   (let ((err (get-message exc)))
+                     (cond ((string-ends-with? err "401")
+                            (message-box "Incorrect password")
+                            (loop (+ try 1)))
+                           (else
+                            (if remote-exception?
+                                (begin
+                                  (set-cursor :arrow)
+                                  (set-working? connection #f)
+                                  (throw exc))
+                              (message-box (if (jiri-devel?)
+                                               (string-append "Unable to connect to server (" (git-remote-url remote) "):\n\n" err)
+                                             "Unable to connect to server"))
+                              (exit 1))))))
+            @convert-to-listeners
+            (git-remote-connect remote GIT_DIRECTION_FETCH callbacks)
+            (current-password password)))))))
 
-(git-external (git-remote-download-total-objects int) int
-  #/C/
-    ___return(downloadInfos[___arg1].total_objects);
-//#)
 
-(git-external (git-remote-download-received-objects int) int
-  #/C/
-    ___return(downloadInfos[___arg1].received_objects);
-//#)
+;;;
+;;;; Callback
+;;;
 
-(git-external (git-remote-download-received-bytes int) int
-  #/C/
-    ___return(downloadInfos[___arg1].received_bytes);
-//#)
 
-(definition public (git-download-state id proc)
-  (git-lock-mutex)
-  (let ((total-objects (git-remote-download-total-objects id))
-        (received-objects (git-remote-download-received-objects id))
-        (received-bytes (git-remote-download-received-bytes id)))
-    (git-unlock-mutex)
-    (proc total-objects received-objects received-bytes)))
+@convertgit
+(definition (notification-callback-function what id result)
+  (cond ((= what DOWNLOAD_PROGRESS) ((get-download-progress (id->connection id)) result))
+        ((= what DOWNLOAD_DONE)     ((get-download-done (id->connection id))     result))
+        ((= what CHECKOUT_PROGRESS) ((get-checkout-progress (id->connection id)) result))
+        ((= what CHECKOUT_DONE)     (if (in-modal?)
+                                        (delay-modal-user-event id what result)
+                                      ((get-checkout-done (id->connection id)) result)))))
 
-(c-declare jiri.git #/C/
-    int remote_download_callback(const git_transfer_progress *stats, void *payload)
-    {
-        int id = *((int*)(&payload));
-        bool abort;
-      
-        lock_mutex();
-        abort = abortRequested;
-        downloadInfos[id].total_objects = stats->total_objects;
-        downloadInfos[id].received_objects = stats->received_objects;
-        downloadInfos[id].received_bytes = stats->received_bytes;
-        unlock_mutex();
-        
-        if (! abort)
-        {
-            post_notification(DOWNLOAD_PROGRESS, id, 0);
-            return 0;
-        }
-        else
-            return -1;
-    }
 
-    THREADPROC(remote_download_proc, payload)
-    {
-        int id = *((int*)(&payload));
-        git_remote* remote = downloadInfos[id].remote;
-        git_remote_callbacks callbacks = GIT_REMOTE_CALLBACKS_INIT;
-        callbacks.transfer_progress = remote_download_callback;
-        callbacks.payload = payload;
-        git_remote_set_callbacks(remote, &callbacks);
-        int result = git_remote_download(remote, NULL);
-        post_notification(DOWNLOAD_DONE, id, result);
-        return 0;
-    }
-//#)
+@convertgit
+(set-notification-callback notification-callback-function)
 
-(git-external (git-remote-download-threaded int git_remote*) void
-  #/C/
-    int id = ___arg1;
-    downloadInfos[id].remote = ___arg2;
-    downloadInfos[id].total_objects = 0;
-    downloadInfos[id].received_objects = 0;
-    downloadInfos[id].received_bytes = 0;
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wint-to-void-pointer-cast"
-    create_thread(&remote_download_proc, (void*) id);
-#pragma GCC diagnostic pop
-//#))
+
+;;;
+;;;; Quit
+;;;
+
+
+(definition public (quit-confirm-abort title)
+  (lambda ()
+    (if (not (work-in-progress?))
+        (quit)
+      (let ((code (message-box (string-append title " in progress.\n\nDo you want to abort?") type: 'question)))
+        (when (eq? code 'yes)
+          (request-quit "Aborting..."))))))
+
+
+(definition public (quit-safely)
+  (lambda ()
+    (if (not (work-in-progress?))
+        (quit)
+      (request-quit "Disconnecting..."))))
+
+
+(define (request-quit title)
+  (set-abort-requested (lambda () (quit)))
+  (git-request-abort)
+  (set-title status-view title)
+  (when minimize-view
+    (set-enabled? minimize-view #f))
+  (when close-view
+    (set-enabled? close-view #f))))
