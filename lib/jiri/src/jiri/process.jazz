@@ -61,12 +61,4 @@
     (when send-ready?
       (write 'ready)
       (newline)
-      (force-output)))
-  
-  
-  (method override (user-notification self wparam lparam)
-    (when notification-callback
-      (let ((what wparam)
-            (id (signed-loword lparam))
-            (result (signed-hiword lparam)))
-        (notification-callback what id result))))))
+      (force-output)))))

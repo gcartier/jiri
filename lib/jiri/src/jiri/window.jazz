@@ -87,18 +87,6 @@
 
 
 ;;;
-;;;; Notification
-;;;
-
-
-(definition public notification-callback
-  #f)
-
-(definition public (set-notification-callback callback)
-  (set! notification-callback callback))
-
-
-;;;
 ;;;; Return
 ;;;
 

@@ -216,9 +216,11 @@
           (lambda ()
             (update-launch transfer-task
               (lambda ()
+                (delay-event
+                  (lambda ()
                 (update-app/data
                   (lambda (new-content?)
-                    (update-done)))))))))))
+                    (update-done)))))))))))))
 
 
 (define (update-launch task cont)

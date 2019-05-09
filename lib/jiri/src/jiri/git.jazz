@@ -18,10 +18,12 @@
 
 (import (jazz.application)
         (jazz.component)
+        (jazz.event)
         (jazz.git.foreign)
         (jazz.git.interface)
         (jazz.graphic)
         (jazz.handler)
+        (jazz.listener)
         (jazz.markup)
         (jazz.text)
         (jazz.ui)
@@ -49,7 +51,8 @@
           (url (get-url connection))
           (branch (get-branch connection))
           (download-task (get-download-task connection))
-          (checkout-task (get-checkout-task connection)))
+          (checkout-task (get-checkout-task connection))
+          (listener (open-stream-listener)))
       (define (open/init-repository proc)
         (let ((existing? (file-exists? dir)))
           (cond (existing?
@@ -66,7 +69,7 @@
       (git-callback-hwnd (get-handle (current-toplevel)))
       (open/init-repository
         (lambda (repo remote)
-          (git-remote-connect-with-retries connection remote #f remote-exception?)
+          (git-remote-connect-with-retries connection remote listener remote-exception?)
           (set-range download-task (new Range 0 1))
           (set-download-progress connection
             (let ((inited? #f))
@@ -134,9 +137,55 @@
                             (set-done checkout-task)
                             (checkout-cleanup)
                             (cont new-content?))))
-                      @convert-to-listeners
-                      (git-reset-hard-threaded id repo commit)))))))
-          (git-remote-download-threaded id remote))))))
+                      (let ((listener (open-stream-listener)))
+                        (git-reset-hard-threaded id (get-write-file listener) repo commit)
+                        (thread-start!
+                          (new-thread
+                            (lambda ()
+                              (declare (proper-tail-calls))
+                              (let (loop)
+                                (let ((c (wait listener)))
+                                  (case c
+                                    ((#\.)
+                                     (let ((proc (get-checkout-progress connection))
+                                           (result 0)) ;; convertgit
+                                       (delay-event
+                                         (lambda ()
+                                           (proc result))))
+                                     (loop))
+                                    ((#\@)
+                                     (close-stream-listener listener)
+                                     (let ((proc (get-checkout-done connection))
+                                           (result 0)) ;; convertgit
+                                       (delay-event
+                                         (lambda ()
+                                           (if #f @w (in-modal?) ;; convertgit
+                                               #f @w (delay-modal-user-event id what result)
+                                             (proc result))))))))))
+                            'checkout)))))))))
+          (git-remote-download-threaded id)
+          (thread-start!
+            (new-thread
+              (lambda ()
+                (declare (proper-tail-calls))
+                (let (loop)
+                  (let ((c (wait listener)))
+                    (case c
+                      ((#\.)
+                       (let ((proc (get-download-progress connection))
+                             (result 0)) ;; convertgit
+                         (delay-event
+                           (lambda ()
+                             (proc result))))
+                       (loop))
+                      ((#\@)
+                       (close-stream-listener listener)
+                       (let ((proc (get-download-done connection))
+                             (result 0)) ;; convertgit
+                         (delay-event
+                           (lambda ()
+                             (proc result)))))))))
+              'download)))))))
 
 
 ;;;
@@ -191,7 +240,7 @@
            (get-string-content password)))))
 
 
-(definition public (git-remote-connect-with-retries connection remote cancel (remote-exception? #f))
+(definition public (git-remote-connect-with-retries connection remote listener cancel (remote-exception? #f))
   (let ((password #f))
     (define (ask-password)
       (set! password (or (current-password) (password-dialog)))
@@ -206,7 +255,9 @@
             (continuation-return cancel))
         (exit 1)))
     
-    (let ((callbacks
+    (let ((id (get-id connection))
+          (fd (get-write-file listener))
+          (callbacks
             (new Git-Callbacks
               credentials-callback: (lambda ()
                                       (git-cred-userpass-plaintext-new (jiri-username) (or (jiri-password) (ask-password))))))
@@ -229,28 +280,8 @@
                                                (string-append "Unable to connect to server (" (git-remote-url remote) "):\n\n" err)
                                              "Unable to connect to server"))
                               (exit 1))))))
-            @convert-to-listeners
-            (git-remote-connect remote GIT_DIRECTION_FETCH callbacks)
+            (git-remote-connect remote GIT_DIRECTION_FETCH id fd callbacks)
             (current-password password)))))))
-
-
-;;;
-;;;; Callback
-;;;
-
-
-@convertgit
-(definition (notification-callback-function what id result)
-  (cond ((= what DOWNLOAD_PROGRESS) ((get-download-progress (id->connection id)) result))
-        ((= what DOWNLOAD_DONE)     ((get-download-done (id->connection id))     result))
-        ((= what CHECKOUT_PROGRESS) ((get-checkout-progress (id->connection id)) result))
-        ((= what CHECKOUT_DONE)     (if (in-modal?)
-                                        (delay-modal-user-event id what result)
-                                      ((get-checkout-done (id->connection id)) result)))))
-
-
-@convertgit
-(set-notification-callback notification-callback-function)
 
 
 ;;;

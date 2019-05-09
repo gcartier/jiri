@@ -137,7 +137,7 @@
             (set! repo (git-repository-init dir))
             (set! remote (git-remote-create repo "origin" (get-url connection))))
           (lambda ()
-            (git-remote-connect-with-retries connection remote cancel))
+            (git-remote-connect-with-retries connection remote #f cancel))
           (lambda ()
             (when remote
               (when successful?

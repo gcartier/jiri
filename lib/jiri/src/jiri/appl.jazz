@@ -90,15 +90,7 @@
       (lambda (name skin)
         (let ((trait (instantiate-trait Skin jiri-look)))
           (set-parent trait (local-trait skin 'jazz))
-          (set-active-trait skin 'default.jazz.jiri)))))
-  
-  
-  (method override (user-notification self wparam lparam)
-    (when notification-callback
-      (let ((what wparam)
-            (id (signed-loword lparam))
-            (result (signed-hiword lparam)))
-        (notification-callback what id result)))))
+          (set-active-trait skin 'default.jazz.jiri))))))
 
 
 ;;;
