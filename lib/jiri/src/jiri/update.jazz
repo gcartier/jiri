@@ -212,15 +212,15 @@
   (transfer-tasks-setup
     (lambda (transfer-task)
       (thread-start!
-        (make-thread
+        (new-thread
           (lambda ()
             (update-launch transfer-task
               (lambda ()
                 (delay-event
                   (lambda ()
-                (update-app/data
-                  (lambda (new-content?)
-                    (update-done)))))))))))))
+                    (update-app/data
+                      (lambda (new-content?)
+                        (update-done)))))))))))))
 
 
 (define (update-launch task cont)
