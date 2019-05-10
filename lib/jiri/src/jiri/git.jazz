@@ -62,6 +62,31 @@
                  (let ((repo (git-repository-init dir)))
                    (proc repo (git-remote-create repo "origin" url)))))))
       
+      (define (process-listener name listener progress done)
+        (thread-start!
+          (new-thread
+            (lambda ()
+              (declare (proper-tail-calls))
+              (let (loop)
+                (let ((c (wait listener)))
+                  (case c
+                    ((#\.)
+                     (delay-event
+                       (lambda ()
+                         (progress #f)))
+                     (loop))
+                    ((#\@)
+                     (close-stream-listener listener)
+                     (delay-event
+                       (lambda ()
+                         (done #f))))
+                    ((#\!)
+                     (close-stream-listener listener)
+                     (delay-event
+                       (lambda ()
+                         (done #t))))))))
+            name)))
+      
       (set-cursor :wait)
       (set-started? connection #t)
       (set-working? connection #t)
@@ -73,7 +98,7 @@
           (set-range download-task (new Range 0 1))
           (set-download-progress connection
             (let ((inited? #f))
-              (lambda (result)
+              (lambda (error?)
                 (git-download-state id
                   (lambda (total-objects received-objects received-bytes)
                     (let ((downloaded (fxfloor (/ (exact->inexact received-bytes) (* 1024. 1024.))))
@@ -85,7 +110,7 @@
                       (set! inited? #t))
                     (set-pos download-task received-objects))))))
           (set-download-done connection
-            (lambda (result)
+            (lambda (error?)
               (unless (safe-abort-point
                         (lambda ()
                           (git-remote-disconnect remote)
@@ -93,7 +118,8 @@
                           (git-repository-free repo)
                           (set-cursor :arrow)
                           (set-working? connection #f)))
-                (git-check-error result)
+                (when error?
+                  (git-error))
                 (set-status checkout-task (string-append "Installing " title))
                 (set-done download-task)
                 (git-remote-disconnect remote)
@@ -115,7 +141,7 @@
                       (set-range checkout-task (new Range 0 1))
                       (set-checkout-progress connection
                         (let ((inited? #f))
-                          (lambda (result)
+                          (lambda (error?)
                             ;; from a discusion on freenode, aborting a checkout could leave the worktree in an arbitrary
                             ;; state, but the next checkout force should overwrite whatever is present in the worktree...
                             ;; commented out as there is no way to interrupt the threaded checkout
@@ -131,61 +157,18 @@
                                     (set! inited? #t))
                                   (set-pos checkout-task completed-steps)))))))
                       (set-checkout-done connection
-                        (lambda (result)
+                        (lambda (error?)
                           (unless (safe-abort-point checkout-cleanup)
-                            (git-check-error result)
+                            (when error?
+                              (git-error))
                             (set-done checkout-task)
                             (checkout-cleanup)
                             (cont new-content?))))
                       (let ((listener (open-stream-listener)))
                         (git-reset-hard-threaded id (get-write-file listener) repo commit)
-                        (thread-start!
-                          (new-thread
-                            (lambda ()
-                              (declare (proper-tail-calls))
-                              (let (loop)
-                                (let ((c (wait listener)))
-                                  (case c
-                                    ((#\.)
-                                     (let ((proc (get-checkout-progress connection))
-                                           (result 0)) ;; convertgit
-                                       (delay-event
-                                         (lambda ()
-                                           (proc result))))
-                                     (loop))
-                                    ((#\@)
-                                     (close-stream-listener listener)
-                                     (let ((proc (get-checkout-done connection))
-                                           (result 0)) ;; convertgit
-                                       (delay-event
-                                         (lambda ()
-                                           (if #f @w (in-modal?) ;; convertgit
-                                               #f @w (delay-modal-user-event id what result)
-                                             (proc result))))))))))
-                            'checkout)))))))))
+                        (process-listener 'checkout listener (get-checkout-progress connection) (get-checkout-done connection)))))))))
           (git-remote-download-threaded id)
-          (thread-start!
-            (new-thread
-              (lambda ()
-                (declare (proper-tail-calls))
-                (let (loop)
-                  (let ((c (wait listener)))
-                    (case c
-                      ((#\.)
-                       (let ((proc (get-download-progress connection))
-                             (result 0)) ;; convertgit
-                         (delay-event
-                           (lambda ()
-                             (proc result))))
-                       (loop))
-                      ((#\@)
-                       (close-stream-listener listener)
-                       (let ((proc (get-download-done connection))
-                             (result 0)) ;; convertgit
-                         (delay-event
-                           (lambda ()
-                             (proc result)))))))))
-              'download)))))))
+          (process-listener 'download listener (get-download-progress connection) (get-download-done connection)))))))
 
 
 ;;;
