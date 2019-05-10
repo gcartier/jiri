@@ -59,34 +59,6 @@
 
 
 ;;;
-;;;; Modal
-;;;
-
-
-(define delayed-modal-user-event
-  #f)
-
-(definition public (delay-modal-user-event id what result)
-  (set! delayed-modal-user-event (list id what result)))
-
-
-(cond-expand
-  (windows
-    (definition public (with-modal thunk)
-      (thunk)
-      @convert
-      (let ((code (thunk)))
-        (when delayed-modal-user-event
-          (bind (id what result) delayed-modal-user-event
-            (set! delayed-modal-user-event #f)
-            (PostMessage (get-handle (current-toplevel)) WM_USER id what result)))
-        code)))
-  (else
-    (definition public (with-modal thunk)
-      (thunk))))
-
-
-;;;
 ;;;; Return
 ;;;
 
