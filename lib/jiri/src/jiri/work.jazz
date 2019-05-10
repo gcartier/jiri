@@ -388,7 +388,11 @@
 
 (definition public (play-app)
   (set-cursor :wait)
-  (delegate-process (app-exe))
+  (let ((arguments
+          (build-arguments
+            (lambda (add)
+              (add "called-from" "installer")))))
+    (delegate-process (app-exe) arguments: arguments))
   (quit-callback))
 
 
