@@ -173,7 +173,9 @@
                (exit 1)))
       (pull-repository (jiri-update-section) (current-password) (update-dir)
         (lambda (new-content?)
-          (if new-content?
+          (if (cond-expand
+                (local #f)
+                (else new-content?))
               (delegate-update (current-root-dir) (current-password) "launch" update-new?)
             (transfer-tasks-setup
               (lambda (transfer-task)
