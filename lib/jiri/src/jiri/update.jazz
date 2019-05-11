@@ -233,7 +233,12 @@
         (new-file update-dir filename)
         (new-file root-dir filename)))
     
-    (define (install-dirname-macos dirname libdir)
+    (define (install-dirname dirname)
+      (install-directory
+        (new-directory update-dir dirname)
+        (new-directory root-dir dirname)))
+    
+    (define (install-libraries dirname libdir)
       (install-directory
         (new-directory update-dir dirname)
         (new-directory root-dir dirname)
@@ -242,23 +247,14 @@
                                         (pathname=? (get-parent dir) libdir))
                                (increase-pos task)))))
     
-    (define (install-dirname dirname)
-      (install-directory
-        (new-directory update-dir dirname)
-        (new-directory root-dir dirname)))
-    
     (set-status task "Updating sirius")
-    (let ((libdir (new-directory update-dir (cond-expand
-                                              (mac "Contents/MacOS/lib")
-                                              (else "lib")))))
+    (let ((libdir (new-directory update-dir "Contents/Libraries/lib")))
       (let ((package-count (count-directories libdir)))
         (set-range task (new Range 0 package-count))
-        (cond-expand
-          (mac
-           (install-filename "Contents/Info.plist")
-           (install-dirname-macos "Contents/MacOS" libdir)
-           (install-dirname "Contents/Resources"))
-          (else))
+        (install-filename "Contents/Info.plist")
+        (install-dirname "Contents/MacOS")
+        (install-dirname "Contents/Resources")
+        (install-libraries "Contents/Libraries" libdir)
         (set-done task)
         (post-event cont)))))
 
