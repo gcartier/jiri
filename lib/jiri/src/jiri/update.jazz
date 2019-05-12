@@ -22,6 +22,7 @@
         (jazz.git.foreign)
         (jazz.io)
         (jazz.outline)
+        (jazz.platform)
         (jazz.settings)
         (jazz.tree)
         (jazz.view)
@@ -43,21 +44,21 @@
 ;; - App
 ;;   - update.app
 ;;     - Contents
+;;       - Libraries
 ;;       - MacOS
 ;;         - .git
 ;;         - Yownu (update)
-;;         - lib
 ;;       - Resources
 ;;   - yownu.app
 ;;     - Contents
+;;       - Libraries
 ;;       - MacOS
 ;;         - .git
 ;;         - Yownu (app)
-;;         - lib
 ;;       - Resources
+;; - Libraries
 ;; - MacOS
 ;;   - Yownu (launch)
-;;   - lib
 ;; - Resources
 ;; - Worlds
 ;;   - yownu
@@ -100,17 +101,31 @@
 
 
 (define (jiri-prepare)
+  (define (inside-installer?)
+    (and kernel-bundle-root
+         (let ((root (new Directory (tokenise-filename kernel-bundle-root))))
+           (and (filename=? (get-name root) "Update.app")
+                (let ((apps (get-parent root)))
+                  (and (filename=? (get-name apps) "Apps")
+                       (let ((contents (get-parent apps)))
+                         (and (filename=? (get-name contents) "Contents")
+                              (exists? (new-directory contents "Libraries"))
+                              (exists? (new-directory contents "MacOS"))))))))))
+  
   (current-root-dir (string-argument "root-dir" #f))
   (current-password (string-argument "password" #f))
   (called-from (string-argument "called-from" #f))
   (set! stage (cond ((and (not (current-root-dir))
-                          (not (called-from)))
+                          (not (called-from))
+                          (not (inside-installer?)))
                      'launch)
                     ((and (current-root-dir)
                           (equal? (called-from) "launch"))
                      'update)
                     (else
-                     (message-box "It is incorrect to launch this application")
+                     (system-message "It is incorrect to launch this application"
+                                     type: 'problem
+                                     title: "Update")
                      (exit 1))))
   (when (eq? stage 'update)
     (set-work-downloaded (integer-argument "work-downloaded" 0))
