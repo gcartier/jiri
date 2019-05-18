@@ -59,7 +59,7 @@
                     (let ((port (open-process
                                   (list
                                     path: curl
-                                    arguments: (list "--silent" "-T" (parse file) "-H" "Content-Type: text/plain" (string-append remote "/crashes/" (get-name file)))
+                                    arguments: (list "--silent" "-T" (parse file) "--limit-rate" "250K" "-H" "Content-Type: text/plain" (string-append remote "/crashes/" (get-name file)))
                                     show-console: #f))))
                       (set-title crashes-view (format "Sending logs ({a} of {a})" no total))
                       (let ((status (process-status port)))
