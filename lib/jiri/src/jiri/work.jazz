@@ -17,6 +17,7 @@
 
 
 (import (jazz.event)
+        (jazz.geometry)
         (jazz.graphic)
         (jazz.snapshot)
         (jazz.tree)
@@ -173,6 +174,31 @@
 
 (definition protected (set-connection-change proc)
   (set! connection-change proc))
+
+
+;;;
+;;;; Crashes
+;;;
+
+
+(definition public crashes-color
+  {Color red: 0 green: 150 blue: 0})
+
+
+(definition public crashes-view
+  (new Jiri-Label
+    title: ""
+    font: default-label-font
+    position: (new Point 350 446)
+    size: (new Dimension 300 30)))
+
+
+(definition public (add-crashes-view title color)
+  (add-pane-view crashes-view)
+  (set-title crashes-view title)
+  (set-color crashes-view color)
+  (set-font crashes-view {Font font-name: tahoma point-size: 20 hint-style: full})
+  (set-justification crashes-view 'tail))
 
 
 ;;;

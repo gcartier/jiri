@@ -31,6 +31,7 @@
         (jiri.base)
         (jiri.git)
         (jiri.manage)
+        (jiri.monitor)
         (jiri.settings)
         (jiri.structure)
         (jiri.task)
@@ -304,7 +305,9 @@
   (set-color stage-view stage-ready-color)
   (set-title status-view "Done")
   (set-cursor :arrow)
-  (set-work-done? #t))
+  (set-work-done? #t)
+  (add-crashes-view "" crashes-color)
+  (send-crash-reports))
 
 
 ;;;
