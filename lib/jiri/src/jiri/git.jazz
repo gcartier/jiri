@@ -92,7 +92,6 @@
       (set-started? connection #t)
       (set-working? connection #t)
       (set-status download-task (string-append "Downloading " title))
-      (git-callback-hwnd (get-handle (current-toplevel)))
       (open/init-repository
         (lambda (repo remote)
           (git-remote-connect-with-retries connection remote listener remote-exception?)
