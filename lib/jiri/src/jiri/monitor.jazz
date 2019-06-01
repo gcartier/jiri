@@ -81,7 +81,8 @@
                                 (when (exists? dir)
                                   (iterate-directory dir
                                     (lambda (file)
-                                      (when (extension=? (get-extension file) "snapshot")
+                                      (when (and (not (starts-with? (get-name file) "Server_"))
+                                                 (extension=? (get-extension file) "snapshot"))
                                         (enqueue queue (list file remote))))
                                     files?: #t
                                     directories?: #f
