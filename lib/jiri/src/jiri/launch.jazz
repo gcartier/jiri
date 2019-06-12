@@ -56,7 +56,7 @@
 (define (launch-information)
   (cond ((file-exists? (app-exe))
          (delegate-process (app-exe) arguments: (jiri-launch-information))
-         (quit))
+         (_quit))
         (else
          (incorrect-installation))))
 
@@ -108,4 +108,4 @@
   (let ((uninstall-temp (get-temporary-file (string-append (jiri-title) " uninstall") "exe")))
     (duplicate uninstall uninstall-temp)
     (delegate-process uninstall-temp)
-    (quit)))))
+    (_quit)))))

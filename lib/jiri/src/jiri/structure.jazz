@@ -146,7 +146,7 @@
                 (add "password" password))
               (add "called-from" called-from)))))
     (delegate-process (current-exe) arguments: arguments))
-  (quit))
+  (_quit))
 
 
 (definition public (delegate-install root-dir password called-from)
