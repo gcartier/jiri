@@ -103,15 +103,19 @@
 
 (define (jiri-prepare)
   (define (inside-installer?)
-    (and kernel-bundle-root
-         (let ((root (new Directory (tokenise-filename kernel-bundle-root))))
-           (and (filename=? (get-name root) "Update.app")
-                (let ((apps (get-parent root)))
-                  (and (filename=? (get-name apps) "Apps")
-                       (let ((contents (get-parent apps)))
-                         (and (filename=? (get-name contents) "Contents")
-                              (exists? (new-directory contents "Libraries"))
-                              (exists? (new-directory contents "MacOS"))))))))))
+    (cond-expand
+      (mac
+       (and kernel-bundle-root
+            (let ((root (new Directory (tokenise-filename kernel-bundle-root))))
+              (and (filename=? (get-name root) "Update.app")
+                   (let ((apps (get-parent root)))
+                     (and (filename=? (get-name apps) "Apps")
+                          (let ((contents (get-parent apps)))
+                            (and (filename=? (get-name contents) "Contents")
+                                 (exists? (new-directory contents "Libraries"))
+                                 (exists? (new-directory contents "MacOS"))))))))))
+      (else
+       #f)))
   
   (current-root-dir (string-argument "root-dir" #f))
   (current-password (string-argument "password" #f))
@@ -255,24 +259,49 @@
         (new-directory root-dir dirname)))
     
     (define (install-libraries dirname libdir)
-      (install-directory
-        (new-directory update-dir dirname)
-        (new-directory root-dir dirname)
-        progress-feedback: (lambda (action dir)
-                             (when (and (eq? action 'entering)
-                                        (pathname=? (get-parent dir) libdir))
-                               (increase-pos task)))))
+      (let ((src-dir (new-directory update-dir dirname))
+            (dst-dir (new-directory root-dir dirname)))
+        (install-directory
+          src-dir
+          dst-dir
+          filter: (cond-expand
+                    (mac
+                      #f)
+                    (else
+                      ;; quick hack that needs to be thought through
+                      (lambda (action pathname)
+                        (if (and (memq? action '(replace delete))
+                                 (directory? pathname)
+                                 (member? (get-name pathname) '(".git" "app" "worlds") test: filename=?)
+                                 (let ((parent-dir (get-parent pathname)))
+                                   (or (pathname=? parent-dir src-dir)
+                                       (pathname=? parent-dir dst-dir))))
+                            #f
+                          #t))))
+          progress-feedback: (lambda (action dir)
+                               (when (and (eq? action 'entering)
+                                          (pathname=? (get-parent dir) libdir))
+                                 (increase-pos task))))))
     
     (set-status task "Updating sirius")
-    (let ((libdir (new-directory update-dir "Contents/Libraries/lib")))
-      (let ((package-count (count-directories libdir)))
-        (set-range task (new Range 0 package-count))
-        (install-filename "Contents/Info.plist")
-        (install-dirname "Contents/MacOS")
-        (install-dirname "Contents/Resources")
-        (install-libraries "Contents/Libraries" libdir)
-        (set-done task)
-        (post-event cont)))))
+    (cond-expand
+      (mac
+       (let ((libdir (new-directory update-dir "Contents/Libraries/lib")))
+         (let ((package-count (count-directories libdir)))
+           (set-range task (new Range 0 package-count))
+           (install-filename "Contents/Info.plist")
+           (install-dirname "Contents/MacOS")
+           (install-dirname "Contents/Resources")
+           (install-libraries "Contents/Libraries" libdir)
+           (set-done task)
+           (post-event cont))))
+      (else
+       (let ((libdir (new-directory update-dir "lib")))
+         (let ((package-count (count-directories libdir)))
+           (set-range task (new Range 0 package-count))
+           (install-libraries '() libdir)
+           (set-done task)
+           (post-event cont)))))))
 
 
 ;;;
