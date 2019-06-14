@@ -28,6 +28,7 @@
 
 
 (c-enumerant CSIDL_DESKTOPDIRECTORY)
+(c-enumerant CSIDL_PERSONAL)
 (c-enumerant CSIDL_STARTMENU)
 (c-enumerant CSIDL_PROGRAM_FILESX86)
 
