@@ -119,12 +119,9 @@
 (class Jiri-Title extends View
   
   
-  (cond-expand
-    (windows
-     (slot cursor-pos initialize #f getter generate)
-     (slot window-pos initialize #f getter generate)
-     (slot moving?    initialize #f getter generate))
-    (else))
+  (slot cursor-pos initialize #f getter generate)
+  (slot window-pos initialize #f getter generate)
+  (slot moving?    initialize #f getter generate)
   
   
   (method override (draw self surface context)
@@ -133,29 +130,29 @@
     (draw-text surface 0 0 (or title "") {Color White}))
   
   
-  (cond-expand
-    (windows
-     (method override (cursor-update self evt)
-       (set-cursor :all))
-
-     (method override (mouse-down self evt)
-       (set! cursor-pos (to-desktop self (get-position evt)))
-       (set! window-pos (get-position (current-toplevel)))
-       (set! moving? #t)
-       (acquire-capture self))
-     
-     (method override (drag-move self evt)
-       (when moving?
-         (let ((current (to-desktop self (get-position evt))))
-           (let ((delta (nu- current cursor-pos)))
-             (let ((pos (nu+ window-pos delta)))
-               (set-position (current-toplevel) pos))))))
-
-     (method override (mouse-up self evt)
-       (when moving?
-         (release-capture self)
-         (set! moving? #f))))
-    (else)))
+  (method override (cursor-update self evt)
+    (set-cursor :all))
+  
+  
+  (method override (mouse-down self evt)
+    (set! cursor-pos (to-desktop self (get-position evt)))
+    (set! window-pos (get-position (current-toplevel)))
+    (set! moving? #t)
+    (acquire-capture self))
+  
+  
+  (method override (drag-move self evt)
+    (when moving?
+      (let ((current (to-desktop self (get-position evt))))
+        (let ((delta (nu- current cursor-pos)))
+          (let ((pos (nu+ window-pos delta)))
+            (set-position (current-toplevel) pos))))))
+  
+  
+  (method override (mouse-up self evt)
+    (when moving?
+      (release-capture self)
+      (set! moving? #f))))
 
 
 ;;;

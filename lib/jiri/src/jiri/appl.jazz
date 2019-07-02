@@ -112,7 +112,10 @@
 (cond-expand
   (cocoa
     (specific (window-resizable? (<Jiri-Toplevel> toplevel) rest)
-      #f))
+      #f)
+    
+    (specific (window-kind (<Jiri-Toplevel> toplevel) rest)
+      PLATFORM_BORDERLESS))
   (windows
     (specific (window-style (<Jiri-Toplevel> toplevel) rest)
       (bitwise-ior WS_CLIPSIBLINGS

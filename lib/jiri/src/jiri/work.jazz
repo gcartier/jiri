@@ -118,15 +118,10 @@
 ;;;
 
 
-(cond-expand
-  (windows
-   (definition public minimize-view
-     (new Jiri-Minimize
-       position: (new Point 792 9)
-       size: (new Dimension 22 22))))
-  (else
-   (definition public minimize-view
-     #f)))
+(definition public minimize-view
+  (new Jiri-Minimize
+    position: (new Point 792 9)
+    size: (new Dimension 22 22)))
 
 
 ;;;
@@ -134,15 +129,10 @@
 ;;;
 
 
-(cond-expand
-  (windows
-   (definition public close-view
-     (new Jiri-Close
-       position: (new Point 819 9)
-       size: (new Dimension 22 22))))
-  (else
-   (definition public close-view
-     #f)))
+(definition public close-view
+  (new Jiri-Close
+    position: (new Point 819 9)
+    size: (new Dimension 22 22)))
 
 
 ;;;
