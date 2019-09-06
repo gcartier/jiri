@@ -90,23 +90,4 @@
               (input-port-timeout-set! port max-wait)
               (read port))
             'delegate)))
-      (_quit))))
-
-
-(definition protected (_quit)
-  (cond-expand
-    (windows
-     ;; - work around a bug where quit on some versions
-     ;;   of windows will abort with the following dialog
-     ;;   "This application has requested the Runtime to
-     ;;   terminate it in an unusual way"
-     ;; - the bug only happens when we call git-libgit2-init
-     ;; - from reading on the net I think the bug is due to
-     ;;   some dll fuck up that occurs because libgit2 was
-     ;;   compiled using mingw-w64 (the 32bit version) to run
-     ;;   under mingw and this also makes it almost impossible
-     ;;   to fix in any clean way (for example calling _exit
-     ;;   to bypass cleanup code doesn't fix the problem)
-     (TerminateProcess (GetCurrentProcess) 0))
-    (else
-     (quit)))))
+      (quit)))))

@@ -120,13 +120,13 @@
         (newline output)
         (force-output output))))
   
-  (_quit)
+  (quit)
   @convert
   (let ((uninstall (executable-path))
         (remove (get-temporary-file (string-append (jiri-title) " remove") "bat")))
     (generate-remover uninstall remove)
     (create-console-process (string-append "cmd /c \"" remove "\""))
-    (_quit)))
+    (quit)))
 
 
 ;;;

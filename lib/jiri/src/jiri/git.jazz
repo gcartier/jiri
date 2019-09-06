@@ -278,7 +278,7 @@
 (definition public (quit-confirm-abort title)
   (lambda ()
     (if (not (work-in-progress?))
-        (_quit)
+        (quit)
       (let ((code (message-box (string-append title " in progress.\n\nDo you want to abort?") type: 'question)))
         (when (eq? code 'yes)
           (request-quit "Aborting..."))))))
@@ -287,12 +287,12 @@
 (definition public (quit-safely)
   (lambda ()
     (if (not (work-in-progress?))
-        (_quit)
+        (quit)
       (request-quit "Disconnecting..."))))
 
 
 (define (request-quit title)
-  (set-abort-requested (lambda () (_quit)))
+  (set-abort-requested (lambda () (quit)))
   (git-request-abort)
   (set-title status-view title)
   (when minimize-view
