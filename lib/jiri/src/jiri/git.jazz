@@ -264,7 +264,7 @@
                                                   (string-append "Unable to connect to server (" (git-remote-url remote) "):\n\n" err)
                                                 "Unable to connect to server")
                                               type: 'problem
-                                              title: "Together")
+                                              title: (jiri-application))
                               (exit 1))))))
             (git-remote-connect remote GIT_DIRECTION_FETCH id fd callbacks)
             (current-password password)))))))
