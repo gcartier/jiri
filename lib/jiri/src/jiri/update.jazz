@@ -164,7 +164,7 @@
       (proc transfer-task))))
 
 
-(define (work-offline exc)
+(define (update-exception-message exc)
   (define (debug-info)
     (if (jiri-devel?)
         (string-append " (" (get-message exc) ")")
@@ -172,8 +172,12 @@
   
   (if (or (not (file-exists? (app-dir)))
           (not (file-exists? (data-dir))))
-      (add-stage-view (string-append "Failed to install " (game-string) (debug-info)) stage-setup-color)
-    (add-stage-view (string-append "Failed to update " (game-string) (debug-info)) stage-setup-color)))
+      (string-append "Failed to install " (game-string) (debug-info))
+    (string-append "Failed to update " (game-string) (debug-info))))
+
+
+(define (work-offline exception-message)
+  (add-stage-view exception-message stage-setup-color))
 
 
 ;;;
@@ -188,9 +192,13 @@
   (let ((update-new? (not (file-exists? (update-dir)))))
     (add-stage-view (string-append "Updating " (jiri-title)) (determine-stage-color (update-dir)))
     (catch (Git-Exception exc
-             (if (jiri-offline?)
-                 (work-offline exc)
-               (exit 1)))
+             (let ((exception-message (update-exception-message exc)))
+               (if (jiri-offline?)
+                   (work-offline exception-message)
+                 (system-message exception-message
+                                 type: 'problem
+                                 title: (jiri-application))
+                 (exit 1))))
       (pull-repository (jiri-update-section) (current-password) (update-dir)
         (lambda (new-content?)
           (if (cond-expand
