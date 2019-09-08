@@ -20,7 +20,9 @@
         (jazz.io)
         (jazz.ui)
         (jazz.view)
+        (jiri.base)
         (jiri.settings)
+        (jiri.structure)
         (jiri.window)
         (jiri.work))
 
@@ -78,15 +80,18 @@
                 (let ((queue (new-queue)))
                   (for-each (lambda (info)
                               (bind (name dir remote) info
-                                (when (exists? dir)
-                                  (iterate-directory dir
-                                    (lambda (file)
-                                      (when (and (not (starts-with? (get-name file) "Server_"))
-                                                 (extension=? (get-extension file) "snapshot"))
-                                        (enqueue queue (list file remote))))
-                                    files?: #t
-                                    directories?: #f
-                                    recursive?: #f))))
+                                (let ((effective-dir (if (string? dir)
+                                                         (dirname->directory (string-append (current-root-dir) dir))
+                                                       dir)))
+                                  (when (exists? effective-dir)
+                                    (iterate-directory effective-dir
+                                      (lambda (file)
+                                        (when (and (not (starts-with? (get-name file) "Server_"))
+                                                   (extension=? (get-extension file) "snapshot"))
+                                          (enqueue queue (list file remote))))
+                                      files?: #t
+                                      directories?: #f
+                                      recursive?: #f)))))
                             monitor)
                   (queue-list queue)))
               
