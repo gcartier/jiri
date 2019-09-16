@@ -30,26 +30,6 @@
 
 (cond-expand
   (windows
-    (define (copy-jiri-files)
-      @convert
-      (let ((build (%%get-repository-directory jazz:Build-Repository))
-            (source jazz:kernel-source))
-        (define (build-file path)
-          (string-append build path))
-        
-        (define (source-file path)
-          (string-append source path))
-        
-        (jazz:copy-file (source-file "lib/jazz.git/foreign/windows/libgit2/lib/libgit2.dll") (build-file "libgit2.dll") feedback: jazz:feedback)
-        (jazz:copy-file (source-file "lib/jazz.git/foreign/windows/openssl/lib/libeay32.dll") (build-file "libeay32.dll") feedback: jazz:feedback)
-        (jazz:copy-file (source-file "lib/jazz.git/foreign/windows/openssl/lib/ssleay32.dll") (build-file "ssleay32.dll") feedback: jazz:feedback))))
-  (else
-    (define (copy-jiri-files)
-      )))
-
-
-(cond-expand
-  (windows
     (define jiri-units
       `((jiri.platform.windows cc-options: "-DUNICODE -D_WIN32_IE=0x0400" ld-options: "-lgdi32 -lole32 -luuid"))))
   (cocoa
@@ -63,7 +43,7 @@
 (definition (build-jiri descriptor (unit: unit #f) (skip-references?: skip-references? #f) (force?: force? #f))
   (let ((unit-specs jiri-units))
     (if (or (not unit) (assq unit unit-specs))
-        (custom-compile/build unit-specs unit: unit pre-build: copy-jiri-files force?: force?))
+        (custom-compile/build unit-specs unit: unit force?: force?))
     (if (or (not unit) (not (assq unit unit-specs)))
         (build-product-descriptor descriptor unit: unit skip-references?: skip-references? force?: force?))))
 
