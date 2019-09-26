@@ -95,9 +95,7 @@
       (set-status download-task (string-append "Downloading " title))
       (open/init-repository
         (lambda (repo remote)
-          (git-remote-connect-with-retries connection remote listener remote-exception?)
-          (set-range download-task (new Range 0 1))
-          (set-download-progress connection
+          (define download-progress
             (let ((inited? #f))
               (lambda (error?)
                 (git-download-state id
@@ -110,7 +108,8 @@
                       (set-range download-task (new Range 0 total-objects))
                       (set! inited? #t))
                     (set-pos download-task received-objects))))))
-          (set-download-done connection
+          
+          (define download-done
             (lambda (error?)
               (unless (safe-abort-point
                         (lambda ()
@@ -139,8 +138,7 @@
                     (unless (git-branch-lookup repo branch GIT_BRANCH_LOCAL)
                       (git-branch-create repo branch commit 1))
                     (let ((new-content? #f))
-                      (set-range checkout-task (new Range 0 1))
-                      (set-checkout-progress connection
+                      (define checkout-progress
                         (let ((inited? #f))
                           (lambda (error?)
                             ;; from a discusion on freenode, aborting a checkout could leave the worktree in an arbitrary
@@ -157,7 +155,8 @@
                                     (set-range checkout-task (new Range 0 total-steps))
                                     (set! inited? #t))
                                   (set-pos checkout-task completed-steps)))))))
-                      (set-checkout-done connection
+                      
+                      (define checkout-done
                         (lambda (error?)
                           (unless (safe-abort-point checkout-cleanup)
                             (when error?
@@ -165,11 +164,16 @@
                             (set-done checkout-task)
                             (checkout-cleanup)
                             (cont new-content?))))
+                      
+                      (set-range checkout-task (new Range 0 1))
                       (let ((listener (open-stream-listener)))
                         (git-reset-hard-threaded id (get-write-file listener) repo commit)
-                        (process-listener 'checkout listener (get-checkout-progress connection) (get-checkout-done connection)))))))))
+                        (process-listener 'checkout listener checkout-progress checkout-done))))))))
+          
+          (git-remote-connect-with-retries connection remote listener remote-exception?)
+          (set-range download-task (new Range 0 1))
           (git-remote-download-threaded id)
-          (process-listener 'download listener (get-download-progress connection) (get-download-done connection)))))))
+          (process-listener 'download listener download-progress download-done))))))
 
 
 ;;;

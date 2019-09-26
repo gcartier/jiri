@@ -26,18 +26,14 @@
 (class Jiri-Connection extends Jiri-Task
   
   
-  (slot id                initialize #f getter generate)
-  (slot name              initialize #f getter generate)
-  (slot title             initialize #f getter generate)
-  (slot url               initialize #f getter generate)
-  (slot branch            initialize #f getter generate)
-  (slot dirname           initialize #f getter generate)
-  (slot started?          initialize #f accessors generate)
-  (slot working?          initialize #f accessors generate)
-  (slot download-progress initialize #f accessors generate)
-  (slot download-done     initialize #f accessors generate)
-  (slot checkout-progress initialize #f accessors generate)
-  (slot checkout-done     initialize #f accessors generate)
+  (slot id       initialize #f getter generate)
+  (slot name     initialize #f getter generate)
+  (slot title    initialize #f getter generate)
+  (slot url      initialize #f getter generate)
+  (slot branch   initialize #f getter generate)
+  (slot dirname  initialize #f getter generate)
+  (slot started? initialize #f accessors generate)
+  (slot working? initialize #f accessors generate)
   
   
   (method override (initialize self (name: name #f) (title: title #f) (url: url #f) (branch: branch #f) (dirname: dirname #f))
