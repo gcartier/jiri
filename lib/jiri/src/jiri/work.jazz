@@ -191,6 +191,10 @@
   (set-justification crashes-view 'tail))
 
 
+(definition public (update-crashes-view-color)
+  (set-color crashes-view (get-color stage-view)))
+
+
 ;;;
 ;;;; Stage
 ;;;

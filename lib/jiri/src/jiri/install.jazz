@@ -143,7 +143,8 @@
         (if new-content?
             (delegate-install (current-root-dir) (current-password) "current")
           (begin
-            (send-crash-reports)
+            (send-crash-reports (jiri-installer-crashes) #f)
+            (send-crash-reports (jiri-application-crashes) #t)
             (update-start-menu)
             (rewind-start-menu)
             (transfer-tasks-setup

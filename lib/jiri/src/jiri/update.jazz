@@ -24,6 +24,7 @@
         (jazz.outline)
         (jazz.platform)
         (jazz.settings)
+        (jazz.snapshot)
         (jazz.tree)
         (jazz.view)
         (jazz.window)
@@ -166,9 +167,7 @@
 
 (define (update-exception-message exc)
   (define (debug-info)
-    (if (jiri-devel?)
-        (string-append " (" (get-message exc) ")")
-      ""))
+    (string-append " (" (get-message exc) ")"))
   
   (if (or (not (file-exists? (app-dir)))
           (not (file-exists? (data-dir))))
@@ -177,7 +176,24 @@
 
 
 (define (work-offline exception-message)
-  (add-stage-view exception-message stage-setup-color))
+  (add-stage-view exception-message stage-setup-color)
+  (update-crashes-view-color))
+
+
+(define (catch-git-exception thunk)
+  (catch (Git-Exception exc
+           (let ((exception-message (update-exception-message exc)))
+             (if (jiri-offline?)
+                 (work-offline exception-message)
+               (delay-event
+                 (lambda ()
+                   (system-message exception-message
+                                   type: 'problem
+                                   title: (jiri-application))
+                   (snapshot-process exception: exc)
+                   (exit 1)))
+               (sleep +inf.0))))
+    (thunk)))
 
 
 ;;;
@@ -191,27 +207,26 @@
                       (else jazz:kernel-install)))
   (let ((update-new? (not (file-exists? (update-dir)))))
     (add-stage-view (string-append "Updating " (jiri-title)) (determine-stage-color (update-dir)))
-    (catch (Git-Exception exc
-             (let ((exception-message (update-exception-message exc)))
-               (if (jiri-offline?)
-                   (work-offline exception-message)
-                 (system-message exception-message
-                                 type: 'problem
-                                 title: (jiri-application))
-                 (exit 1))))
-      (pull-repository (jiri-update-section) (current-password) (update-dir)
-        (lambda (new-content?)
-          (if (cond-expand
-                (local #f)
-                (else new-content?))
-              (delegate-update (current-root-dir) (current-password) "launch" update-new?)
-            (transfer-tasks-setup
-              (lambda (transfer-task)
-                (set-done transfer-task)
-                (update-app/data
-                  (lambda (new-content?)
-                    (update-done)))))))
-        #t))))
+    (update-crashes-view-color)
+    (thread-start!
+      (new-thread
+        (lambda ()
+          (send-crash-reports (jiri-installer-crashes) #f)
+          (catch-git-exception
+            (lambda ()
+              (pull-repository (jiri-update-section) (current-password) (update-dir)
+                (lambda (new-content?)
+                  (if (cond-expand
+                        (local #f)
+                        (else new-content?))
+                      (delegate-update (current-root-dir) (current-password) "launch" update-new?)
+                    (transfer-tasks-setup
+                      (lambda (transfer-task)
+                        (set-done transfer-task)
+                        (update-app/data
+                          (lambda (new-content?)
+                            (update-done)))))))
+                #t))))))))
 
 
 (definition public (delegate-update root-dir password called-from update-new?)
@@ -238,6 +253,7 @@
 
 (define (update-at-update)
   (add-stage-view (string-append "Updating " (jiri-title)) (if (was-update-new?) stage-setup-color stage-install-color))
+  (update-crashes-view-color)
   (update-tasks-done)
   (transfer-tasks-setup
     (lambda (transfer-task)
@@ -246,7 +262,7 @@
           (lambda ()
             (update-launch transfer-task
               (lambda ()
-                (delay-event
+                (catch-git-exception
                   (lambda ()
                     (update-app/data
                       (lambda (new-content?)
@@ -302,14 +318,14 @@
            (install-dirname "Contents/Resources")
            (install-libraries "Contents/Libraries" libdir)
            (set-done task)
-           (post-event cont))))
+           (cont))))
       (else
        (let ((libdir (new-directory update-dir "lib")))
          (let ((package-count (count-directories libdir)))
            (set-range task (new Range 0 package-count))
            (install-libraries '() libdir)
            (set-done task)
-           (post-event cont)))))))
+           (cont)))))))
 
 
 ;;;
@@ -325,9 +341,11 @@
 
 (define (update-app/data cont)
   (add-stage-view (string-append "Updating " (game-string)) (determine-stage-color (app-dir)))
+  (update-crashes-view-color)
   (pull-repository (jiri-app-section) (current-password) (app-dir)
     (lambda (new-content?)
       (add-stage-view (string-append "Updating " (get-title (jiri-data-section))) (determine-stage-color (data-dir)))
+      (update-crashes-view-color)
       (pull-repository (jiri-data-section) (current-password) (data-dir)
         cont))))
 
@@ -343,8 +361,8 @@
   (set-title status-view "Done")
   (set-cursor :arrow)
   (set-work-done? #t)
-  (add-crashes-view "" crashes-color)
-  (send-crash-reports))
+  (update-crashes-view-color)
+  (send-crash-reports (jiri-application-crashes) #t))
 
 
 ;;;
@@ -387,7 +405,9 @@
               (pull-repository (jiri-app-section) (current-password) (app-dir)
                 (lambda (new-content?)
                   ))))))))
+  
   (add-stage-view (string-append "Updating " (game-string)) stage-install-color)
+  (add-crashes-view "" stage-install-color)
   
   (add-pane-view percentage-view)
   (add-pane-view downloaded-view)

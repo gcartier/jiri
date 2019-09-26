@@ -88,7 +88,10 @@
 ;;;
 
 
-(define-jiri jiri-monitor-crashes
+(define-jiri jiri-installer-crashes
+  #f)
+
+(define-jiri jiri-application-crashes
   #f)
 
 

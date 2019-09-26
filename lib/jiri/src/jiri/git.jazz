@@ -65,29 +65,21 @@
                    (proc repo (git-remote-create repo "origin" url)))))))
       
       (define (process-listener name listener progress done)
-        (thread-start!
-          (new-thread
-            (lambda ()
-              (declare (proper-tail-calls))
-              (let (loop)
-                (let ((c (wait listener)))
-                  (case c
-                    ((#\.)
-                     (delay-event
-                       (lambda ()
-                         (progress #f)))
-                     (loop))
-                    ((#\@)
-                     (close-stream-listener listener)
-                     (delay-event
-                       (lambda ()
-                         (done #f))))
-                    ((#\!)
-                     (close-stream-listener listener)
-                     (delay-event
-                       (lambda ()
-                         (done #t))))))))
-            name)))
+        (declare (proper-tail-calls))
+        (let (loop)
+          (let ((c (wait listener)))
+            (case c
+              ((#\.)
+               (delay-event
+                 (lambda ()
+                   (progress #f)))
+               (loop))
+              ((#\@)
+               (close-stream-listener listener)
+               (done #f))
+              ((#\!)
+               (close-stream-listener listener)
+               (done #t))))))
       
       (set-cursor :wait)
       (set-started? connection #t)

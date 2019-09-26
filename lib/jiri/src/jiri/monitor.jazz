@@ -39,65 +39,70 @@
   #f)
 
 
-(definition public (send-crash-reports)
-  (let ((monitor (jiri-monitor-crashes)))
-    (when monitor
-      (let ((curl (curl-path)))
-        (when (file-exists? curl)
-          (continuation-capture
-            (lambda (stop)
-              (define (send-crash crash no total)
-                (bind (file remote) crash
-                  (define (normalize-file file)
-                    (let ((name (get-name file)))
-                      (if (find name #\space)
-                          (let ((brother-name (substitute #\space #\_ name)))
-                            (let ((brother (new-brother file brother-name)))
-                              (rename file brother)
-                              brother))
-                        file)))
-                  
-                  (let ((file (normalize-file file)))
-                    (let ((port (open-process
-                                  (list
-                                    path: curl
-                                    arguments: (list "--silent" "-T" (parse file) "--limit-rate" "250K" "-H" "Content-Type: text/plain" (string-append remote "/crashes/" (get-name file)))
-                                    show-console: #f))))
-                      (set-title crashes-view (format "Sending logs ({a} of {a})" no total))
-                      (let ((status (process-status port)))
-                        (cond ((= status 0)
-                               (delete file))
-                              (else
-                               (set-title crashes-view (format "Sending logs error ({s})" status))
-                               (continuation-return stop #f))))))))
-              
-              (define (send-crashes crashes total)
-                (loop (for crash in crashes)
-                      (for no from 1)
-                      (send-crash crash no total)))
-              
-              (define (collect-crashes)
-                (let ((queue (new-queue)))
-                  (for-each (lambda (info)
-                              (bind (name dir remote) info
-                                (let ((effective-dir (if (string? dir)
-                                                         (dirname->directory (string-append (current-root-dir) dir))
-                                                       dir)))
-                                  (when (exists? effective-dir)
-                                    (iterate-directory effective-dir
-                                      (lambda (file)
-                                        (when (and (not (starts-with? (get-name file) "Server_"))
-                                                   (extension=? (get-extension file) "snapshot"))
-                                          (enqueue queue (list file remote))))
-                                      files?: #t
-                                      directories?: #f
-                                      recursive?: #f)))))
-                            monitor)
-                  (queue-list queue)))
-              
-              (let ((crashes (collect-crashes)))
-                (let ((total (length crashes)))
-                  (when (> total 0)
+(definition public (send-crash-reports monitor application?)
+  (when monitor
+    (let ((curl (curl-path)))
+      (when (file-exists? curl)
+        (continuation-capture
+          (lambda (stop)
+            (define (send-crash crash no total)
+              (bind (file remote) crash
+                (define (normalize-file file)
+                  (let ((name (get-name file)))
+                    (if (find name #\space)
+                        (let ((brother-name (substitute #\space #\_ name)))
+                          (let ((brother (new-brother file brother-name)))
+                            (rename file brother)
+                            brother))
+                      file)))
+                
+                (let ((file (normalize-file file)))
+                  (let ((port (open-process
+                                (list
+                                  path: curl
+                                  arguments: (list "--silent" "-T" (parse file) "--limit-rate" "250K" "-H" "Content-Type: text/plain" (string-append remote "/crashes/" (get-name file)))
+                                  show-console: #f))))
+                    (set-title crashes-view (format "Sending logs ({a} of {a})" no total))
+                    (let ((status (process-status port)))
+                      (cond ((= status 0)
+                             (delete file))
+                            (else
+                             (set-title crashes-view (format "Sending logs error ({s})" status))
+                             (continuation-return stop #f))))))))
+            
+            (define (send-crashes crashes total)
+              (loop (for crash in crashes)
+                    (for no from 1)
+                    (send-crash crash no total)))
+            
+            (define (collect-crashes)
+              (let ((queue (new-queue)))
+                (for-each (lambda (info)
+                            (bind (name dir remote) info
+                              (let ((effective-dir (if (string? dir)
+                                                       (dirname->directory (string-append (current-root-dir) dir))
+                                                     dir)))
+                                (when (exists? effective-dir)
+                                  (iterate-directory effective-dir
+                                    (lambda (file)
+                                      (when (and (not (starts-with? (get-name file) "Server_"))
+                                                 (extension=? (get-extension file) "snapshot"))
+                                        (enqueue queue (list file remote))))
+                                    files?: #t
+                                    directories?: #f
+                                    recursive?: #f)))))
+                          monitor)
+                (queue-list queue)))
+            
+            (let ((crashes (collect-crashes)))
+              (let ((total (length crashes)))
+                (when (> total 0)
+                  (if (not application?)
+                      (begin
+                        (send-crashes crashes total)
+                        (set-title crashes-view "Sending logs done")
+                        (sleep 1)
+                        (set-title crashes-view ""))
                     (let ((callback quit-callback))
                       (set-quit-callback
                         (lambda ()
