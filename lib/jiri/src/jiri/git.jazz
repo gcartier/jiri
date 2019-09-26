@@ -119,7 +119,7 @@
                           (set-cursor :arrow)
                           (set-working? connection #f)))
                 (when error?
-                  (git-error))
+                  (check-git-current-error))
                 (set-status checkout-task (string-append "Installing " title))
                 (set-done download-task)
                 (git-remote-disconnect remote)
@@ -160,7 +160,7 @@
                         (lambda (error?)
                           (unless (safe-abort-point checkout-cleanup)
                             (when error?
-                              (git-error))
+                              (check-git-current-error))
                             (set-done checkout-task)
                             (checkout-cleanup)
                             (cont new-content?))))
