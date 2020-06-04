@@ -85,8 +85,7 @@
                                 (when (exists? effective-dir)
                                   (iterate-directory effective-dir
                                     (lambda (file)
-                                      (when (and (not (starts-with? (get-name file) "Server_"))
-                                                 (extension=? (get-extension file) "snapshot"))
+                                      (when (extension=? (get-extension file) "snapshot")
                                         (enqueue queue (list file remote))))
                                     files?: #t
                                     directories?: #f
