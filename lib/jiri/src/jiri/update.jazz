@@ -225,7 +225,11 @@
                         (set-done transfer-task)
                         (update-app/data
                           (lambda (new-content?)
-                            (update-done)))))))
+                            (if (not (jiri-splash-section))
+                                (update-done)
+                              (launch-app
+                                (lambda ()
+                                  (update-done))))))))))
                 #t))))))))
 
 
@@ -266,7 +270,11 @@
                   (lambda ()
                     (update-app/data
                       (lambda (new-content?)
-                        (update-done)))))))))))))
+                        (if (not (jiri-splash-section))
+                            (update-done)
+                          (launch-app
+                            (lambda ()
+                              (update-done))))))))))))))))
 
 
 (define (update-launch task cont)
@@ -350,19 +358,52 @@
         cont))))
 
 
+(define (launch-app cont)
+  (let ((section (jiri-splash-section)))
+    (bind (task) (get-tasks section)
+      (set-title stage-view (jiri-splash-title))
+      (set-color stage-view stage-ready-color)
+      (set-status task "Launching")
+      (set-remaining task (jiri-splash-end))
+      (set-range task (new Range 0 (jiri-splash-end)))
+      (let ((server-port (open-tcp-server 0)))
+        (let ((arguments
+                (build-arguments
+                  (lambda (add)
+                    (add "load-feedback" (number->string (socket-info-port-number (tcp-server-socket-info server-port))))
+                    (add "called-from" "installer")))))
+          (delegate-process (app-exe) arguments: arguments))
+        (thread-start!
+          (new-thread
+            (lambda ()
+              (declare (proper-tail-calls))
+              (let ((port (read server-port)))
+                (let (loop (n 0))
+                  (let ((unit-name (read port)))
+                    (if (eof-object? unit-name)
+                        (cont)
+                      (increase-pos task)
+                      (decrease-remaining-if task)
+                      (loop (+ n 1)))))))
+            'splash))))))
+
+
 ;;;
 ;;;; Done
 ;;;
 
 
 (define (update-done)
-  (set-title stage-view (or (jiri-play-ready) "Ready to play!"))
-  (set-color stage-view stage-ready-color)
-  (set-title status-view "Done")
+  (unless (jiri-splash-section)
+    (set-title stage-view (or (jiri-play-ready) "Ready to play!"))
+    (set-color stage-view stage-ready-color)
+    (set-title status-view "Done"))
   (set-cursor :arrow)
   (set-work-done? #t)
   (update-crashes-view-color)
-  (send-crash-reports (jiri-application-crashes) #t))
+  (send-crash-reports (jiri-application-crashes) #t)
+  (when (jiri-splash-section)
+    (quit-callback)))
 
 
 ;;;
@@ -409,12 +450,18 @@
   (add-stage-view (string-append "Updating " (game-string)) stage-install-color)
   (add-crashes-view "" stage-install-color)
   
+  (when (jiri-splash-section)
+    (set-position crashes-view (new Point 450 446))
+    (set-position remaining-view (new Point 650 477))
+    (set-size progress-view (new Dimension 750 20)))
+  
   (add-pane-view percentage-view)
   (add-pane-view downloaded-view)
   (add-pane-view status-view)
   (add-pane-view remaining-view)
   (add-pane-view progress-view)
-  (add-pane-view play-view)
+  (unless (jiri-splash-section)
+    (add-pane-view play-view))
   ;; mimick launcher state
   (when (eq? stage 'update)
     ;;convert-to-task(set-title downloaded-view (string-append "Downloaded: " (number->string work-downloaded) "M"))
@@ -422,10 +469,11 @@
     ;;convert-to-task(set-info progress-view (new Range 0. .1) (new Range 1 6))
     ;;convert-to-task(set-done progress-view)
     )
-  (set-return-callback
-    (lambda ()
-      (when work-done?
-        (play-app))))
+  (unless (jiri-splash-section)
+    (set-return-callback
+      (lambda ()
+        (when work-done?
+          (play-app)))))
   (set-quit-callback
     (quit-safely)))
 

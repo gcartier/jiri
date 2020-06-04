@@ -190,6 +190,12 @@
 (define-jiri jiri-splash-section
   #f)
 
+(define-jiri jiri-splash-title
+  #f)
+
+(define-jiri jiri-splash-end
+  #f)
+
 
 ;;;
 ;;;; Manager
