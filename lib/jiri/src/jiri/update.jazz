@@ -363,7 +363,7 @@
     (bind (task) (get-tasks section)
       (set-title stage-view (jiri-splash-title))
       (set-color stage-view stage-ready-color)
-      (set-status task "Launching")
+      (set-status task "Launching application")
       (set-remaining task (jiri-splash-end))
       (set-range task (new Range 0 (jiri-splash-end)))
       (let ((server-port (open-tcp-server 0)))
