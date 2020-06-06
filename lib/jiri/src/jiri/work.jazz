@@ -214,11 +214,6 @@
   {Color red: 175 green: 0 blue: 0})
 
 
-(when (jiri-splash-section)
-  (set! stage-setup-color stage-ready-color)
-  (set! stage-install-color stage-ready-color))
-
-
 (definition public stage-view
   (new Jiri-Label
     title: ""

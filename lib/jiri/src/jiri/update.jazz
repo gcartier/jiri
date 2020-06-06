@@ -196,6 +196,21 @@
     (thunk)))
 
 
+(define first-install?
+  #f)
+
+(define (setup-first-install?)
+  (set! first-install? (or (not (file-exists? (update-dir)))
+                           (not (file-exists? (app-dir)))
+                           (not (file-exists? (data-dir))))))
+
+
+(define (setup-stage-view title color)
+  (if first-install?
+      (add-stage-view (string-append "Installing " (jiri-title) " for the first time, please be patient") stage-install-color)
+    (add-stage-view title stage-ready-color)))
+
+
 ;;;
 ;;;; At Launch
 ;;;
@@ -205,8 +220,9 @@
   (current-root-dir (cond-expand
                       (mac kernel-bundle-root)
                       (else jazz:kernel-install)))
+  (setup-first-install?)
   (let ((update-new? (not (file-exists? (update-dir)))))
-    (add-stage-view (string-append "Updating " (jiri-title)) (determine-stage-color (update-dir)))
+    (setup-stage-view (string-append "Updating " (jiri-title)) (determine-stage-color (update-dir)))
     (update-crashes-view-color)
     (thread-start!
       (new-thread
@@ -225,6 +241,7 @@
                         (set-done transfer-task)
                         (update-app/data
                           (lambda (new-content?)
+                            (set! first-install? #f)
                             (if (not (jiri-splash-section))
                                 (update-done)
                               (launch-app
@@ -256,7 +273,8 @@
 
 
 (define (update-at-update)
-  (add-stage-view (string-append "Updating " (jiri-title)) (if (was-update-new?) stage-setup-color stage-install-color))
+  (setup-first-install?)
+  (setup-stage-view (string-append "Updating " (jiri-title)) (if (was-update-new?) stage-setup-color stage-install-color))
   (update-crashes-view-color)
   (update-tasks-done)
   (transfer-tasks-setup
@@ -270,6 +288,7 @@
                   (lambda ()
                     (update-app/data
                       (lambda (new-content?)
+                        (set! first-install? #f)
                         (if (not (jiri-splash-section))
                             (update-done)
                           (launch-app
@@ -348,11 +367,11 @@
 
 
 (define (update-app/data cont)
-  (add-stage-view (string-append "Updating " (game-string)) (determine-stage-color (app-dir)))
+  (setup-stage-view (string-append "Updating " (game-string)) (determine-stage-color (app-dir)))
   (update-crashes-view-color)
   (pull-repository (jiri-app-section) (current-password) (app-dir)
     (lambda (new-content?)
-      (add-stage-view (string-append "Updating " (get-title (jiri-data-section))) (determine-stage-color (data-dir)))
+      (setup-stage-view (string-append "Updating " (get-title (jiri-data-section))) (determine-stage-color (data-dir)))
       (update-crashes-view-color)
       (pull-repository (jiri-data-section) (current-password) (data-dir)
         cont))))
@@ -361,8 +380,7 @@
 (define (launch-app cont)
   (let ((section (jiri-splash-section)))
     (bind (task) (get-tasks section)
-      (set-title stage-view (jiri-splash-title))
-      (set-color stage-view stage-ready-color)
+      (setup-stage-view (jiri-splash-title) stage-ready-color)
       (set-status task "Launching application")
       (set-remaining task (jiri-splash-end))
       (set-range task (new Range 0 (jiri-splash-end)))
@@ -460,7 +478,8 @@
                 (lambda (new-content?)
                   ))))))))
   
-  (add-stage-view (string-append "Updating " (game-string)) stage-install-color)
+  (unless (jiri-splash-section)
+    (add-stage-view (string-append "Updating " (game-string)) stage-install-color))
   (add-crashes-view "" stage-install-color)
   
   (when (jiri-splash-section)
