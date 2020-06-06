@@ -464,7 +464,7 @@
   (add-crashes-view "" stage-install-color)
   
   (when (jiri-splash-section)
-    (set-position crashes-view (new Point 450 446))
+    (set-position crashes-view (new Point 500 446))
     (set-position remaining-view (new Point 650 477))
     (set-size progress-view (new Dimension 750 20)))
   
