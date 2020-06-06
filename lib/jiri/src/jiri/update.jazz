@@ -377,15 +377,28 @@
           (new-thread
             (lambda ()
               (declare (proper-tail-calls))
-              (let ((port (read server-port)))
-                (let (loop (n 0))
-                  (let ((unit-name (read port)))
-                    (if (eof-object? unit-name)
-                        (cont)
-                      (increase-pos task)
-                      (decrease-remaining-if task)
-                      (loop (+ n 1)))))))
+              (with-exception-catcher
+                (lambda (exc)
+                  (launch-exception exc))
+                (lambda ()
+                  (let ((port (read server-port)))
+                    (let (loop (n 0))
+                      (let ((unit-name (read port)))
+                        (if (eof-object? unit-name)
+                            (cont)
+                          (increase-pos task)
+                          (decrease-remaining-if task)
+                          (loop (+ n 1)))))))))
             'splash))))))
+
+
+(define (launch-exception exc)
+  (set-title stage-view "Problems encountered launching application")
+  (set-color stage-view stage-error-color)
+  (set-cursor :arrow)
+  (set-work-done? #t)
+  (update-crashes-view-color)
+  (send-crash-reports (jiri-application-crashes) #t))
 
 
 ;;;

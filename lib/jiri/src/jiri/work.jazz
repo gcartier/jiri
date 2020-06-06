@@ -210,6 +210,9 @@
 (definition public stage-ready-color
   {Color red: 0 green: 150 blue: 0})
 
+(definition public stage-error-color
+  {Color red: 175 green: 0 blue: 0})
+
 
 (when (jiri-splash-section)
   (set! stage-setup-color stage-ready-color)
