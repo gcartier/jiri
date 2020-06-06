@@ -205,7 +205,7 @@
   {Color red: 175 green: 0 blue: 0})
 
 (definition public stage-install-color
-  {Color red: 185 green: 100 blue: 0})
+  {Color red: .763 green: .414 blue: .004})
 
 (definition public stage-ready-color
   {Color red: 0 green: 150 blue: 0})
