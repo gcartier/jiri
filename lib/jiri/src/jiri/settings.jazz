@@ -190,7 +190,10 @@
 (define-jiri jiri-splash-section
   #f)
 
-(define-jiri jiri-splash-title
+(define-jiri jiri-splash-uptodate
+  #f)
+
+(define-jiri jiri-splash-updated
   #f)
 
 (define-jiri jiri-splash-end

@@ -244,7 +244,7 @@
                             (set! first-install? #f)
                             (if (not (jiri-splash-section))
                                 (update-done)
-                              (launch-app
+                              (launch-app new-content?
                                 (lambda ()
                                   (update-done))))))))))
                 #t))))))))
@@ -291,7 +291,7 @@
                         (set! first-install? #f)
                         (if (not (jiri-splash-section))
                             (update-done)
-                          (launch-app
+                          (launch-app new-content?
                             (lambda ()
                               (update-done))))))))))))))))
 
@@ -370,17 +370,18 @@
   (setup-stage-view (string-append "Updating " (game-string)) (determine-stage-color (app-dir)))
   (update-crashes-view-color)
   (pull-repository (jiri-app-section) (current-password) (app-dir)
-    (lambda (new-content?)
+    (lambda (new-app-content?)
       (setup-stage-view (string-append "Updating " (get-title (jiri-data-section))) (determine-stage-color (data-dir)))
       (update-crashes-view-color)
       (pull-repository (jiri-data-section) (current-password) (data-dir)
-        cont))))
+        (lambda (new-data-content?)
+          (cont (or new-app-content? new-data-content?)))))))
 
 
-(define (launch-app cont)
+(define (launch-app new-content? cont)
   (let ((section (jiri-splash-section)))
     (bind (task) (get-tasks section)
-      (setup-stage-view (jiri-splash-title) stage-ready-color)
+      (setup-stage-view (if new-content? (jiri-splash-updated) (jiri-splash-uptodate)) stage-ready-color)
       (set-status task "Launching application")
       (set-remaining task (jiri-splash-end))
       (set-range task (new Range 0 (jiri-splash-end)))
