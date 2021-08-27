@@ -472,13 +472,6 @@
   (add-pane-view progress-view)
   (unless (jiri-splash-section)
     (add-pane-view play-view))
-  ;; mimick launcher state
-  (when (eq? stage 'update)
-    ;;convert-to-task(set-title downloaded-view (string-append "Downloaded: " (number->string work-downloaded) "M"))
-    ;;convert-to-task(set-title status-view (installing-title (jiri-update-title) 1 6))
-    ;;convert-to-task(set-info progress-view (new Range 0. .1) (new Range 1 6))
-    ;;convert-to-task(set-done progress-view)
-    )
   (unless (jiri-splash-section)
     (set-return-callback
       (lambda ()
