@@ -22,25 +22,12 @@
 
 
 ;;;
-;;;; File
-;;;
-
-
-(definition public (filename->file filename)
-  (new File (tokenise-filename filename)))
-
-
-;;;
 ;;;; Directory
 ;;;
 
 
 (definition public (dirname->directory dirname)
   (new Directory (tokenise-filename dirname)))
-
-
-(definition public (standardize-directory path)
-  (substitute #\\ #\/ path))
 
 
 ;;;

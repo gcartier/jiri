@@ -14,30 +14,16 @@
                           jiri.debug
                           jiri.font
                           jiri.git
-                          #; ;; universal
-                          (cond
-                            (windows jiri.install))
-                          #; ;; universal
-                          (cond
-                            (windows jiri.launch))
                           jiri.manage
                           jiri.manager
                           jiri.monitor
                           jiri.pane
-                          jiri.platform
                           jiri.product
                           jiri.run
                           jiri.section
                           jiri.settings
-                          #; ;; universal
-                          (cond
-                            (windows jiri.setup))
-                          jiri.splash
                           jiri.structure
                           jiri.task
-                          #; ;; universal
-                          (cond
-                            (windows jiri.uninstall))
                           jiri.update
                           jiri.view
                           jiri.window

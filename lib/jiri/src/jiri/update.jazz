@@ -66,22 +66,6 @@
 ;;   - yownu
 ;;     - .git
 
-;; UNIVERSAL
-;; Yownu (launch)
-;; app
-;; - update
-;;   - .git
-;;   - Yownu (update)
-;;   - lib
-;; - yownu
-;;   - .git
-;;   - Yownu (app)
-;;   - lib
-;; lib
-;; worlds
-;; - yownu
-;;   - .git
-
 ;; WINDOWS
 ;; Yownu (launch)
 ;; lib

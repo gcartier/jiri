@@ -380,32 +380,6 @@
 
 
 ;;;
-;;;; Installation
-;;;
-
-
-(cond-expand
-  (windows
-   (definition public (uninstall-subkey)
-     (string-append "Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\" (jiri-title)))
-   
-   
-   (definition public (desktop-shortcut)
-     (let ((desktop (get-special-folder CSIDL_DESKTOPDIRECTORY)))
-       (string-append desktop "/" (jiri-title) ".lnk")))
-   
-   
-   (definition public (start-menu-appdir)
-     (let ((startdir (get-special-folder CSIDL_STARTMENU)))
-       (string-append startdir "/Programs/" (jiri-title))))
-   
-   
-   (definition public (start-menu-shortcut appdir)
-     (string-append appdir "/" (jiri-title) ".lnk")))
-  (else))
-
-
-;;;
 ;;;; Play
 ;;;
 
