@@ -43,52 +43,6 @@
 ;;   both repositories rapidly maybe even in parallel
 ;; - Install could pass info to the app of what was the last head so that we could show
 ;;   only what changed since last time by having a what's new system indexed by commit!?
-;; - Need a clean solution to an update needing to do 'setup' job like install a new shortcut
-
-;; RELEASE
-;; Install
-;;   - b
-;;   - cd release/install
-;;   - commit and push changes
-;; Setup
-;;   - i
-;;   - m
-;;   - publish setup
-
-;; SCENARIO
-;; - Setup : clone install, delegate Install
-;; - Launch : delegate Current
-;; - Current direct : incorrect
-;; - Current from Launch : pull install, if newer delegate Install else pull app/data
-;; - Install from Setup : clone app/data
-;; - Install from Current : pull app/data
-;; - Install direct : incorrect
-;; - App : incorrect but could be correct when version is validated with server
-
-;; WINDOWS
-;; - app
-;;   - yownu
-;;     - .git
-;;     - Yownu.exe
-;;     - lib
-;;   - yownu-debug
-;; - install
-;;   - current
-;;     - Install.exe
-;;     - libgit2.dll
-;;     - lib
-;;   - yownu-install
-;;     - .git
-;;     - Install.exe
-;;     - Launch.exe
-;;     - Uninstall.exe
-;;     - libgit2.dll
-;;     - lib
-;; - worlds
-;;   - yownu
-;;     - .git
-;; Yownu.exe
-;; lib
 
 
 ;;;
