@@ -44,26 +44,11 @@
 (definition public (app-dir)
   (string-append (current-root-dir) (section-dir (jiri-app-section))))
 
-(definition public (install-dir)
-  (string-append (current-root-dir) (section-dir (jiri-install-section))))
-
 (definition public (update-dir)
   (string-append (current-root-dir) (section-dir (jiri-update-section))))
 
 (definition public (data-dir)
   (and (jiri-data-section) (string-append (current-root-dir) (section-dir (jiri-data-section)))))
-
-(definition public (current-dir)
-  (string-append (current-root-dir) (normalize-directory (jiri-install-current))))
-
-(definition public (root-exe)
-  (add-extension (string-append (current-root-dir) (jiri-launcher)) (executable-extension kernel-platform)))
-
-(definition public (root-lib)
-  (string-append (current-root-dir) "lib/"))
-
-(definition public (root-file filename)
-  (string-append (current-root-dir) filename))
 
 (cond-expand
   (mac

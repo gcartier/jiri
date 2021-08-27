@@ -254,7 +254,6 @@
           (line surface left top right bottom)
           (line surface right top left bottom))
         
-        @not-needed (draw-x 4. {Color red: 150 green: 150 blue: 150})
         (draw-x 2. (if (eq? self (mouse-view self)) {Color red: 200 green: 0 blue: 0} {Color red: 255 green: 255 blue: 255})))))
   
   
@@ -281,7 +280,6 @@
           (set-color surface color)
           (line surface left (- bottom 1) right (- bottom 1)))
         
-        @not-needed (draw-line 4. {Color red: 150 green: 150 blue: 150})
         (draw-line 2. (if (eq? self (mouse-view self)) {Color red: 200 green: 0 blue: 0} {Color red: 255 green: 255 blue: 255})))))
   
   

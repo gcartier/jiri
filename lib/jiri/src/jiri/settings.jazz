@@ -42,9 +42,6 @@
 (define-jiri jiri-version
   #f)
 
-(define-jiri jiri-company
-  #f)
-
 (define-jiri jiri-size
   #f)
 
@@ -97,30 +94,6 @@
   #f)
 
 (define-jiri jiri-password
-  #f)
-
-
-;;;
-;;;; Launch
-;;;
-
-
-(define-jiri jiri-launch-information
-  #f)
-
-(define-jiri jiri-launch-uninstall?
-  #t)
-
-
-;;;
-;;;; Install
-;;;
-
-
-(define-jiri jiri-install-section
-  #f)
-
-(define-jiri jiri-install-current
   #f)
 
 
