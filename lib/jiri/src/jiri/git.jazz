@@ -45,7 +45,7 @@
 ;;;
 
 
-(definition public (pull-repository section password dir cont (remote-exception? #f))
+(definition public (pull-repository section dir cont)
   (let ((title (get-title section))
         (connection (get-connection section)))
     (let ((id (get-id connection))
@@ -162,7 +162,7 @@
                       (git-reset-hard-threaded id (get-write-file listener) repo commit)
                       (process-listener 'checkout listener checkout-progress checkout-done)))))))
           
-          (git-remote-connect-with-retries connection remote listener remote-exception?)
+          (git-remote-connect-with-credentials connection remote listener)
           (set-range download-task (new Range 0 1))
           (git-remote-download-threaded id)
           (process-listener 'download listener download-progress download-done))))))
@@ -173,100 +173,24 @@
 ;;;
 
 
-(class Password-Box extends Message-Box
-  
-  
-  (method override (focus-box self)
-    (acquire-focus (locate user-content 'password)))
-  
-  
-  (method override (get-modal-result self)
-    (get-string-content (locate user-content 'password))))
-
-
-(class Password-Border extends Border-View
-  
-  
-  (form
-    (<install>                                 border-type: solid border-color: {Color Entry-Border}
-      (<Scroller-View>          name: scroller hscroll?: #f vscroll?: #f
-        (<!>                    name: content  layout-type: fill
-          (<Password-Text-View> name: password return-press-handler: {Event-Handler :form on-return-press} escape-press-handler: {Event-Handler :form on-escape-press})))))
-  
-  
-  (method override (on-return-press self evt)
-    (process-action (child (get-guest self) 'yes) self))
-  
-  
-  (method override (on-escape-press self evt)
-    (process-action (child (get-guest self) 'cancel) self)))
-
-
-(definition public (password-dialog)
-  (let ((content (new Password-Border size: {Dimension 460 21})))
-    (let ((password (locate content 'password))
-          (code (catch (Cancel-Signal exc
-                         'cancel)
-                  (message-box
-                    (or (jiri-password-message) `(<span> (<paragraph> "Please enter your password:")))
-                    class: Password-Box
-                    type: 'error
-                    title: (or (jiri-password-title) "Password")
-                    yes: (or (jiri-password-yes) "OK")
-                    content: content
-                    content-spacing: 2
-                    sound: #f))))
-      (and (eq? code 'yes)
-           (get-string-content password)))))
-
-
-(definition public (git-remote-connect-with-retries connection remote listener cancel (remote-exception? #f))
-  (let ((password #f))
-    (define (ask-password)
-      (set! password (or (current-password) (password-dialog)))
-      (or password
-          (cancel-connection)))
-    
-    (define (cancel-connection)
-      (if cancel
-          (begin
-            (set-cursor :arrow)
-            (set-working? connection #f)
-            (continuation-return cancel))
-        (exit 1)))
-    
-    (let ((id (get-id connection))
-          (fd (get-write-file listener))
-          (callbacks
-            (new Git-Callbacks
-              credentials-callback: (lambda ()
-                                      (git-cred-userpass-plaintext-new (jiri-username) (or (jiri-password) (ask-password))))))
-          (max-tries 3))
-      (let loop ((try 1))
-        (if (> try max-tries)
-            (exit 1)
-          (catch (Git-Exception exc
-                   (let ((err (get-message exc)))
-                     (cond ((string-ends-with? err "401")
-                            (message-box "Incorrect password")
-                            (loop (+ try 1)))
-                           (else
-                            (if remote-exception?
-                                (begin
-                                  (set-cursor :arrow)
-                                  (set-working? connection #f)
-                                  (throw exc))
-                              (delay-event
-                                (lambda ()
-                                  (system-message (if (jiri-devel?)
-                                                      (string-append "Unable to connect to server (" (git-remote-url remote) "):\n\n" err)
-                                                    "Unable to connect to server")
-                                                  type: 'problem
-                                                  title: (jiri-application))
-                                  (exit 1)))
-                              (sleep +inf.0))))))
-            (git-remote-connect remote GIT_DIRECTION_FETCH id fd callbacks)
-            (current-password password)))))))
+(definition public (git-remote-connect-with-credentials connection remote listener)
+  (let ((id (get-id connection))
+        (fd (get-write-file listener))
+        (callbacks
+          (new Git-Callbacks
+            credentials-callback: (lambda ()
+                                    (git-cred-userpass-plaintext-new (jiri-username) (jiri-password))))))
+    (catch (Git-Exception exc
+             (let ((err (get-message exc)))
+               (delay-event
+                 (lambda ()
+                   (system-message (if (jiri-devel?)
+                                       (string-append "Unable to connect to server (" (git-remote-url remote) "):\n\n" err)
+                                     "Unable to connect to server")
+                                   type: 'problem
+                                   title: (jiri-application))
+                   (exit 1)))))
+      (git-remote-connect remote GIT_DIRECTION_FETCH id fd callbacks))))
 
 
 ;;;

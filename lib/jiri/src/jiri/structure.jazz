@@ -32,9 +32,6 @@
 (define-jiri current-root-dir
   #f)
 
-(define-jiri current-password
-  #f)
-
 (define-jiri called-from
   #f)
 

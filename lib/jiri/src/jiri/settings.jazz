@@ -106,15 +106,6 @@
 (define-jiri jiri-password
   #f)
 
-(define-jiri jiri-password-title
-  #f)
-
-(define-jiri jiri-password-message
-  #f)
-
-(define-jiri jiri-password-yes
-  #f)
-
 
 ;;;
 ;;;; Launch
