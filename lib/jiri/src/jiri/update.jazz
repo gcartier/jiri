@@ -158,24 +158,16 @@
     (string-append "Failed to update " (game-string) (debug-info))))
 
 
-(define (work-offline exception-message)
-  (add-stage-view exception-message stage-setup-color)
-  (update-crashes-view-color))
-
-
 (define (catch-git-exception thunk)
   (catch (Git-Exception exc
            (let ((exception-message (update-exception-message exc)))
-             (if (jiri-offline?)
-                 (work-offline exception-message)
-               (delay-event
-                 (lambda ()
-                   (system-message exception-message
-                                   type: 'problem
-                                   title: (jiri-application))
-                   (snapshot-process exception: exc)
-                   (exit 1)))
-               (sleep +inf.0))))
+             (delay-event
+               (lambda ()
+                 (system-message exception-message
+                                 type: 'problem
+                                 title: (jiri-application))
+                 (snapshot-process exception: exc)
+                 (exit 1)))))
     (thunk)))
 
 

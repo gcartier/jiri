@@ -66,9 +66,6 @@
 (define-jiri jiri-play-ready
   #f)
 
-(define-jiri jiri-offline?
-  #f)
-
 (define-jiri jiri-application
   #f)
 
