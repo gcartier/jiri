@@ -192,11 +192,12 @@
   
   
   (method override (label-title self)
-    (let ((percentage 0.))
+    (let ((progress 0.))
       (for-each-task-info
         (lambda (task step from to)
-          (increase! percentage (* (- to from) (progress-done task)))))
-      (string-append (number->string (fxround (* percentage 100.))) "%"))))
+          (increase! progress (* (- to from) (progress-done task)))))
+      (let ((progress (min progress 1.)))
+        (string-append (number->string (fxround (* progress 100.))) "%")))))
 
 
 (definition public percentage-view
