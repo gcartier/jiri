@@ -26,7 +26,6 @@
         (jazz.view)
         (jazz.window)
         (jazz.workspace)
-        (jiri.git)
         (jiri.pane)
         (jiri.settings)
         (jiri.structure)
