@@ -73,24 +73,6 @@
     (definition public (app-exe)
       (add-extension (string-append (app-dir) (jiri-application)) (executable-extension kernel-platform)))))
 
-(definition public (current-exe)
-  (add-extension (string-append (current-dir) "Install") (executable-extension kernel-platform)))
-
-(definition public (uninstall-exe)
-  (add-extension (string-append (current-dir) "Uninstall") (executable-extension kernel-platform)))
-
-(definition public (install-exe)
-  (add-extension (string-append (install-dir) "Install") (executable-extension kernel-platform)))
-
-(definition public (launch-exe)
-  (add-extension (string-append (install-dir) "Launch") (executable-extension kernel-platform)))
-
-(definition public (launch-lib)
-  (string-append (install-dir) "lib/"))
-
-(definition public (launch-file filename)
-  (string-append (install-dir) filename))
-
 (cond-expand
   (mac
     (definition public (update-exe)
@@ -126,37 +108,4 @@
   #f)
 
 (definition public (set-send-ready? send?)
-  (set! send-ready? send?))
-
-
-;;;
-;;;; Delegate
-;;;
-
-
-(definition public (delegate-current root-dir password called-from)
-  (let ((arguments
-          (build-arguments
-            (lambda (add)
-              (add "root-dir" root-dir)
-              (when password
-                (add "password" password))
-              (add "called-from" called-from)))))
-    (delegate-process (current-exe) arguments: arguments))
-  (quit))
-
-
-(definition public (delegate-install root-dir password called-from)
-  (let ((arguments
-          (build-arguments
-            (lambda (add)
-              (add "root-dir" root-dir)
-              (when password
-                (add "password" password))
-              (add "called-from" called-from)
-              (add "work-downloaded" (number->string (or (calculate-downloaded) 0)))
-              (let ((pos (get-position (jazz.application:current-toplevel))))
-                (add "window-h" (number->string (get-h pos)))
-                (add "window-v" (number->string (get-v pos))))
-              (add "send-ready" "true")))))
-    (delegate-process (install-exe) arguments: arguments wait-and-quit?: #t))))
+  (set! send-ready? send?)))
