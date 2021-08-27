@@ -198,15 +198,6 @@
 ;;;
 
 
-(definition public (quit-confirm-abort title)
-  (lambda ()
-    (if (not (work-in-progress?))
-        (quit)
-      (let ((code (message-box (string-append title " in progress.\n\nDo you want to abort?") type: 'question)))
-        (when (eq? code 'yes)
-          (request-quit "Aborting..."))))))
-
-
 (definition public (quit-safely)
   (lambda ()
     (if (not (work-in-progress?))
