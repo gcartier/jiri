@@ -221,7 +221,8 @@
                                 (update-done)
                               (launch-app new-content?
                                 (lambda ()
-                                  (update-done))))))))))))))))))
+                                  (update-done))))))))))))))
+        'launch))))
 
 
 (definition public (delegate-update root-dir called-from update-new?)
@@ -265,7 +266,8 @@
                             (update-done)
                           (launch-app new-content?
                             (lambda ()
-                              (update-done))))))))))))))))
+                              (update-done)))))))))))
+          'update)))))
 
 
 (define (update-launch task cont)
