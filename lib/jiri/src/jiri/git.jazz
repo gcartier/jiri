@@ -162,7 +162,7 @@
                       (git-reset-hard-threaded id (get-write-file listener) repo commit)
                       (process-listener 'checkout listener checkout-progress checkout-done)))))))
           
-          (git-remote-connect-with-credentials connection remote listener)
+          (connect-with-credentials connection remote listener)
           (set-range download-task (new Range 0 1))
           (git-remote-download-threaded id)
           (process-listener 'download listener download-progress download-done))))))
@@ -173,25 +173,14 @@
 ;;;
 
 
-(definition public (git-remote-connect-with-credentials connection remote listener)
+(definition public (connect-with-credentials connection remote listener)
   (let ((id (get-id connection))
         (fd (get-write-file listener))
         (callbacks
           (new Git-Callbacks
             credentials-callback: (lambda ()
                                     (git-cred-userpass-plaintext-new (jiri-username) (jiri-password))))))
-    (catch (Git-Exception exc
-             (let ((err (get-message exc)))
-               (delay-event
-                 (lambda ()
-                   (system-message (if (jiri-devel?)
-                                       (string-append "Unable to connect to server (" (git-remote-url remote) "):\n\n" err)
-                                     "Unable to connect to server")
-                                   type: 'problem
-                                   title: (jiri-application))
-                   (exit 1)))
-               (sleep +inf.0)))
-      (git-remote-connect remote GIT_DIRECTION_FETCH id fd callbacks))))
+    (git-remote-connect remote GIT_DIRECTION_FETCH id fd callbacks)))
 
 
 ;;;

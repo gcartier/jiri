@@ -148,24 +148,22 @@
       (proc transfer-task))))
 
 
-(define (update-exception-message exc)
-  (define (debug-info)
-    (string-append " (" (get-message exc) ")"))
-  
+(define (exception-header)
   (if (or (not (file-exists? (app-dir)))
           (not (file-exists? (data-dir))))
-      (string-append "Failed to install application" (debug-info))
-    (string-append "Failed to update application" (debug-info))))
+      "Failed to install"
+    "Failed to update"))
 
 
 (define (catch-git-exception thunk)
   (catch (Git-Exception exc
-           (let ((exception-message (update-exception-message exc)))
+           (let ((exception-message (get-message exc)))
              (delay-event
                (lambda ()
                  (system-message exception-message
                                  type: 'problem
-                                 title: (jiri-application))
+                                 title: (jiri-application)
+                                 header: (exception-header))
                  (snapshot-process exception: exc)
                  (exit 1)))
              (sleep +inf.0)))
