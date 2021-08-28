@@ -49,25 +49,25 @@
 ;;       - Libraries
 ;;       - MacOS
 ;;         - .git
-;;         - Yownu (update)
+;;         - Together (update)
 ;;       - Resources
-;;   - yownu.app
+;;   - together.app
 ;;     - Contents
 ;;       - Libraries
 ;;       - MacOS
 ;;         - .git
-;;         - Yownu (app)
+;;         - Together (app)
 ;;       - Resources
 ;; - Libraries
 ;; - MacOS
-;;   - Yownu (launch)
+;;   - Together (launch)
 ;; - Resources
 ;; - Worlds
-;;   - yownu
+;;   - together
 ;;     - .git
 
 ;; WINDOWS
-;; Yownu (launch)
+;; Together (launch)
 ;; lib
 ;; sirius
 ;; - current
@@ -76,9 +76,9 @@
 ;; worlds
 ;; - together
 ;;   - .git
-;; yownu (why not app)
+;; together (why not app)
 ;; - test
-;;   - Yownu (app)
+;;   - Together (app)
 ;;     - .git
 
 
