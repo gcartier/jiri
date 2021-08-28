@@ -23,10 +23,5 @@
 (class Jiri-Pane extends View
   
   
-  (method override (return-press self evt)
-    (when return-callback
-      (return-callback)))
-  
-  
   (method override (escape-press self evt)
     (quit-callback))))

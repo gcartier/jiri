@@ -59,18 +59,6 @@
 
 
 ;;;
-;;;; Return
-;;;
-
-
-(definition public return-callback
-  #f)
-
-(definition public (set-return-callback callback)
-  (set! return-callback callback))
-
-
-;;;
 ;;;; Quit
 ;;;
 

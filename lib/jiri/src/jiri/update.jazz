@@ -217,11 +217,9 @@
                         (update-app/data
                           (lambda (new-content?)
                             (set! first-install? #f)
-                            (if (not (jiri-splash-section))
-                                (update-done)
-                              (launch-app new-content?
-                                (lambda ()
-                                  (update-done))))))))))))))
+                            (launch-app new-content?
+                              (lambda ()
+                                (update-done)))))))))))))
         'launch))))
 
 
@@ -262,11 +260,9 @@
                     (update-app/data
                       (lambda (new-content?)
                         (set! first-install? #f)
-                        (if (not (jiri-splash-section))
-                            (update-done)
-                          (launch-app new-content?
-                            (lambda ()
-                              (update-done)))))))))))
+                        (launch-app new-content?
+                          (lambda ()
+                            (update-done))))))))))
           'update)))))
 
 
@@ -403,16 +399,11 @@
 
 
 (define (update-done)
-  (unless (jiri-splash-section)
-    (set-title stage-view (jiri-ready))
-    (set-color stage-view stage-ready-color)
-    (set-title status-view "Done"))
   (set-cursor :arrow)
   (set-work-done? #t)
   (update-crashes-view-color)
   (send-crash-reports (jiri-application-crashes) #t)
-  (when (jiri-splash-section)
-    (quit-callback)))
+  (quit-callback))
 
 
 ;;;
@@ -456,14 +447,10 @@
                 (lambda (new-content?)
                   ))))))))
   
-  (unless (jiri-splash-section)
-    (add-stage-view (string-append "Updating " (game-string)) stage-install-color))
   (add-crashes-view "" stage-install-color)
-  
-  (when (jiri-splash-section)
-    (set-position crashes-view (new Point 500 446))
-    (set-position remaining-view (new Point 650 477))
-    (set-size progress-view (new Dimension 750 20)))
+  (set-position crashes-view (new Point 500 446))
+  (set-position remaining-view (new Point 650 477))
+  (set-size progress-view (new Dimension 750 20))
   
   (add-pane-view percentage-view)
   (add-pane-view downloaded-view)
