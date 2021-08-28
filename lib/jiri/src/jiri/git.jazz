@@ -178,8 +178,13 @@
         (fd (get-write-file listener))
         (callbacks
           (new Git-Callbacks
-            credentials-callback: (lambda ()
-                                    (git-cred-userpass-plaintext-new (jiri-username) (jiri-password))))))
+            credentials-callback: (let ((first-attempt? #t))
+                                    (lambda ()
+                                      (if first-attempt?
+                                          (begin
+                                            (set! first-attempt? #f)
+                                            (git-cred-userpass-plaintext-new (jiri-username) (jiri-password)))
+                                        #f))))))
     (git-remote-connect remote GIT_DIRECTION_FETCH id fd callbacks)))
 
 
