@@ -18,7 +18,6 @@
     (<*>                                    tag-reference: {File :context "jiri.project"})
     (<Project-Directory>                    directory: {Directory :context "src"}
       (<Project-Directory>                  directory: {Directory :context "src" "jiri"}
-        (<Jazz-File>       name: product    source: {File :context "src" "jiri" "product.jazz"})
         (<Jazz-File>       name: structure  source: {File :context "src" "jiri" "structure.jazz"})
         (<Jazz-File>       name: work       source: {File :context "src" "jiri" "work.jazz"})
         (<Jazz-File>       name: view       source: {File :context "src" "jiri" "view.jazz"})

@@ -26,7 +26,6 @@
         (jiri.base)
         (jiri.font)
         (jiri.manage)
-        (jiri.platform)
         (jiri.section)
         (jiri.settings)
         (jiri.structure)

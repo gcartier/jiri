@@ -6,7 +6,6 @@
   (stage alpha)
   (root "src")
   (products (jiri (title "Jiri")
-                  (product jiri.product)
                   (update jiri
                           jiri.appl
                           jiri.base
@@ -18,7 +17,6 @@
                           jiri.manager
                           jiri.monitor
                           jiri.pane
-                          jiri.product
                           jiri.run
                           jiri.section
                           jiri.settings
