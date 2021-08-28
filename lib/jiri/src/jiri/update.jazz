@@ -167,7 +167,8 @@
                                  type: 'problem
                                  title: (jiri-application))
                  (snapshot-process exception: exc)
-                 (exit 1)))))
+                 (exit 1)))
+             (sleep +inf.0)))
     (thunk)))
 
 

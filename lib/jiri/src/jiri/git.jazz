@@ -189,7 +189,8 @@
                                      "Unable to connect to server")
                                    type: 'problem
                                    title: (jiri-application))
-                   (exit 1)))))
+                   (exit 1)))
+               (sleep +inf.0)))
       (git-remote-connect remote GIT_DIRECTION_FETCH id fd callbacks))))
 
 
