@@ -57,10 +57,7 @@
 (define-jiri jiri-game
   #f)
 
-(define-jiri jiri-play
-  #f)
-
-(define-jiri jiri-play-ready
+(define-jiri jiri-ready
   #f)
 
 (define-jiri jiri-application

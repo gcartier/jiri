@@ -404,7 +404,7 @@
 
 (define (update-done)
   (unless (jiri-splash-section)
-    (set-title stage-view (or (jiri-play-ready) "Ready to play!"))
+    (set-title stage-view (jiri-ready))
     (set-color stage-view stage-ready-color)
     (set-title status-view "Done"))
   (set-cursor :arrow)
@@ -470,13 +470,6 @@
   (add-pane-view status-view)
   (add-pane-view remaining-view)
   (add-pane-view progress-view)
-  (unless (jiri-splash-section)
-    (add-pane-view play-view))
-  (unless (jiri-splash-section)
-    (set-return-callback
-      (lambda ()
-        (when work-done?
-          (play-app)))))
   (set-quit-callback
     (quit-safely)))
 

@@ -312,41 +312,10 @@
   (invalidate-view downloaded-view)
   (invalidate-view status-view)
   (invalidate-view remaining-view)
-  (invalidate-view progress-view)
-  (set-enabled? play-view (all-tasks-done?)))
+  (invalidate-view progress-view))
 
 
 (set-task-invalidater invalidate-task)
-
-
-;;;
-;;;; Play
-;;;
-
-
-(definition public play-view
-  (new Jiri-Button
-    title: (or (jiri-play) "Play")
-    position: (new Point 680 478)
-    size: (new Dimension 135 40)
-    enabled?: #f
-    action-handler: (lambda (view)
-                      (play-app))))
-
-
-;;;
-;;;; Play
-;;;
-
-
-(definition public (play-app)
-  (set-cursor :wait)
-  (let ((arguments
-          (build-arguments
-            (lambda (add)
-              (add "called-from" "installer")))))
-    (delegate-process (app-exe) arguments: arguments))
-  (quit-callback))
 
 
 ;;;
