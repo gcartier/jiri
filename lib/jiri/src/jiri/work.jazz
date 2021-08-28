@@ -319,15 +319,6 @@
 
 
 ;;;
-;;;; Error
-;;;
-
-
-(definition protected (continuable-error reason)
-  (snapshot-process reason: reason))
-
-
-;;;
 ;;;; Abort
 ;;;
 
