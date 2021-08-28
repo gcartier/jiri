@@ -154,8 +154,8 @@
   
   (if (or (not (file-exists? (app-dir)))
           (not (file-exists? (data-dir))))
-      (string-append "Failed to install " (game-string) (debug-info))
-    (string-append "Failed to update " (game-string) (debug-info))))
+      (string-append "Failed to install application" (debug-info))
+    (string-append "Failed to update application" (debug-info))))
 
 
 (define (catch-git-exception thunk)
@@ -337,7 +337,7 @@
 
 
 (define (update-app/data cont)
-  (setup-stage-view (string-append "Updating " (game-string)) (determine-stage-color (app-dir)))
+  (setup-stage-view "Updating application" (determine-stage-color (app-dir)))
   (update-crashes-view-color)
   (pull-repository (jiri-app-section) (app-dir)
     (lambda (new-app-content?)

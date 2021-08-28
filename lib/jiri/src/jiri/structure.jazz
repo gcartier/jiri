@@ -66,9 +66,6 @@
     (definition public (update-exe)
       (string-append (update-dir) (jiri-update-exe)))))
 
-(definition public (game-string)
-  (or (jiri-game) "game"))
-
 
 ;;;
 ;;;; Work

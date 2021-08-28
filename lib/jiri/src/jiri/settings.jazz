@@ -39,12 +39,6 @@
 (define-jiri jiri-title
   #f)
 
-(define-jiri jiri-version
-  #f)
-
-(define-jiri jiri-size
-  #f)
-
 (define-jiri jiri-background
   #f)
 
@@ -54,16 +48,7 @@
 (define-jiri jiri-dark-overlay?
   #f)
 
-(define-jiri jiri-game
-  #f)
-
 (define-jiri jiri-application
-  #f)
-
-(define-jiri jiri-launcher
-  #f)
-
-(define-jiri jiri-email
   #f)
 
 
