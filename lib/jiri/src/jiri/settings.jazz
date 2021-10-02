@@ -76,6 +76,18 @@
   #f)
 
 
+(definition protected (encode-username/password str)
+  (map (lambda (n)
+         (+ n 11))
+       (map char->integer (coerce str List))))
+
+(definition protected (decode-username/password lst)
+  (coerce (map integer->char (map (lambda (n)
+                                    (- n 11))
+                                  lst))
+          String))
+
+
 ;;;
 ;;;; Update
 ;;;

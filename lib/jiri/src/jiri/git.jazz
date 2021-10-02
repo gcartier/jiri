@@ -181,9 +181,10 @@
             credentials-callback: (let ((first-attempt? #t))
                                     (lambda ()
                                       (if first-attempt?
-                                          (begin
+                                          (let ((username (decode-username/password (jiri-username)))
+                                                (password (decode-username/password (jiri-password))))
                                             (set! first-attempt? #f)
-                                            (git-cred-userpass-plaintext-new (jiri-username) (jiri-password)))
+                                            (git-cred-userpass-plaintext-new username password))
                                         #f))))))
     (git-remote-connect remote GIT_DIRECTION_FETCH id fd callbacks)))
 
