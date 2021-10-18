@@ -155,16 +155,19 @@
     "Failed to update"))
 
 
-(define (catch-git-exception thunk)
-  (catch (Git-Exception exc
-           (let ((exception-message (get-message exc)))
+(define (catch-jiri-exception thunk)
+  (define (exception-filter exc)
+    (snapshot-process exception: exc)
+    #t)
+  
+  (catch (exception-filter exc
+           (let ((exception-message (exception-reason exc)))
              (delay-event
                (lambda ()
                  (system-message exception-message
                                  type: 'problem
                                  title: (jiri-application)
                                  header: (exception-header))
-                 (snapshot-process exception: exc)
                  (exit 1)))
              (sleep +inf.0)))
     (thunk)))
@@ -202,7 +205,7 @@
       (new-thread
         (lambda ()
           (send-crash-reports (jiri-installer-crashes) #f)
-          (catch-git-exception
+          (catch-jiri-exception
             (lambda ()
               (pull-repository (jiri-update-section) (update-dir)
                 (lambda (new-content?)
@@ -254,7 +257,7 @@
           (lambda ()
             (update-launch transfer-task
               (lambda ()
-                (catch-git-exception
+                (catch-jiri-exception
                   (lambda ()
                     (update-app/data
                       (lambda (new-content?)
