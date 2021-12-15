@@ -38,4 +38,4 @@
         (<Jazz-File>       name: manage     source: {File :context "src" "jiri" "manage.jazz"})
         (<Jazz-File>       name: monitor    source: {File :context "src" "jiri" "monitor.jazz"})
         (<Jazz-File>       name: _jiri      source: {File :context "src" "jiri" "_jiri.jazz"})
-        (<Jazz-File>       name: git        source: {File :context "src" "jiri" "git.jazz"}))))))
+        (<Jazz-File>       name: remote     source: {File :context "src" "jiri" "remote.jazz"}))))))

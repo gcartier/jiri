@@ -12,11 +12,11 @@
                           jiri.connection
                           jiri.debug
                           jiri.font
-                          jiri.git
                           jiri.manage
                           jiri.manager
                           jiri.monitor
                           jiri.pane
+                          jiri.remote
                           jiri.run
                           jiri.section
                           jiri.settings

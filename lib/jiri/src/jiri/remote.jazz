@@ -1,0 +1,158 @@
+;;;==============
+;;;  JiriScheme
+;;;==============
+;;;
+;;;; Remote Interface
+;;;
+;;;  The Initial Developer of the Original Code is Guillaume Cartier.
+;;;  Portions created by the Initial Developer are Copyright (C) 1996-2018
+;;;  the Initial Developer. All Rights Reserved.
+;;;
+;;;  Contributor(s):
+;;;
+;;;  See www.jazzscheme.org for details.
+
+
+(module jiri.remote jazz
+
+
+(import (jazz.application)
+        (jazz.associative)
+        (jazz.associative.client)
+        (jazz.component)
+        (jazz.event)
+        (jazz.graphic)
+        (jazz.handler)
+        (jazz.io)
+        (jazz.listener)
+        (jazz.markup)
+        (jazz.platform)
+        (jazz.text)
+        (jazz.ui)
+        (jazz.ui.dialog)
+        (jazz.view)
+        (jazz.window)
+        (jiri)
+        (jiri.base)
+        (jiri.manage)
+        (jiri.settings)
+        (jiri.structure)
+        (jiri.window)
+        (jiri.work))
+
+
+;;;
+;;;; Pull
+;;;
+
+
+(definition public (pull-repository section dir cont)
+  (let ((title (get-title section))
+        (connection (get-connection section)))
+    (let ((name (get-name connection))
+          (host (get-host connection))
+          (path (get-path connection))
+          (download-task (get-download-task connection))
+          (progress-port (open-vector))
+          (new-content? #f))
+      (define (open/init-repository proc)
+        (let ((dir (new Directory (tokenise-filename dir))))
+          (let ((repo (new Associative-Repository dir init?: #t)))
+            (let ((client (new Jas-Client repo host path feedback: feedback)))
+              (proc repo client)))))
+      
+      (define (feedback . rest)
+        (write rest progress-port)
+        (force-output progress-port))
+      
+      (define (download-threaded repo client)
+        (thread-start!
+          (new-thread
+            (lambda ()
+              (connect client)
+              (download-all client)
+              (deconnect client))
+            'download)))
+      
+      (define (listen-client progress done)
+        (declare (proper-tail-calls))
+        (let (loop)
+          (bind (stage . rest) (read progress-port)
+            (case stage
+              ((connect)
+               (loop))
+              ((deconnect)
+               (done #f))
+              ((progress)
+               (bind (total-objects received-objects received-bytes) rest
+                 (delay-event
+                   (lambda ()
+                     (progress total-objects received-objects received-bytes))))
+               (loop))
+              ((error)
+               (done #t))))))
+      
+      (set-cursor :wait)
+      (set-started? connection #t)
+      (set-working? connection #t)
+      (set-status download-task (string-append "Downloading " title))
+      (open/init-repository
+        (lambda (repo client)
+          (define download-progress
+            (let ((inited? #f))
+              (lambda (total-objects received-objects received-bytes)
+                (set! new-content? #t)
+                (let ((downloaded (fxfloor (/ (exact->inexact received-bytes) (* 1024. 1024.))))
+                      (remaining (- total-objects received-objects)))
+                  (set-downloaded download-task downloaded)
+                  (set-remaining download-task remaining))
+                (when (not inited?)
+                  (set-range download-task (new Range 0 total-objects))
+                  (set! inited? #t))
+                (set-pos download-task received-objects))))
+          
+          (define download-done
+            (lambda (error?)
+              (unless #f @port (safe-abort-point
+                                 (lambda ()
+                                   (git-remote-disconnect remote)
+                                   (git-remote-free remote)
+                                   (git-repository-free repo)
+                                   (set-cursor :arrow)
+                                   (set-working? connection #f)))
+                ;; copied from above
+                (set-cursor :arrow)
+                ;; copied from above
+                (set-working? connection #f)
+                @port
+                (when error?
+                  (check-git-current-error))
+                (set-done download-task)
+                (cont new-content?))))
+          
+          (set-range download-task (new Range 0 1))
+          (download-threaded repo client)
+          (listen-client download-progress download-done))))))
+
+
+;;;
+;;;; Quit
+;;;
+
+
+(definition public (quit-safely)
+  (lambda ()
+    (if (not (work-in-progress?))
+        (quit)
+      (request-quit "Disconnecting..."))))
+
+
+(define (request-quit title)
+  (set-abort-requested (lambda () (quit)))
+  @port
+  (git-request-abort)
+  (set-title status-view title)
+  (when minimize-view
+    (set-enabled? minimize-view #f))
+  (when close-view
+    (set-enabled? close-view #f))))

@@ -121,16 +121,6 @@
             (get-sections (jiri-manager))))
 
 
-(definition protected (id->connection id)
-  (continuation-capture
-    (lambda (return)
-      (for-each-connection
-        (lambda (connection)
-          (when (= (get-id connection) id)
-            (continuation-return return connection))))
-      #f)))
-
-
 (definition protected (work-in-progress?)
   (continuation-capture
     (lambda (return)

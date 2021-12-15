@@ -19,33 +19,25 @@
 (import (jiri.task))
 
 
-(definition connection-id
-  0)
-
-
 (class Jiri-Connection extends Jiri-Task
   
   
-  (slot id       initialize #f getter generate)
   (slot name     initialize #f getter generate)
   (slot title    initialize #f getter generate)
-  (slot url      initialize #f getter generate)
-  (slot branch   initialize #f getter generate)
+  (slot host     initialize #f getter generate)
+  (slot path     initialize #f getter generate)
   (slot dirname  initialize #f getter generate)
   (slot started? initialize #f accessors generate)
   (slot working? initialize #f accessors generate)
   
   
-  (method override (initialize self (name: name #f) (title: title #f) (url: url #f) (branch: branch #f) (dirname: dirname #f))
-    (set! self.id connection-id)
-    (increase! connection-id)
+  (method override (initialize self (name: name #f) (title: title #f) (host: host #f) (path: path #f) (dirname: dirname #f))
     (set! self.name name)
     (set! self.title title)
-    (set! self.url url)
-    (set! self.branch branch)
+    (set! self.host host)
+    (set! self.path path)
     (set! self.dirname dirname)
-    (set! self.children (list (new Jiri-Task part: .5)
-                              (new Jiri-Task part: .5))))
+    (set! self.children (list (new Jiri-Task part: 1.))))
   
   
   (method override (print self output readably)
@@ -55,8 +47,4 @@
   
   
   (method public (get-download-task self)
-    (first children))
-  
-  
-  (method public (get-checkout-task self)
-    (second children))))
+    (first children))))
