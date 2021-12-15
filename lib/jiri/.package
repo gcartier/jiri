@@ -29,6 +29,7 @@
                   (dependencies jazz
                                 jazz.action
                                 jazz.application
+                                jazz.associative
                                 jazz.clipboard
                                 jazz.crash
                                 jazz.document
