@@ -19,7 +19,6 @@
 (import (jazz.application)
         (jazz.component)
         (jazz.event)
-        (jazz.git.foreign)
         (jazz.io)
         (jazz.outline)
         (jazz.platform)
@@ -48,14 +47,14 @@
 ;;     - Contents
 ;;       - Libraries
 ;;       - MacOS
-;;         - .git
+;;         - .jas
 ;;         - Together (update)
 ;;       - Resources
 ;;   - together.app
 ;;     - Contents
 ;;       - Libraries
 ;;       - MacOS
-;;         - .git
+;;         - .jas
 ;;         - Together (app)
 ;;       - Resources
 ;; - Libraries
@@ -64,7 +63,7 @@
 ;; - Resources
 ;; - Worlds
 ;;   - together
-;;     - .git
+;;     - .jas
 
 ;; WINDOWS
 ;; Together (launch)
@@ -72,14 +71,14 @@
 ;; sirius
 ;; - current
 ;; - sirius-install
-;;   - .git
+;;   - .jas
 ;; worlds
 ;; - together
-;;   - .git
+;;   - .jas
 ;; together (why not app)
 ;; - test
 ;;   - Together (app)
-;;     - .git
+;;     - .jas
 
 
 (define stage
@@ -295,7 +294,7 @@
                       (lambda (action pathname)
                         (if (and (memq? action '(replace delete))
                                  (directory? pathname)
-                                 (member? (get-name pathname) '(".git" "app" "worlds") test: filename=?)
+                                 (member? (get-name pathname) '(".jas" ".git" "app" "worlds") test: filename=?)
                                  (let ((parent-dir (get-parent pathname)))
                                    (or (pathname=? parent-dir src-dir)
                                        (pathname=? parent-dir dst-dir))))
