@@ -220,7 +220,8 @@
                             (set! first-install? #f)
                             (launch-app new-content?
                               (lambda ()
-                                (update-done)))))))))))))
+                                (update-done)))))))))
+                cache: (current-root-dir)))))
         'launch))))
 
 

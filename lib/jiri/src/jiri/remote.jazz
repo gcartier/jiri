@@ -46,7 +46,7 @@
 ;;;
 
 
-(definition public (pull-repository section dir cont)
+(definition public (pull-repository section dir cont (cache: cache #f))
   (let ((title (get-title section))
         (connection (get-connection section)))
     (let ((name (get-name connection))
@@ -70,7 +70,11 @@
           (new-thread
             (lambda ()
               (connect client)
-              (download-all client)
+              (if cache
+                  (let ((cache-dir (new Directory (tokenise-filename cache))))
+                    (let ((cache-repository (new Associative-Repository cache-dir)))
+                      (download-all-with-cache client cache-repository)))
+                (download-all client))
               (deconnect client))
             'download)))
       
