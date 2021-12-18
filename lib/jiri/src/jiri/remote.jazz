@@ -63,7 +63,8 @@
       
       (define (feedback . rest)
         (write rest progress-port)
-        (force-output progress-port))
+        (force-output progress-port)
+        (thread-yield!))
       
       (define (download-threaded repo client)
         (thread-start!
@@ -89,9 +90,12 @@
                (done #f))
               ((progress)
                (bind (total-objects received-objects received-bytes) rest
-                 (delay-event
-                   (lambda ()
-                     (progress total-objects received-objects received-bytes))))
+                 (when (or (not cache)
+                           (>= received-objects total-objects)
+                           (= (modulo received-objects 20) 0))
+                   (delay-event
+                     (lambda ()
+                       (progress total-objects received-objects received-bytes)))))
                (loop))
               ((error)
                (done #t))))))
