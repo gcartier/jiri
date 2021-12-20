@@ -46,7 +46,7 @@
 ;;;
 
 
-(definition public (pull-repository section dir cont (cache: cache #f))
+(definition public (pull-repository section dir cont (cache-repository: cache-repository #f))
   (let ((title (get-title section))
         (connection (get-connection section)))
     (let ((name (get-name connection))
@@ -71,10 +71,8 @@
           (new-thread
             (lambda ()
               (connect client)
-              (if cache
-                  (let ((cache-dir (new Directory (tokenise-filename cache))))
-                    (let ((cache-repository (new Associative-Repository cache-dir)))
-                      (download-all-with-cache client cache-repository)))
+              (if cache-repository
+                  (download-all-with-cache client cache-repository)
                 (download-all client))
               (deconnect client))
             'download)))
@@ -90,7 +88,7 @@
                (done #f))
               ((progress)
                (bind (total-objects received-objects received-bytes) rest
-                 (when (or (not cache)
+                 (when (or (not cache-repository)
                            (>= received-objects total-objects)
                            (= (modulo received-objects 20) 0))
                    (delay-event

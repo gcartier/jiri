@@ -221,7 +221,7 @@
                           (launch-app new-content?
                             (lambda ()
                               (update-done))))))))
-                cache: (current-root-dir)))))
+                cache-repository: (make-root-repository)))))
         'launch))))
 
 
@@ -238,6 +238,19 @@
                 (add "window-v" (number->string (get-v pos))))
               (add "send-ready" "true")))))
     (delegate-process (update-exe) arguments: arguments wait-and-quit?: #t)))
+
+
+(definition (make-root-repository)
+  (let ((root (dirname->directory (current-root-dir))))
+    (cond-expand
+      (mac
+       (let ((directory (new-directory root '("Contents" "Resources" ".jas"))))
+         (new Associative-Repository root directory: directory)))
+      (else
+       (new Associative-Repository root)))))
+
+(definition (make-update-repository)
+  (new Associative-Repository (dirname->directory (update-dir))))
 
 
 ;;;
@@ -268,30 +281,28 @@
 
 
 (define (update-launch task cont)
-  (let ((update-dir (dirname->directory (update-dir)))
-        (root-dir (dirname->directory (current-root-dir))))
-    (let ((update-repository (new Associative-Repository update-dir))
-          (root-repository (new Associative-Repository root-dir)))
-      (let ((update-index (get-index update-repository))
-            (root-index (get-index root-repository)))
-        (let ((diff (diff update-repository update-index root-index)))
-          (let ((changes (get-added/modified diff)))
-            (let ((total (+ (length changes) 1)))
-              (set-status task "Updating sirius")
-              (set-range task (new Range 0 total))
-              (for-each (lambda (change)
-                          (bind (what path digest seconds flags) change
-                            (let ((pathname (tokenise-filename path)))
-                              (let ((update-file (new-file (get-working update-repository) pathname))
-                                    (root-file (new-file (get-working root-repository) pathname)))
-                                (create-directories root-file)
-                                (duplicate update-file root-file)
-                                (increase-pos task)))))
-                        changes)
-              (duplicate (get-file update-index) (get-file root-index))
-              (increase-pos task)
-              (set-done task)
-              (cont))))))))
+  (let ((update-repository (make-update-repository))
+        (root-repository (make-root-repository)))
+    (let ((update-index (get-index update-repository))
+          (root-index (get-index root-repository)))
+      (let ((diff (diff update-repository update-index root-index)))
+        (let ((changes (get-added/modified diff)))
+          (let ((total (+ (length changes) 1)))
+            (set-status task "Updating sirius")
+            (set-range task (new Range 0 total))
+            (for-each (lambda (change)
+                        (bind (what path digest seconds flags) change
+                          (let ((pathname (tokenise-filename path)))
+                            (let ((update-file (new-file (get-working update-repository) pathname))
+                                  (root-file (new-file (get-working root-repository) pathname)))
+                              (create-directories root-file)
+                              (duplicate update-file root-file)
+                              (increase-pos task)))))
+                      changes)
+            (duplicate (get-file update-index) (get-file root-index))
+            (increase-pos task)
+            (set-done task)
+            (cont)))))))
 
 
 ;;;
