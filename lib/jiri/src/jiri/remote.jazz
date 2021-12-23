@@ -52,6 +52,7 @@
     (let ((name (get-name connection))
           (host (get-host connection))
           (path (get-path connection))
+          (sets (get-sets connection))
           (download-task (get-download-task connection))
           (progress-port (open-vector))
           (new-content? #f))
@@ -71,9 +72,12 @@
           (new-thread
             (lambda ()
               (connect client)
-              (if cache-repository
-                  (download-all-with-cache client cache-repository)
-                (download-all client))
+              (cond (cache-repository
+                     (download-all-with-cache client cache-repository))
+                    (sets
+                     (download-sets client sets))
+                    (else
+                     (download-all client)))
               (deconnect client))
             'download)))
       
