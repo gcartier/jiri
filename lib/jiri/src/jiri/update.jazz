@@ -291,7 +291,7 @@
             (set-status task "Updating sirius")
             (set-range task (new Range 0 total))
             (for-each (lambda (change)
-                        (bind (what path digest seconds flags) change
+                        (bind (what path) change
                           (let ((pathname (tokenise-filename path)))
                             (let ((update-file (new-file (get-working update-repository) pathname))
                                   (root-file (new-file (get-working root-repository) pathname)))
