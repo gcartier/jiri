@@ -155,6 +155,10 @@
     "Failed to update"))
 
 
+(define update-priority
+  -10)
+
+
 (define (catch-jiri-exception thunk)
   (define (exception-filter exc)
     (snapshot-process exception: exc)
@@ -201,28 +205,30 @@
   (let ((update-new? (not (file-exists? (update-dir)))))
     (setup-stage-view (string-append "Updating " (jiri-title)) (determine-stage-color (update-dir)))
     (update-crashes-view-color)
-    (thread-start!
-      (new-thread
-        (lambda ()
-          (send-crash-reports (jiri-installer-crashes) #f)
-          (catch-jiri-exception
-            (lambda ()
-              (pull-repository (jiri-update-section) (update-dir)
-                (lambda (new-content?)
-                  (if (cond-expand
-                        (local #f)
-                        (else new-content?))
-                      (delegate-update (current-root-dir) "launch" update-new?)
-                    (let ((transfer-task (get-transfer-task)))
-                      (set-done transfer-task)
-                      (update-app/data
-                        (lambda (new-content?)
-                          (set! first-install? #f)
-                          (launch-app new-content?
-                            (lambda ()
-                              (update-done))))))))
-                cache-repository: (make-root-repository)))))
-        'launch))))
+    (let ((thread
+            (new-thread
+              (lambda ()
+                (send-crash-reports (jiri-installer-crashes) #f)
+                (catch-jiri-exception
+                  (lambda ()
+                    (pull-repository (jiri-update-section) (update-dir)
+                      (lambda (new-content?)
+                        (if (cond-expand
+                              (local #f)
+                              (else new-content?))
+                            (delegate-update (current-root-dir) "launch" update-new?)
+                          (let ((transfer-task (get-transfer-task)))
+                            (set-done transfer-task)
+                            (update-app/data
+                              (lambda (new-content?)
+                                (set! first-install? #f)
+                                (launch-app new-content?
+                                  (lambda ()
+                                    (update-done))))))))
+                      cache-repository: (make-root-repository)))))
+              'launch)))
+      (thread-base-priority-set! thread update-priority)
+      (thread-start! thread))))
 
 
 (definition public (delegate-update root-dir called-from update-new?)
@@ -264,20 +270,22 @@
   (update-crashes-view-color)
   (update-tasks-done)
   (let ((transfer-task (get-transfer-task)))
-    (thread-start!
-      (new-thread
-        (lambda ()
-          (update-launch transfer-task
-            (lambda ()
-              (catch-jiri-exception
-                (lambda ()
-                  (update-app/data
-                    (lambda (new-content?)
-                      (set! first-install? #f)
-                      (launch-app new-content?
-                        (lambda ()
-                          (update-done))))))))))
-        'update))))
+    (let ((thread
+            (new-thread
+              (lambda ()
+                (update-launch transfer-task
+                  (lambda ()
+                    (catch-jiri-exception
+                      (lambda ()
+                        (update-app/data
+                          (lambda (new-content?)
+                            (set! first-install? #f)
+                            (launch-app new-content?
+                              (lambda ()
+                                (update-done))))))))))
+              'update)))
+      (thread-base-priority-set! thread update-priority)
+      (thread-start! thread))))
 
 
 (define (update-launch task cont)
@@ -342,26 +350,22 @@
                     (add "load-feedback" (number->string (socket-info-port-number (tcp-server-socket-info server-port))))
                     (add "called-from" "installer")))))
           (delegate-process (app-exe) arguments: arguments))
-        (thread-start!
-          (new-thread
-            (lambda ()
-              (declare (proper-tail-calls))
-              (with-exception-catcher
-                (lambda (exc)
-                  (launch-problem))
-                (lambda ()
-                  (let ((port (read server-port)))
-                    (let (loop (n 0))
-                      (let ((unit-name (read port)))
-                        (cond ((eof-object? unit-name)
-                               (launch-problem))
-                              ((equal? unit-name '(done))
-                               (cont))
-                              (else
-                               (increase-pos task)
-                               (decrease-remaining-if task)
-                               (loop (+ n 1))))))))))
-            'splash))))))
+        (with-exception-catcher
+          (lambda (exc)
+            (launch-problem))
+          (lambda ()
+            (declare (proper-tail-calls))
+            (let ((port (read server-port)))
+              (let (loop (n 0))
+                (let ((unit-name (read port)))
+                  (cond ((eof-object? unit-name)
+                         (launch-problem))
+                        ((equal? unit-name '(done))
+                         (cont))
+                        (else
+                         (increase-pos task)
+                         (decrease-remaining-if task)
+                         (loop (+ n 1)))))))))))))
 
 
 (define (launch-problem)

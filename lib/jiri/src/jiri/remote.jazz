@@ -53,8 +53,7 @@
           (host (get-host connection))
           (path (get-path connection))
           (sets (get-sets connection))
-          (download-task (get-download-task connection))
-          (progress-port (open-vector))
+          (task (get-download-task connection))
           (new-content? #f))
       (define (open/init-repository proc)
         (let ((dir (new Directory (tokenise-filename dir))))
@@ -63,86 +62,72 @@
               (proc repo client)))))
       
       (define (feedback . rest)
-        (write rest progress-port)
-        (force-output progress-port)
-        (thread-yield!))
+        (bind (stage . rest) rest
+          (case stage
+            ((connect))
+            ((deconnect)
+             (download-done #f))
+            ((progress)
+             (bind (total-objects received-objects received-bytes) rest
+               (download-progress total-objects received-objects received-bytes)))
+            ((error)
+             (download-done #t)))))
       
-      (define (download-threaded repo client)
-        (thread-start!
-          (new-thread
-            (lambda ()
-              (connect client)
-              (cond (cache-repository
-                     (download-all-with-cache client cache-repository))
-                    (sets
-                     (download-sets client sets))
-                    (else
-                     (download-all client)))
-              (deconnect client))
-            'download)))
+      (define (download repo client)
+        (connect client)
+        (cond (cache-repository
+               (download-all-with-cache client cache-repository))
+              (sets
+               (download-sets client sets))
+              (else
+               (download-all client)))
+        (deconnect client))
       
-      (define (listen-client progress done)
-        (declare (proper-tail-calls))
-        (let (loop)
-          (bind (stage . rest) (read progress-port)
-            (case stage
-              ((connect)
-               (loop))
-              ((deconnect)
-               (done #f))
-              ((progress)
-               (bind (total-objects received-objects received-bytes) rest
-                 (when (or (not cache-repository)
-                           (>= received-objects total-objects)
-                           (= (modulo received-objects 20) 0))
-                   (delay-event
-                     (lambda ()
-                       (progress total-objects received-objects received-bytes)))))
-               (loop))
-              ((error)
-               (done #t))))))
+      (define download-progress
+        (let ((inited? #f)
+              (last-step #f))
+          (lambda (total-objects received-objects received-bytes)
+            (set! new-content? #t)
+            (let ((step (fxceiling (* (/ (cast <fl> received-objects) (cast <fl> total-objects)) 100.))))
+              (when (or (not last-step)
+                        (> step last-step))
+                (set! last-step step)
+                (let ((downloaded (fxfloor (/ (exact->inexact received-bytes) (* 1024. 1024.))))
+                      (remaining (- total-objects received-objects)))
+                  (set-downloaded task downloaded)
+                  (set-remaining task remaining))
+                (when (not inited?)
+                  (set-range task (new Range 0 total-objects))
+                  (set! inited? #t))
+                (set-pos task received-objects))))))
+      
+      (define download-done
+        (lambda (error?)
+          (unless #f @port (safe-abort-point
+                             (lambda ()
+                               (git-remote-disconnect remote)
+                               (git-remote-free remote)
+                               (git-repository-free repo)
+                               (set-cursor :arrow)
+                               (set-working? connection #f)))
+            ;; copied from above
+            (set-cursor :arrow)
+            ;; copied from above
+            (set-working? connection #f)
+            @port
+            (when error?
+              (check-git-current-error))
+            (set-done task)
+            (cont new-content?))))
       
       (set-cursor :wait)
       (set-started? connection #t)
       (set-working? connection #t)
-      (set-status download-task (string-append "Downloading " title))
+      (set-status task (string-append "Downloading " title))
       (open/init-repository
         (lambda (repo client)
-          (define download-progress
-            (let ((inited? #f))
-              (lambda (total-objects received-objects received-bytes)
-                (set! new-content? #t)
-                (let ((downloaded (fxfloor (/ (exact->inexact received-bytes) (* 1024. 1024.))))
-                      (remaining (- total-objects received-objects)))
-                  (set-downloaded download-task downloaded)
-                  (set-remaining download-task remaining))
-                (when (not inited?)
-                  (set-range download-task (new Range 0 total-objects))
-                  (set! inited? #t))
-                (set-pos download-task received-objects))))
-          
-          (define download-done
-            (lambda (error?)
-              (unless #f @port (safe-abort-point
-                                 (lambda ()
-                                   (git-remote-disconnect remote)
-                                   (git-remote-free remote)
-                                   (git-repository-free repo)
-                                   (set-cursor :arrow)
-                                   (set-working? connection #f)))
-                ;; copied from above
-                (set-cursor :arrow)
-                ;; copied from above
-                (set-working? connection #f)
-                @port
-                (when error?
-                  (check-git-current-error))
-                (set-done download-task)
-                (cont new-content?))))
-          
-          (set-range download-task (new Range 0 1))
-          (download-threaded repo client)
-          (listen-client download-progress download-done))))))
+          (set-range task (new Range 0 1))
+          (download repo client))))))
 
 
 ;;;

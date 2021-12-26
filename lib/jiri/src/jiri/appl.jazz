@@ -77,7 +77,7 @@
     (set-jiri-pane (get-guest (new-frame Jiri-Pane)))
     (jiri-init)
     (setup-toplevel)
-    (delay-event jiri-startup)
+    (jiri-startup)
     (when send-ready?
       (write 'ready)
       (newline)
