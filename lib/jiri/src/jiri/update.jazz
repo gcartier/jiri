@@ -198,9 +198,7 @@
 
 
 (define (update-at-launch)
-  (current-root-dir (cond-expand
-                      (mac kernel-bundle-root)
-                      (else jazz:kernel-install)))
+  (current-root-dir kernel-root)
   (setup-first-install?)
   (let ((update-new? (not (file-exists? (update-dir)))))
     (setup-stage-view (string-append "Updating " (jiri-title)) (determine-stage-color (update-dir)))
