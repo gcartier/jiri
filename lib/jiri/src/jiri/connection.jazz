@@ -22,22 +22,24 @@
 (class Jiri-Connection extends Jiri-Task
   
   
-  (slot name     initialize #f getter generate)
-  (slot title    initialize #f getter generate)
-  (slot host     initialize #f getter generate)
-  (slot path     initialize #f getter generate)
-  (slot sets     initialize #f getter generate)
-  (slot dirname  initialize #f getter generate)
-  (slot started? initialize #f accessors generate)
-  (slot working? initialize #f accessors generate)
+  (slot name        initialize #f getter generate)
+  (slot title       initialize #f getter generate)
+  (slot host        initialize #f getter generate)
+  (slot path        initialize #f getter generate)
+  (slot sets        initialize #f getter generate)
+  (slot update-sets initialize #f getter generate)
+  (slot dirname     initialize #f getter generate)
+  (slot started?    initialize #f accessors generate)
+  (slot working?    initialize #f accessors generate)
   
   
-  (method override (initialize self (name: name #f) (title: title #f) (host: host #f) (path: path #f) (sets: sets #f) (dirname: dirname #f))
+  (method override (initialize self (name: name #f) (title: title #f) (host: host #f) (path: path #f) (sets: sets #f) (update-sets: update-sets #f) (dirname: dirname #f))
     (set! self.name name)
     (set! self.title title)
     (set! self.host host)
     (set! self.path path)
     (set! self.sets sets)
+    (set! self.update-sets update-sets)
     (set! self.dirname dirname)
     (set! self.children (list (new Jiri-Task part: 1.))))
   

@@ -34,6 +34,7 @@
         (jazz.window)
         (jiri)
         (jiri.base)
+        (jiri.connection)
         (jiri.manage)
         (jiri.settings)
         (jiri.structure)
@@ -53,6 +54,7 @@
           (host (get-host connection))
           (path (get-path connection))
           (sets (get-sets connection))
+          (update-sets (get-update-sets connection))
           (task (get-download-task connection))
           (new-content? #f))
       (define (open/init-repository proc)
@@ -78,7 +80,7 @@
         (cond (cache-repository
                (download-all-with-cache client cache-repository))
               (sets
-               (download-sets client sets))
+               (download-sets client sets update-sets))
               (else
                (download-all client)))
         (deconnect client))
