@@ -287,6 +287,7 @@
 
 
 (define (update-launch task cont)
+  (declare (proper-tail-calls))
   (let ((update-repository (make-update-repository))
         (root-repository (make-root-repository)))
     (let ((update-index (get-index update-repository))
@@ -295,20 +296,31 @@
         (let ((changes (get-added/modified diff)))
           (let ((total (+ (length changes) 1)))
             (set-status task "Updating sirius")
+            (set-remaining task total)
             (set-range task (new Range 0 total))
-            (for-each (lambda (change)
-                        (bind (what path) change
-                          (let ((pathname (tokenise-filename path)))
-                            (let ((update-file (new-file (get-working update-repository) pathname))
-                                  (root-file (new-file (get-working root-repository) pathname)))
-                              (create-directories root-file)
-                              (duplicate update-file root-file)
-                              (increase-pos task)))))
-                      changes)
-            (duplicate (get-file update-index) (get-file root-index))
-            (increase-pos task)
-            (set-done task)
-            (cont)))))))
+            (let ((last-step #f))
+              (let (loop (pos 0) (changes changes))
+                (if (null? changes)
+                    (begin
+                      (duplicate (get-file update-index) (get-file root-index))
+                      (set-remaining task 0)
+                      (set-done task)
+                      (cont))
+                  (let ((change (car changes)))
+                    (bind (what path) change
+                      (let ((pathname (tokenise-filename path)))
+                        (let ((update-file (new-file (get-working update-repository) pathname))
+                              (root-file (new-file (get-working root-repository) pathname)))
+                          (create-directories root-file)
+                          (duplicate update-file root-file)
+                          (let ((pos (+ pos 1)))
+                            (let ((step (fxceiling (* (/ (cast <fl> pos) (cast <fl> total)) 50.))))
+                              (when (or (not last-step)
+                                        (> step last-step))
+                                (set! last-step step)
+                                (set-pos task pos)
+                                (set-remaining task (max 0 (- total pos)))))
+                            (loop pos (cdr changes))))))))))))))))
 
 
 ;;;
