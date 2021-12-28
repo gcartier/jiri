@@ -84,12 +84,6 @@
     (task-invalidater self))
   
   
-  (method public (decrease-remaining-if self)
-    (when (> remaining 0)
-      (decrease! remaining))
-    (task-invalidater self))
-  
-  
   (method public (add-child self child)
     (set! children (append children (list child)))
     child)))
