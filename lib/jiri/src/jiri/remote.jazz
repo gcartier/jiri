@@ -68,12 +68,10 @@
           (case stage
             ((connect))
             ((deconnect)
-             (download-done #f))
+             (download-done))
             ((progress)
              (bind (total-objects received-objects received-bytes) rest
-               (download-progress total-objects received-objects received-bytes)))
-            ((error)
-             (download-done #t)))))
+               (download-progress total-objects received-objects received-bytes))))))
       
       (define (download repo client)
         (connect client)
@@ -104,7 +102,7 @@
                 (set-pos task received-objects))))))
       
       (define download-done
-        (lambda (error?)
+        (lambda ()
           (unless #f @port (safe-abort-point
                              (lambda ()
                                (git-remote-disconnect remote)
