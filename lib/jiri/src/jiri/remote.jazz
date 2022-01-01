@@ -103,20 +103,12 @@
       
       (define download-done
         (lambda ()
-          (unless #f @port (safe-abort-point
-                             (lambda ()
-                               (git-remote-disconnect remote)
-                               (git-remote-free remote)
-                               (git-repository-free repo)
-                               (set-cursor :arrow)
-                               (set-working? connection #f)))
-            ;; copied from above
+          (unless (safe-abort-point
+                    (lambda ()
+                      (set-cursor :arrow)
+                      (set-working? connection #f)))
             (set-cursor :arrow)
-            ;; copied from above
             (set-working? connection #f)
-            @port
-            (when error?
-              (check-git-current-error))
             (set-done task)
             (cont new-content?))))
       
@@ -144,8 +136,6 @@
 
 (define (request-quit title)
   (set-abort-requested (lambda () (quit)))
-  @port
-  (git-request-abort)
   (set-title status-view title)
   (when minimize-view
     (set-enabled? minimize-view #f))
