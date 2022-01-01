@@ -18,6 +18,7 @@
 
 (import (jazz.application)
         (jazz.associative)
+        (jazz.associative.remote)
         (jazz.component)
         (jazz.event)
         (jazz.io)
@@ -164,8 +165,17 @@
     (snapshot-process exception: exc)
     #t)
   
+  (define (exception-message exc)
+    (typecase exc
+      ((Jas-Unable-To-Connect) "Unable to connect to server")
+      ((Jas-Invalid-Version) (format "Your version of {a} is obsolete. Please reinstall" (jiri-application)))
+      ((Jas-Invalid-Path) "Invalid path")
+      ((Jas-Inexistant-Repository) "Inexistant repository")
+      ((Jas-Connection-Broke) "Connection broke")
+      (else (exception-reason exc))))
+  
   (catch (exception-filter exc
-           (let ((exception-message (exception-reason exc)))
+           (let ((exception-message (exception-message exc)))
              (delay-event
                (lambda ()
                  (system-message exception-message
