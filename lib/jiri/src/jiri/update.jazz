@@ -224,7 +224,13 @@
                         (if (cond-expand
                               (local #f)
                               (else new-content?))
-                            (delegate-update (current-root-dir) "launch" update-new?)
+                            (begin
+                              ;; try and hack around monterey bug
+                              (cond-expand
+                                (mac
+                                 (use-dlclose))
+                                (else))
+                              (delegate-update (current-root-dir) "launch" update-new?))
                           (let ((transfer-task (get-transfer-task)))
                             (set-done transfer-task)
                             (update-app/data
