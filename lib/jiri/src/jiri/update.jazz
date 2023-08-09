@@ -378,7 +378,10 @@
                         (add "load-feedback" (number->string (socket-info-port-number (tcp-server-socket-info server-port))))
                         (add "remote-host" (get-host connection))
                         (add "remote-path" (get-path connection))
-                        (add "called-from" "installer")))))
+                        (add "called-from" "installer")
+                        (let ((url (launch-url)))
+                          (when url
+                            (add "url" url)))))))
               (delegate-process (app-exe) arguments: arguments)))
           (with-exception-catcher
             (lambda (exc)
