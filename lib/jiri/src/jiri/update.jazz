@@ -128,6 +128,10 @@
   (equal? (string-argument "update-new" "yes") "yes"))
 
 
+(define (effective-launch-url)
+  (or (launch-url) (string-argument "url" #f)))
+
+
 ;;;
 ;;;; Update
 ;;;
@@ -257,7 +261,7 @@
                 (add "window-h" (number->string (get-h pos)))
                 (add "window-v" (number->string (get-v pos))))
               (add "send-ready" "true")
-              (let ((url (launch-url)))
+              (let ((url (effective-launch-url)))
                 (when url
                   (add "url" url)))))))
     (delegate-process (update-exe) arguments: arguments wait-and-quit?: #t)))
@@ -271,6 +275,7 @@
          (new Associative-Repository root directory: directory)))
       (else
        (new Associative-Repository root)))))
+
 
 (definition (make-update-repository)
   (new Associative-Repository (dirname->directory (update-dir))))
@@ -382,7 +387,7 @@
                         (add "remote-host" (get-host connection))
                         (add "remote-path" (get-path connection))
                         (add "called-from" "installer")
-                        (let ((url (launch-url)))
+                        (let ((url (effective-launch-url)))
                           (when url
                             (add "url" url)))))))
               (delegate-process (app-exe) arguments: arguments)))
