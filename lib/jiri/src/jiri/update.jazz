@@ -256,7 +256,10 @@
               (let ((pos (get-position (current-toplevel))))
                 (add "window-h" (number->string (get-h pos)))
                 (add "window-v" (number->string (get-v pos))))
-              (add "send-ready" "true")))))
+              (add "send-ready" "true")
+              (let ((url (launch-url)))
+                (when url
+                  (add "url" url)))))))
     (delegate-process (update-exe) arguments: arguments wait-and-quit?: #t)))
 
 
