@@ -19,6 +19,7 @@
 (import (jazz.application)
         (jazz.component)
         (jazz.event)
+        (jazz.io)
         (jazz.markup)
         (jazz.platform)
         (jazz.skin)
@@ -57,6 +58,10 @@
     (nextmethod self)
     (when (jiri-process-name)
       (current-process-name-set! (jiri-process-name)))
+    (when (jiri-name-setting)
+      (when (exists? (jiri-name-setting))
+        (snapshot-user (call-with-input-file (path-settings (jiri-name-setting))
+                         read))))
     (when (jiri-snapshots-directory)
       (snapshots-directory (jiri-snapshots-directory)))
     (unless kernel-source-accessible?

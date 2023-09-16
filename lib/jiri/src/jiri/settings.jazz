@@ -53,6 +53,15 @@
 
 
 ;;;
+;;;; Name
+;;;
+
+
+(define-jiri jiri-name-setting
+  #f)
+
+
+;;;
 ;;;; Crashes
 ;;;
 
