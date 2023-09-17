@@ -49,21 +49,26 @@
     (queue-list queue)))
 
 
-(definition public (delegate-process path (arguments: arguments '()) (wait-and-quit?: wait-and-quit? #f))
+(definition public (delegate-process path (arguments: arguments '()) (wait-and-quit?: wait-and-quit? #f) (mac-open?: mac-open? #f))
   (define (add-debugger arguments)
     (let ((debugger (command-argument "debugger")))
       (if (not debugger)
           arguments
         (cons "-debugger" (cons debugger arguments)))))
   
+  (define (quote-string str)
+    (string-append "\"" str "\""))
+  
   (define (open (redirect?: redirect? #f))
-    (open-process (list
-                    path: path
-                    arguments: (add-debugger arguments)
-                    stdin-redirection: redirect?
-                    stdout-redirection: redirect?
-                    stderr-redirection: redirect?
-                    show-console: #f)))
+    (if mac-open?
+        (shell-command (join `("open" ,(quote-string path) "--args" ,@(map quote-string (add-debugger arguments))) " "))
+      (open-process (list
+                      path: path
+                      arguments: (add-debugger arguments)
+                      stdin-redirection: redirect?
+                      stdout-redirection: redirect?
+                      stderr-redirection: redirect?
+                      show-console: #f))))
   
   (if (not wait-and-quit?)
       (open redirect?: #f)

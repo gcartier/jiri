@@ -390,7 +390,7 @@
                         (let ((url (effective-launch-url)))
                           (when url
                             (add "url" url)))))))
-              (delegate-process (app-exe) arguments: arguments)))
+              (delegate-process (app-exe) arguments: arguments mac-open?: (cond-expand (mac #t) (else #f)))))
           (with-exception-catcher
             (lambda (exc)
               (launch-problem))
