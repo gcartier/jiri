@@ -408,12 +408,17 @@
                            (cont))
                           (else
                            (let ((loaded (+ loaded 1)))
-                             (let ((step (fxceiling (* (/ (cast <fl> loaded) (cast <fl> total)) 50.))))
-                               (when (or (not last-step)
-                                         (> step last-step))
-                                 (set! last-step step)
-                                 (set-pos task loaded)
-                                 (set-remaining task (max 0 (- total loaded)))))
+                             (let ((remaining (max 0 (- total loaded))))
+                               ;; give more feedback near the end of launch
+                               (let ((factor (cond ((<= remaining 10.) 1000.)
+                                                   ((<= remaining 50) 200.)
+                                                   (else 50.))))
+                                 (let ((step (fxceiling (* (/ (cast <fl> loaded) (cast <fl> total)) factor))))
+                                   (when (or (not last-step)
+                                             (> step last-step))
+                                     (set! last-step step)
+                                     (set-pos task loaded)
+                                     (set-remaining task remaining)))))
                              (loop loaded))))))))))))))
 
 
