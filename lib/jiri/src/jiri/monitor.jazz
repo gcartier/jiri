@@ -60,7 +60,7 @@
                   (let ((port (open-process
                                 (list
                                   path: curl
-                                  arguments: (list "--silent" "-T" (parse file) "--limit-rate" "250K" "-H" "Content-Type: text/plain" (string-append remote "/crashes/" (get-name file)))
+                                  arguments: (list "--silent" "-T" (parse file) "--limit-rate" "250K" "-H" "Content-Type: text/plain" (string-append remote "/" (get-name file)))
                                   show-console: #f))))
                     (set-title crashes-view (format "Sending logs ({a} of {a})" no total))
                     (let ((status (process-status port)))
@@ -78,18 +78,19 @@
             (define (collect-crashes)
               (let ((queue (new-queue)))
                 (for-each (lambda (info)
-                            (bind (name dir remote) info
-                              (let ((effective-dir (if (string? dir)
-                                                       (dirname->directory (string-append (current-root-dir) dir))
-                                                     dir)))
-                                (when (exists? effective-dir)
-                                  (iterate-directory effective-dir
-                                    (lambda (file)
-                                      (when (extension=? (get-extension file) "snapshot")
-                                        (enqueue queue (list file remote))))
-                                    files?: #t
-                                    directories?: #f
-                                    recursive?: #f)))))
+                            (when info
+                              (bind (name dir extensions remote) info
+                                (let ((effective-dir (if (string? dir)
+                                                         (dirname->directory (string-append (current-root-dir) dir))
+                                                       dir)))
+                                  (when (exists? effective-dir)
+                                    (iterate-directory effective-dir
+                                      (lambda (file)
+                                        (when (member? (get-extension file) extensions test: extension=?)
+                                          (enqueue queue (list file remote))))
+                                      files?: #t
+                                      directories?: #f
+                                      recursive?: #f))))))
                           monitor)
                 (queue-list queue)))
             
