@@ -165,10 +165,6 @@
 
 
 (define (catch-jiri-exception thunk)
-  (define (exception-filter exc)
-    (snapshot-process exception: exc)
-    #t)
-  
   (define (exception-message exc)
     (typecase exc
       ((Jas-Unable-To-Connect) "Unable to connect to server")
@@ -178,17 +174,27 @@
       ((Jas-Connection-Broke) "Connection broke")
       (else (exception-reason exc))))
   
-  (catch (exception-filter exc
-           (let ((exception-message (exception-message exc)))
-             (delay-event
-               (lambda ()
-                 (system-message exception-message
-                                 type: 'problem
-                                 title: (jiri-application)
-                                 header: (exception-header))
-                 (exit 1)))
-             (sleep +inf.0)))
-    (thunk)))
+  (catch-exception-filter
+    (lambda (exc)
+      (snapshot-process
+        exception: exc
+        max-depth: 0
+        max-width: 256
+        max-content: 64
+        current-thread-only?: #t)
+      #t)
+    (lambda (exc)
+      (let ((exception-message (exception-message exc)))
+        (delay-event
+          (lambda ()
+            (system-message exception-message
+                            type: 'problem
+                            title: (jiri-application)
+                            header: (exception-header))
+            (exit 1)))
+        (sleep +inf.0)))
+    (lambda ()
+      (thunk))))
 
 
 (define first-install?
