@@ -249,7 +249,8 @@
                                 (launch-app new-content?
                                   (lambda ()
                                     (update-done))))))))
-                      cache-repository: (make-root-repository)))))
+                      cache-repository: (make-root-repository)
+                      cache-exclude: '("Contents/MacOS/Together_unsigned")))))
               'launch)))
       (thread-base-priority-set! thread update-priority)
       (thread-start! thread))))

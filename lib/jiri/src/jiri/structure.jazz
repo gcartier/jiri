@@ -61,7 +61,7 @@
 (cond-expand
   (mac
     (definition public (update-exe)
-      (string-append (update-dir) "Contents/MacOS/" (jiri-update-exe))))
+      (string-append (update-dir) "Contents/MacOS/" (jiri-update-exe) "_unsigned")))
   (else
     (definition public (update-exe)
       (string-append (update-dir) (jiri-update-exe)))))

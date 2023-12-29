@@ -47,7 +47,7 @@
 ;;;
 
 
-(definition public (pull-repository section dir cont (cache-repository: cache-repository #f))
+(definition public (pull-repository section dir cont (cache-repository: cache-repository #f) (cache-exclude: cache-exclude #f))
   (let ((title (get-title section))
         (connection (get-connection section)))
     (let ((name (get-name connection))
@@ -76,7 +76,7 @@
       (define (download repo client)
         (connect client)
         (cond (cache-repository
-               (download-all-with-cache client cache-repository))
+               (download-all-with-cache client cache-repository cache-exclude: cache-exclude))
               (sets
                (download-sets client sets update-sets))
               (else
