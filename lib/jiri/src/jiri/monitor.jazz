@@ -65,7 +65,9 @@
                     (set-title crashes-view (format "Sending logs ({a} of {a})" no total))
                     (let ((status (process-status port)))
                       (cond ((= status 0)
-                             (delete file))
+                             ;; robust to file still in use
+                             (catch (os-exception? exc)
+                               (delete file)))
                             (else
                              (set-title crashes-view (format "Sending logs error ({s})" status))
                              (continuation-return stop #f))))))))
