@@ -83,11 +83,11 @@
 ;;     - .jas
 
 
-(define stage
+(definition stage
   #f)
 
 
-(define (jiri-prepare)
+(definition (jiri-prepare)
   (define (inside-installer?)
     (cond-expand
       (mac
@@ -124,11 +124,11 @@
     (set-send-ready? (boolean-argument "send-ready" #f))))
 
 
-(define (was-update-new?)
+(definition (was-update-new?)
   (equal? (string-argument "update-new" "yes") "yes"))
 
 
-(define (effective-launch-url)
+(definition (effective-launch-url)
   (or (launch-url) (string-argument "url" #f)))
 
 
@@ -137,34 +137,34 @@
 ;;;
 
 
-(define (update-at)
+(definition (update-at)
   (case stage
     ((launch) (update-at-launch))
     ((update) (update-at-update))))
 
 
-(define (update-tasks-done)
+(definition (update-tasks-done)
   (for-each set-done (get-children (get-connection (jiri-update-section)))))
 
 
-(define (get-transfer-task)
+(definition (get-transfer-task)
   (let ((section (jiri-transfer-section)))
     (bind (transfer-task) (get-tasks section)
       transfer-task)))
 
 
-(define (exception-header)
+(definition (exception-header)
   (if (or (not (file-exists? (app-dir)))
           (not (file-exists? (data-dir))))
       "Failed to install"
     "Failed to update"))
 
 
-(define update-priority
+(definition update-priority
   -10)
 
 
-(define (catch-jiri-exception thunk)
+(definition (catch-jiri-exception thunk)
   (define (exception-message exc)
     (typecase exc
       ((Jas-Unable-To-Connect) "Unable to connect to server")
@@ -197,16 +197,16 @@
       (thunk))))
 
 
-(define first-install?
+(definition first-install?
   #f)
 
-(define (setup-first-install?)
+(definition (setup-first-install?)
   (set! first-install? (or (not (file-exists? (update-dir)))
                            (not (file-exists? (app-dir)))
                            (not (file-exists? (data-dir))))))
 
 
-(define (setup-stage-view title color)
+(definition (setup-stage-view title color)
   (if first-install?
       (add-stage-view (string-append "Installing " (jiri-title) " for the first time, please be patient") stage-install-color)
     (add-stage-view title stage-ready-color)))
@@ -217,7 +217,7 @@
 ;;;
 
 
-(define (update-at-launch)
+(definition (update-at-launch)
   (current-root-dir kernel-root)
   (setup-first-install?)
   (let ((update-new? (not (file-exists? (update-dir)))))
@@ -293,7 +293,7 @@
 ;;;
 
 
-(define (update-at-update)
+(definition (update-at-update)
   (setup-first-install?)
   (setup-stage-view (string-append "Updating " (jiri-title)) (if (was-update-new?) stage-setup-color stage-install-color))
   (update-crashes-view-color)
@@ -317,7 +317,7 @@
       (thread-start! thread))))
 
 
-(define (update-launch task cont)
+(definition (update-launch task cont)
   (declare (proper-tail-calls))
   (let ((update-repository (make-update-repository))
         (root-repository (make-root-repository)))
@@ -359,13 +359,13 @@
 ;;;
 
 
-(define (determine-stage-color dir)
+(definition (determine-stage-color dir)
   (if (not (file-exists? dir))
       stage-setup-color
     stage-install-color))
 
 
-(define (update-app/data cont)
+(definition (update-app/data cont)
   (setup-stage-view "Updating application" (determine-stage-color (app-dir)))
   (update-crashes-view-color)
   (pull-repository (jiri-app-section) (app-dir)
@@ -377,7 +377,7 @@
           (cont (or new-app-content? new-data-content?)))))))
 
 
-(define (launch-app new-content? cont)
+(definition (launch-app new-content? cont)
   (let ((section (jiri-splash-section)))
     (bind (task) (get-tasks section)
       (let ((total (jiri-splash-end)))
@@ -429,7 +429,7 @@
                              (loop loaded))))))))))))))
 
 
-(define (launch-problem)
+(definition (launch-problem)
   (set-title stage-view "Problem encountered launching application")
   (set-color stage-view stage-error-color)
   (set-cursor :arrow)
@@ -443,7 +443,7 @@
 ;;;
 
 
-(define (update-done)
+(definition (update-done)
   (set-cursor :arrow)
   (set-work-done? #t)
   (update-crashes-view-color)
@@ -456,7 +456,7 @@
 ;;;
 
 
-(define (jiri-layout)
+(definition (jiri-layout)
   (add-pane-view root-view)
   (add-pane-view invite-view)
   (when close-view

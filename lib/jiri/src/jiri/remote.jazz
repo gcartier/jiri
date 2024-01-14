@@ -134,7 +134,7 @@
       (request-quit "Disconnecting..."))))
 
 
-(define (request-quit title)
+(definition (request-quit title)
   (set-abort-requested (lambda () (quit)))
   (set-title status-view title)
   (when minimize-view
