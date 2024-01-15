@@ -47,7 +47,27 @@
 ;;;
 
 
-(definition public (pull-repository section dir cont (cache-repository: cache-repository #f) (cache-exclude: cache-exclude #f))
+(definition public (check-repository section dir)
+  (let ((connection (get-connection section)))
+    (let ((host (get-host connection))
+          (path (get-path connection)))
+      (define (open/init-repository proc)
+        (let ((dir (new Directory (tokenise-filename dir))))
+          (let ((repo (new Associative-Repository dir init?: #t open?: #t)))
+            (let ((client (new Jas-Client repo host path 'read)))
+              (proc repo client)))))
+      
+      (define (check client)
+        (connect client)
+        (prog1 (has-changes? client)
+          (deconnect client)))
+      
+      (open/init-repository
+        (lambda (repo client)
+          (check client))))))
+
+
+(definition public (pull-repository section dir cont (directory: directory #f) (cache-repository: cache-repository #f) (cache-exclude: cache-exclude #f))
   (let ((title (get-title section))
         (connection (get-connection section)))
     (let ((name (get-name connection))
@@ -59,7 +79,7 @@
           (new-content? #f))
       (define (open/init-repository proc)
         (let ((dir (new Directory (tokenise-filename dir))))
-          (let ((repo (new Associative-Repository dir init?: #t open?: #t)))
+          (let ((repo (new Associative-Repository dir init?: #t open?: #t directory: (and directory (new-directory dir (tokenise-filename directory))))))
             (let ((client (new Jas-Client repo host path 'read feedback: feedback)))
               (proc repo client)))))
       

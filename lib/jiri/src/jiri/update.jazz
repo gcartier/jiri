@@ -44,21 +44,14 @@
 
 ;; MAC
 ;; Contents
-;; - App
+;; - Apps
 ;;   - update.app
 ;;     - Contents
 ;;       - Libraries
 ;;       - MacOS
-;;         - .jas
-;;         - Together (update)
+;;         - Sirius
 ;;       - Resources
-;;   - together.app
-;;     - Contents
-;;       - Libraries
-;;       - MacOS
 ;;         - .jas
-;;         - Together (app)
-;;       - Resources
 ;; - Libraries
 ;; - MacOS
 ;;   - Together (launch)
@@ -83,51 +76,6 @@
 ;;     - .jas
 
 
-(definition stage
-  #f)
-
-
-(definition (jiri-prepare)
-  (define (inside-installer?)
-    (cond-expand
-      (mac
-       (and kernel-bundle-root
-            (let ((root (new Directory (tokenise-filename kernel-bundle-root))))
-              (and (filename=? (get-name root) "Update.app")
-                   (let ((apps (get-parent root)))
-                     (and (filename=? (get-name apps) "Apps")
-                          (let ((contents (get-parent apps)))
-                            (and (filename=? (get-name contents) "Contents")
-                                 (exists? (new-directory contents "Libraries"))
-                                 (exists? (new-directory contents "MacOS"))))))))))
-      (else
-       #f)))
-  
-  (current-root-dir (string-argument "root-dir" #f))
-  (called-from (string-argument "called-from" #f))
-  (set! stage (cond ((and (not (current-root-dir))
-                          (not (called-from))
-                          (not (inside-installer?)))
-                     'launch)
-                    ((and (current-root-dir)
-                          (equal? (called-from) "launch"))
-                     'update)
-                    (else
-                     (system-message "It is incorrect to launch this application"
-                                     type: 'problem
-                                     title: "Update")
-                     (exit 1))))
-  (when (eq? stage 'update)
-    (set-work-downloaded (integer-argument "work-downloaded" 0))
-    (set-window-h (integer-argument "window-h" -1))
-    (set-window-v (integer-argument "window-v" -1))
-    (set-send-ready? (boolean-argument "send-ready" #f))))
-
-
-(definition (was-update-new?)
-  (equal? (string-argument "update-new" "yes") "yes"))
-
-
 (definition (effective-launch-url)
   (or (launch-url) (string-argument "url" #f)))
 
@@ -137,34 +85,22 @@
 ;;;
 
 
-(definition (update-at)
-  (case stage
-    ((launch) (update-at-launch))
-    ((update) (update-at-update))))
-
-
-(definition (update-tasks-done)
+(definition public (update-tasks-done)
   (for-each set-done (get-children (get-connection (jiri-update-section)))))
 
 
-(definition (get-transfer-task)
-  (let ((section (jiri-transfer-section)))
-    (bind (transfer-task) (get-tasks section)
-      transfer-task)))
-
-
 (definition (exception-header)
-  (if (or (not (file-exists? (app-dir)))
+  (if (or (not (file-exists? (update-dir)))
           (not (file-exists? (data-dir))))
       "Failed to install"
     "Failed to update"))
 
 
-(definition update-priority
+(definition public update-priority
   -10)
 
 
-(definition (catch-jiri-exception thunk)
+(definition public (catch-jiri-exception thunk)
   (define (exception-message exc)
     (typecase exc
       ((Jas-Unable-To-Connect) "Unable to connect to server")
@@ -197,72 +133,31 @@
       (thunk))))
 
 
-(definition first-install?
-  #f)
+(definition protected first-install?
+  #t)
 
-(definition (setup-first-install?)
-  (set! first-install? (or (not (file-exists? (update-dir)))
-                           (not (file-exists? (app-dir)))
-                           (not (file-exists? (data-dir))))))
+(definition protected (set-first-install? first?)
+  (set! first-install? first?))
 
 
-(definition (setup-stage-view title color)
+(definition public (setup-stage-view title)
   (if first-install?
       (add-stage-view (string-append "Installing " (jiri-title) " for the first time, please be patient") stage-install-color)
     (add-stage-view title stage-ready-color)))
 
 
 ;;;
-;;;; At Launch
+;;;; Update
 ;;;
 
 
-(definition (update-at-launch)
-  (current-root-dir kernel-root)
-  (setup-first-install?)
-  (let ((update-new? (not (file-exists? (update-dir)))))
-    (setup-stage-view (string-append "Updating " (jiri-title)) (determine-stage-color (update-dir)))
-    (update-crashes-view-color)
-    (let ((thread
-            (new-thread
-              (lambda ()
-                (send-crash-reports (jiri-installer-crashes) #f)
-                (catch-jiri-exception
-                  (lambda ()
-                    (pull-repository (jiri-update-section) (update-dir)
-                      (lambda (new-content?)
-                        (if (cond-expand
-                              (local #f)
-                              (else new-content?))
-                            (begin
-                              ;; try and hack around monterey bug
-                              (cond-expand
-                                (mac
-                                 (use-dlclose))
-                                (else))
-                              (delegate-update (current-root-dir) "launch" update-new?))
-                          (let ((transfer-task (get-transfer-task)))
-                            (set-done transfer-task)
-                            (update-app/data
-                              (lambda (new-content?)
-                                (set! first-install? #f)
-                                (launch-app new-content?
-                                  (lambda ()
-                                    (update-done))))))))
-                      cache-repository: (make-root-repository)
-                      cache-exclude: '("Contents/MacOS/Together_unsigned")))))
-              'launch)))
-      (thread-base-priority-set! thread update-priority)
-      (thread-start! thread))))
-
-
-(definition public (delegate-update root-dir called-from update-new?)
+(definition public (delegate-update root-dir called-from first-install?)
   (let ((arguments
           (build-arguments
             (lambda (add)
               (add "root-dir" root-dir)
               (add "called-from" called-from)
-              (add "update-new" (if update-new? "yes" "no"))
+              (add "first-install" (if first-install? "yes" "no"))
               (add "work-downloaded" (number->string (or (calculate-downloaded) 0)))
               (let ((pos (get-position (current-toplevel))))
                 (add "window-h" (number->string (get-h pos)))
@@ -274,181 +169,68 @@
     (delegate-process (update-exe) arguments: arguments wait-and-quit?: #t)))
 
 
-(definition (make-root-repository)
-  (let ((root (dirname->directory (current-root-dir))))
-    (cond-expand
-      (mac
-       (let ((directory (new-directory root '("Contents" "Resources" ".jas"))))
-         (new Associative-Repository root directory: directory)))
-      (else
-       (new Associative-Repository root)))))
-
-
-(definition (make-update-repository)
-  (new Associative-Repository (dirname->directory (update-dir))))
-
-
-;;;
-;;;; At Update
-;;;
-
-
-(definition (update-at-update)
-  (setup-first-install?)
-  (setup-stage-view (string-append "Updating " (jiri-title)) (if (was-update-new?) stage-setup-color stage-install-color))
-  (update-crashes-view-color)
-  (update-tasks-done)
-  (let ((transfer-task (get-transfer-task)))
-    (let ((thread
-            (new-thread
-              (lambda ()
-                (update-launch transfer-task
-                  (lambda ()
-                    (catch-jiri-exception
-                      (lambda ()
-                        (update-app/data
-                          (lambda (new-content?)
-                            (set! first-install? #f)
-                            (launch-app new-content?
-                              (lambda ()
-                                (update-done))))))))))
-              'update)))
-      (thread-base-priority-set! thread update-priority)
-      (thread-start! thread))))
-
-
-(definition (update-launch task cont)
-  (declare (proper-tail-calls))
-  (let ((update-repository (make-update-repository))
-        (root-repository (make-root-repository)))
-    (let ((update-index (get-index update-repository))
-          (root-index (get-index root-repository)))
-      (let ((diff (diff update-repository update-index root-index)))
-        (let ((changes (get-added/modified diff)))
-          (let ((total (+ (length changes) 1)))
-            (set-status task "Updating sirius")
-            (set-remaining task total)
-            (set-range task (new Range 0 total))
-            (let ((last-step #f))
-              (let (loop (pos 0) (changes changes))
-                (if (null? changes)
-                    (begin
-                      (duplicate (get-file update-index) (get-file root-index))
-                      (set-remaining task 0)
-                      (set-done task)
-                      (cont))
-                  (let ((change (car changes)))
-                    (bind (what path) change
-                      (let ((pathname (tokenise-filename path)))
-                        (let ((update-file (new-file (get-working update-repository) pathname))
-                              (root-file (new-file (get-working root-repository) pathname)))
-                          (create-directories root-file)
-                          (duplicate update-file root-file)
-                          (let ((pos (+ pos 1)))
-                            (let ((step (fxceiling (* (/ (cast <fl> pos) (cast <fl> total)) 50.))))
-                              (when (or (not last-step)
-                                        (> step last-step))
-                                (set! last-step step)
-                                (set-pos task pos)
-                                (set-remaining task (max 0 (- total pos)))))
-                            (loop pos (cdr changes))))))))))))))))
-
-
 ;;;
 ;;;; Work
 ;;;
 
 
-(definition (determine-stage-color dir)
-  (if (not (file-exists? dir))
-      stage-setup-color
-    stage-install-color))
-
-
-(definition (update-app/data cont)
-  (setup-stage-view "Updating application" (determine-stage-color (app-dir)))
+(definition public (update-data/app cont)
+  (setup-stage-view (string-append "Updating " (get-title (jiri-data-section))))
   (update-crashes-view-color)
-  (pull-repository (jiri-app-section) (app-dir)
-    (lambda (new-app-content?)
-      (setup-stage-view (string-append "Updating " (get-title (jiri-data-section))) (determine-stage-color (data-dir)))
+  (pull-repository (jiri-data-section) (data-dir)
+    (lambda (new-data-content?)
+      (setup-stage-view "Updating application")
       (update-crashes-view-color)
-      (pull-repository (jiri-data-section) (data-dir)
-        (lambda (new-data-content?)
-          (cont (or new-app-content? new-data-content?)))))))
+      (pull-repository (jiri-app-section) (app-dir)
+        (lambda (new-app-content?)
+          (cont (or new-data-content? new-app-content?)))
+        directory: (cond-expand (mac "Contents/Resources")
+                                (else #f))))))
 
 
-(definition (launch-app new-content? cont)
+(definition public (launch-app new-content? cont)
+  (declare (proper-tail-calls))
   (let ((section (jiri-splash-section)))
     (bind (task) (get-tasks section)
       (let ((total (jiri-splash-end)))
-        (setup-stage-view (if new-content? (jiri-splash-updated) (jiri-splash-uptodate)) stage-ready-color)
+        (setup-stage-view (if new-content? (jiri-splash-updated) (jiri-splash-uptodate)))
         (set-status task "Launching application")
         (set-remaining task total)
-        (set-range task (new Range 0 (jiri-splash-end)))
+        (set-range task (new Range 0 total))
         (let ((server-port (open-tcp-server 0)))
-          (let ((connection (get-connection (jiri-app-section))))
-            (let ((arguments
-                    (build-arguments
-                      (lambda (add)
-                        (add "load-feedback" (number->string (socket-info-port-number (tcp-server-socket-info server-port))))
-                        (add "remote-host" (get-host connection))
-                        (add "remote-path" (get-path connection))
-                        (add "called-from" "installer")
-                        (let ((url (effective-launch-url)))
-                          (when url
-                            (add "url" url)))))))
-              (delegate-process (app-exe) arguments: arguments mac-open?: (cond-expand (mac #t) (else #f)))))
-          (with-exception-catcher
-            (lambda (exc)
-              (launch-problem))
-            (lambda ()
-              (declare (proper-tail-calls))
-              (let ((port (read server-port))
-                    (last-step #f))
-                (let (loop (loaded 0))
-                  (let ((unit-name (read port)))
-                    (cond ((eof-object? unit-name)
-                           (launch-problem))
-                          ((equal? unit-name '(done))
-                           (set-remaining task 0)
-                           (set-done task)
-                           (cont))
-                          (else
-                           (let ((loaded (+ loaded 1)))
-                             (let ((remaining (max 0 (- total loaded))))
-                               ;; give more feedback near the end of launch
-                               (let ((factor (cond ((<= remaining 10.) 1000.)
-                                                   ((<= remaining 50) 200.)
-                                                   (else 50.))))
-                                 (let ((step (fxceiling (* (/ (cast <fl> loaded) (cast <fl> total)) factor))))
-                                   (when (or (not last-step)
-                                             (> step last-step))
-                                     (set! last-step step)
-                                     (set-pos task loaded)
-                                     (set-remaining task remaining)))))
-                             (loop loaded))))))))))))))
-
-
-(definition (launch-problem)
-  (set-title stage-view "Problem encountered launching application")
-  (set-color stage-view stage-error-color)
-  (set-cursor :arrow)
-  (set-work-done? #t)
-  (update-crashes-view-color)
-  (send-crash-reports (jiri-application-crashes) #t))
-
-
-;;;
-;;;; Done
-;;;
-
-
-(definition (update-done)
-  (set-cursor :arrow)
-  (set-work-done? #t)
-  (update-crashes-view-color)
-  (send-crash-reports (jiri-application-crashes) #t)
-  (quit-callback))
+          (let ((arguments
+                  (build-arguments
+                    (lambda (add)
+                      (add "load-feedback" (number->string (socket-info-port-number (tcp-server-socket-info server-port))))
+                      (add "called-from" "sirius")
+                      (let ((url (effective-launch-url)))
+                        (when url
+                          (add "url" url)))))))
+            (delegate-process (app-exe) arguments: arguments mac-open?: (cond-expand (mac #t) (else #f))))
+          (let ((port (read server-port))
+                (last-step #f))
+            (let (loop (loaded 0))
+              (let ((unit-name (read port)))
+                (cond ((eof-object? unit-name)
+                       (error "Connection broke"))
+                      ((equal? unit-name '(done))
+                       (set-remaining task 0)
+                       (set-done task)
+                       (cont))
+                      (else
+                       (let ((loaded (+ loaded 1)))
+                         (let ((remaining (max 0 (- total loaded))))
+                           ;; give more feedback near the end of launch
+                           (let ((factor (cond ((<= remaining 10.) 1000.)
+                                               ((<= remaining 50) 200.)
+                                               (else 50.))))
+                             (let ((step (fxceiling (* (/ (cast <fl> loaded) (cast <fl> total)) factor))))
+                               (when (or (not last-step)
+                                         (> step last-step))
+                                 (set! last-step step)
+                                 (set-pos task loaded)
+                                 (set-remaining task remaining)))))
+                         (loop loaded))))))))))))
 
 
 ;;;
@@ -456,41 +238,41 @@
 ;;;
 
 
-(definition (jiri-layout)
+(definition public (jiri-layout)
   (add-pane-view root-view)
-  (add-pane-view invite-view)
+  (add-pane-view (invite-view))
   (when close-view
     (add-pane-view close-view))
   (when minimize-view
     (add-pane-view minimize-view))
   
   (when (jiri-connections?)
-    (add-pane-view connections-view))
-  (let ((section (jiri-app-section)))
-    (let ((connections (get-connections section))
-          (default (get-default section)))
-      (if (not connections)
-          (let ((connection (get-connection section))
-                (tree (locate connections-view 'tree)))
-            (add-row tree children: (list (new Tree-Node title: (get-title connection))) user-data: connection)
-            (set-single-selection tree 0))
-        (assert default)
-        (set-connection-change
-          (lambda (connection)
-            (set-connection (jiri-app-section) connection)))
-        (let ((tree (locate connections-view 'tree)))
-          (for-each (lambda (connection)
-                      (add-row tree children: (list (new Tree-Node title: (get-title connection))) user-data: connection))
-                    connections)
-          (let ((default-connection (find connections default key: get-title test: equal? return: 'item)))
-            (select-user-data-row tree default-connection)))
-        (set-connection-change
-          (lambda (connection)
-            (set-connection (jiri-app-section) connection)
-            (unless (get-started? connection)
-              (pull-repository (jiri-app-section) (app-dir)
-                (lambda (new-content?)
-                  ))))))))
+    (add-pane-view connections-view)
+    (let ((section (jiri-app-section)))
+      (let ((connections (get-connections section))
+            (default (get-default section)))
+        (if (not connections)
+            (let ((connection (get-connection section))
+                  (tree (locate connections-view 'tree)))
+              (add-row tree children: (list (new Tree-Node title: (get-title connection))) user-data: connection)
+              (set-single-selection tree 0))
+          (assert default)
+          (set-connection-change
+            (lambda (connection)
+              (set-connection (jiri-app-section) connection)))
+          (let ((tree (locate connections-view 'tree)))
+            (for-each (lambda (connection)
+                        (add-row tree children: (list (new Tree-Node title: (get-title connection))) user-data: connection))
+                      connections)
+            (let ((default-connection (find connections default key: get-title test: equal? return: 'item)))
+              (select-user-data-row tree default-connection)))
+          (set-connection-change
+            (lambda (connection)
+              (set-connection (jiri-app-section) connection)
+              (unless (get-started? connection)
+                (pull-repository (jiri-app-section) (app-dir)
+                  (lambda (new-content?)
+                    )))))))))
   
   (add-crashes-view "" stage-install-color)
   (set-position crashes-view (new Point 500 446))
@@ -503,25 +285,4 @@
   (add-pane-view remaining-view)
   (add-pane-view progress-view)
   (set-quit-callback
-    (quit-safely)))
-
-
-;;;
-;;;; Init
-;;;
-
-
-(set-jiri-init
-  (lambda ()
-    (jiri-prepare)
-    (jiri-layout)))
-
-
-;;;
-;;;; Startup
-;;;
-
-
-(set-jiri-startup
-  (lambda ()
-    (update-at))))
+    (quit-safely))))

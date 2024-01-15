@@ -110,11 +110,14 @@
 
 
 ;;;
-;;;; Transfer
+;;;; Data
 ;;;
 
 
-(define-jiri jiri-transfer-section
+(define-jiri jiri-data-section
+  #f)
+
+(define-jiri jiri-data-work
   #f)
 
 
@@ -124,18 +127,6 @@
 
 
 (define-jiri jiri-app-section
-  #f)
-
-
-;;;
-;;;; Data
-;;;
-
-
-(define-jiri jiri-data-section
-  #f)
-
-(define-jiri jiri-data-work
   #f)
 
 

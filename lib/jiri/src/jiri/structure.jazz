@@ -42,7 +42,7 @@
 
 
 (definition public (app-dir)
-  (string-append (current-root-dir) (section-dir (jiri-app-section))))
+  (current-root-dir))
 
 (definition public (update-dir)
   (string-append (current-root-dir) (section-dir (jiri-update-section))))
@@ -61,7 +61,7 @@
 (cond-expand
   (mac
     (definition public (update-exe)
-      (string-append (update-dir) "Contents/MacOS/" (jiri-update-exe) "_unsigned")))
+      (string-append (update-dir) "Contents/MacOS/" (jiri-update-exe))))
   (else
     (definition public (update-exe)
       (string-append (update-dir) (jiri-update-exe)))))

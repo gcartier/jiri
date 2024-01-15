@@ -60,7 +60,7 @@
 ;;;
 
 
-(definition public invite-view
+(definition public (invite-view)
   (new Jiri-Title
     title: (jiri-invite)
     position: (new Point 30 18)
