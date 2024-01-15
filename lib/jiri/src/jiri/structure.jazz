@@ -37,8 +37,7 @@
 
 
 (definition (section-dir section)
-  (string-append (normalize-directory (get-dir section))
-                 (normalize-directory (get-dirname (get-connection section)))))
+  (normalize-directory (get-root section)))
 
 
 (definition public (app-dir)
