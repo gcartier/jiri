@@ -37,17 +37,24 @@
 
 
 (definition (section-dir section)
-  (normalize-directory (get-root section)))
+  (let ((root (get-root section)))
+    (if (or (not root)
+            (empty-string? root))
+        ""
+      (normalize-directory root))))
 
 
 (definition public (app-dir)
-  (current-root-dir))
+  (string-append (current-root-dir) (section-dir (jiri-app-section))))
 
 (definition public (update-dir)
   (string-append (current-root-dir) (section-dir (jiri-update-section))))
 
 (definition public (data-dir)
   (and (jiri-data-section) (string-append (current-root-dir) (section-dir (jiri-data-section)))))
+
+(definition public (app-directory)
+  (get-directory (jiri-app-section)))
 
 (cond-expand
   (mac

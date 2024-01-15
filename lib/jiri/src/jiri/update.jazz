@@ -184,8 +184,7 @@
       (pull-repository (jiri-app-section) (app-dir)
         (lambda (new-app-content?)
           (cont (or new-data-content? new-app-content?)))
-        directory: (cond-expand (mac "Contents/Resources")
-                                (else #f))))))
+        directory: (app-directory)))))
 
 
 (definition public (launch-app new-content? cont)

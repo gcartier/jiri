@@ -21,6 +21,7 @@
   
   (slot title       initialize #f getter generate)
   (slot root        initialize #f getter generate)
+  (slot directory   initialize #f getter generate)
   (slot part        initialize #f accessors generate)
   ;; quicky not sure this is the right structure
   ;; amongst others because the sequence order is not well
@@ -31,9 +32,10 @@
   (slot default     initialize #f getter generate)
   
   
-  (method override (initialize self (title: title #f) (root: root #f) (part: part #f) (tasks: tasks #f) (connection: connection #f) (connections: connections #f) (default: default #f))
+  (method override (initialize self (title: title #f) (root: root #f) (directory: directory #f) (part: part #f) (tasks: tasks #f) (connection: connection #f) (connections: connections #f) (default: default #f))
     (set! self.title title)
     (set! self.root root)
+    (set! self.directory directory)
     (set! self.part part)
     (set! self.tasks tasks)
     (set! self.connection connection)
