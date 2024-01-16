@@ -174,17 +174,17 @@
 ;;;
 
 
-(definition public (update-data/app cont)
-  (setup-stage-view (string-append "Updating " (get-title (jiri-data-section))))
+(definition public (update-app/data cont)
+  (setup-stage-view "Updating application")
   (update-crashes-view-color)
-  (pull-repository (jiri-data-section) (data-dir)
-    (lambda (new-data-content?)
-      (setup-stage-view "Updating application")
+  (pull-repository (jiri-app-section) (app-dir)
+    (lambda (new-app-content?)
+      (setup-stage-view (string-append "Updating " (get-title (jiri-data-section))))
       (update-crashes-view-color)
-      (pull-repository (jiri-app-section) (app-dir)
-        (lambda (new-app-content?)
-          (cont (or new-data-content? new-app-content?)))
-        directory: (app-directory)))))
+      (pull-repository (jiri-data-section) (data-dir)
+        (lambda (new-data-content?)
+          (cont (or new-app-content? new-data-content?)))))
+    directory: (app-directory)))
 
 
 (definition public (launch-app new-content? cont)

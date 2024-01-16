@@ -44,11 +44,11 @@
       (normalize-directory root))))
 
 
-(definition public (app-dir)
-  (string-append (current-root-dir) (section-dir (jiri-app-section))))
-
 (definition public (update-dir)
   (string-append (current-root-dir) (section-dir (jiri-update-section))))
+
+(definition public (app-dir)
+  (string-append (current-root-dir) (section-dir (jiri-app-section))))
 
 (definition public (data-dir)
   (and (jiri-data-section) (string-append (current-root-dir) (section-dir (jiri-data-section)))))
@@ -58,19 +58,19 @@
 
 (cond-expand
   (mac
-    (definition public (app-exe)
-      (app-dir)))
-  (else
-    (definition public (app-exe)
-      (add-extension (string-append (app-dir) (jiri-application)) (executable-extension kernel-platform)))))
-
-(cond-expand
-  (mac
     (definition public (update-exe)
       (string-append (update-dir) "Contents/MacOS/" (jiri-update-exe))))
   (else
     (definition public (update-exe)
       (string-append (update-dir) (jiri-update-exe)))))
+
+(cond-expand
+  (mac
+    (definition public (app-exe)
+      (app-dir)))
+  (else
+    (definition public (app-exe)
+      (add-extension (string-append (app-dir) (jiri-application)) (executable-extension kernel-platform)))))
 
 
 ;;;
