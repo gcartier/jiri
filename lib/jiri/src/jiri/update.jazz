@@ -188,12 +188,11 @@
 
 
 (definition public (launch-app title new-content? cont)
-  (declare (proper-tail-calls))
   (let ((section (jiri-splash-section)))
     (bind (task) (get-tasks section)
       (let ((total (jiri-splash-end)))
         (setup-stage-view (if new-content? (jiri-splash-updated) (jiri-splash-uptodate)))
-        (set-status task title)
+        (set-status task (format "Launching {a}" title))
         (set-remaining task total)
         (set-range task (new Range 0 total))
         (let ((server-port (open-tcp-server 0)))
@@ -206,30 +205,35 @@
                         (when url
                           (add "url" url)))))))
             (delegate-process (app-exe) arguments: arguments mac-open?: (cond-expand (mac #t) (else #f))))
-          (let ((port (read server-port))
-                (last-step #f))
-            (let (loop (loaded 0))
-              (let ((unit-name (read port)))
-                (cond ((eof-object? unit-name)
-                       (error "Connection broke"))
-                      ((equal? unit-name '(done))
-                       (set-remaining task 0)
-                       (set-done task)
-                       (cont))
-                      (else
-                       (let ((loaded (+ loaded 1)))
-                         (let ((remaining (max 0 (- total loaded))))
-                           ;; give more feedback near the end of launch
-                           (let ((factor (cond ((<= remaining 10.) 1000.)
-                                               ((<= remaining 50) 200.)
-                                               (else 50.))))
-                             (let ((step (fxceiling (* (/ (cast <fl> loaded) (cast <fl> total)) factor))))
-                               (when (or (not last-step)
-                                         (> step last-step))
-                                 (set! last-step step)
-                                 (set-pos task loaded)
-                                 (set-remaining task remaining)))))
-                         (loop loaded))))))))))))
+          (let ((port (read server-port)))
+            (launch-feedback title task total port cont)))))))
+
+
+(definition protected (launch-feedback title task total port cont)
+  (declare (proper-tail-calls))
+  (let ((last-step #f))
+    (let (loop (loaded 0))
+      (let ((unit-name (read port)))
+        (cond ((eof-object? unit-name)
+               (error "Unable to launch {a}" title))
+              ((equal? unit-name '(done))
+               (set-remaining task 0)
+               (set-done task)
+               (cont))
+              (else
+               (let ((loaded (+ loaded 1)))
+                 (let ((remaining (max 0 (- total loaded))))
+                   ;; give more feedback near the end of launch
+                   (let ((factor (cond ((<= remaining 10.) 1000.)
+                                       ((<= remaining 50) 200.)
+                                       (else 50.))))
+                     (let ((step (fxceiling (* (/ (cast <fl> loaded) (cast <fl> total)) factor))))
+                       (when (or (not last-step)
+                                 (> step last-step))
+                         (set! last-step step)
+                         (set-pos task loaded)
+                         (set-remaining task remaining)))))
+                 (loop loaded))))))))
 
 
 ;;;
