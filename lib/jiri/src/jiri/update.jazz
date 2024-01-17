@@ -140,10 +140,16 @@
   (set! first-install? first?))
 
 
-(definition public (setup-stage-view title)
+(definition public (setup-stage-view)
   (if first-install?
-      (add-stage-view (string-append "Installing " (jiri-title) " for the first time, please be patient") stage-install-color)
-    (add-stage-view title stage-ready-color)))
+      (add-stage-view stage-install-color)
+    (add-stage-view stage-ready-color)))
+
+
+(definition public (set-stage-view-updating)
+  (set-title stage-view (if first-install?
+                            (string-append "Installing " (jiri-title) " for the first time, please be patient")
+                          (string-append "Updating " (jiri-title)))))
 
 
 ;;;
@@ -175,10 +181,10 @@
 
 
 (definition public (update-app/data cont)
-  (setup-stage-view "Updating application")
+  (set-title stage-view "Updating application")
   (pull-repository (jiri-app-section) (app-dir)
     (lambda (new-app-content?)
-      (setup-stage-view (string-append "Updating " (get-title (jiri-data-section))))
+      (set-title stage-view (string-append "Updating " (get-title (jiri-data-section))))
       (pull-repository (jiri-data-section) (data-dir)
         (lambda (new-data-content?)
           (cont (or new-app-content? new-data-content?)))))
@@ -189,7 +195,7 @@
   (let ((section (jiri-splash-section)))
     (bind (task) (get-tasks section)
       (let ((total (jiri-splash-end)))
-        (setup-stage-view (if new-content? (jiri-splash-updated) (jiri-splash-uptodate)))
+        (set-title stage-view (if new-content? (jiri-splash-updated) (jiri-splash-uptodate)))
         (set-status task (format "Launching {a}" title))
         (set-remaining task total)
         (set-range task (new Range 0 total))

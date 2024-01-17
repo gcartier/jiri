@@ -146,9 +146,8 @@
     size: (new Dimension 600 30)))
 
 
-(definition public (add-stage-view title color)
+(definition public (add-stage-view color)
   (add-pane-view stage-view)
-  (set-title stage-view title)
   (set-color stage-view color)
   (set-font stage-view {Font font-name: tahoma point-size: 20 hint-style: full}))
 
