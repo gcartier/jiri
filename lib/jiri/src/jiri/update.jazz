@@ -181,10 +181,8 @@
 
 
 (definition public (update-app/data cont)
-  (set-title stage-view "Updating application")
   (pull-repository (jiri-app-section) (app-dir)
     (lambda (new-app-content?)
-      (set-title stage-view (string-append "Updating " (get-title (jiri-data-section))))
       (pull-repository (jiri-data-section) (data-dir)
         (lambda (new-data-content?)
           (cont (or new-app-content? new-data-content?)))))
