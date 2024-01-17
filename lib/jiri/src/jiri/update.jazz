@@ -187,13 +187,13 @@
     directory: (app-directory)))
 
 
-(definition public (launch-app new-content? cont)
+(definition public (launch-app title new-content? cont)
   (declare (proper-tail-calls))
   (let ((section (jiri-splash-section)))
     (bind (task) (get-tasks section)
       (let ((total (jiri-splash-end)))
         (setup-stage-view (if new-content? (jiri-splash-updated) (jiri-splash-uptodate)))
-        (set-status task "Launching application")
+        (set-status task title)
         (set-remaining task total)
         (set-range task (new Range 0 total))
         (let ((server-port (open-tcp-server 0)))
