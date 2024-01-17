@@ -26,7 +26,7 @@
 (class Jiri-Task extends Object
   
   
-  (slot status     initialize #f  accessors generate)
+  (slot status     initialize #f  getter generate)
   (slot part       initialize #f  getter generate)
   (slot range      initialize #f  getter generate setter explicit)
   (slot pos        initialize #f  getter generate setter explicit)
@@ -45,6 +45,11 @@
     (print-unreadable self output
       (lambda (output)
         (format output "{s}" status))))
+  
+  
+  (method public (set-status self status)
+    (set! self.status status)
+    (task-invalidater self))
   
   
   (method public (set-range self range)
