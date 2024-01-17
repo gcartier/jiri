@@ -32,14 +32,7 @@
 ;;;
 
 
-(definition protected send-crash-reports-thread
-  #f)
-
-(definition protected send-crash-reports-quit?
-  #f)
-
-
-(definition public (send-crash-reports monitor application?)
+(definition public (send-crash-reports monitor)
   (when monitor
     (let ((curl (curl-path)))
       (when (file-exists? curl)
@@ -99,28 +92,8 @@
             (let ((crashes (collect-crashes)))
               (let ((total (length crashes)))
                 (when (> total 0)
-                  (if (not application?)
-                      (begin
-                        (send-crashes crashes total)
-                        (set-title crashes-view "Sending logs done")
-                        (sleep 1)
-                        (set-title crashes-view ""))
-                    (let ((callback quit-callback))
-                      (set-quit-callback
-                        (lambda ()
-                          (set! send-crash-reports-quit? #t)))
-                      (thread-start!
-                        (new-thread
-                          (lambda ()
-                            (set! send-crash-reports-thread (current-thread))
-                            (send-crashes crashes total)
-                            (set-title crashes-view "Sending logs done")
-                            (set-quit-callback callback)
-                            (set! send-crash-reports-thread #f)
-                            (when send-crash-reports-quit?
-                              (sleep 1)
-                              (quit-callback)))
-                          'send-crash-reports)))))))))))))
+                  (send-crashes crashes total)
+                  (set-title crashes-view ""))))))))))
 
 
 ;;;
