@@ -235,8 +235,12 @@
                        (when (or (not last-step)
                                  (> step last-step))
                          (set! last-step step)
-                         (set-pos task loaded)
-                         (set-remaining task remaining)))))
+                         (cond ((>= loaded total)
+                                (set-pos task total)
+                                (set-remaining task 0))
+                               (else
+                                (set-pos task loaded)
+                                (set-remaining task remaining)))))))
                  (loop loaded))))))))
 
 
