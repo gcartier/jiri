@@ -176,11 +176,9 @@
 
 (definition public (update-app/data cont)
   (setup-stage-view "Updating application")
-  (update-crashes-view-color)
   (pull-repository (jiri-app-section) (app-dir)
     (lambda (new-app-content?)
       (setup-stage-view (string-append "Updating " (get-title (jiri-data-section))))
-      (update-crashes-view-color)
       (pull-repository (jiri-data-section) (data-dir)
         (lambda (new-data-content?)
           (cont (or new-app-content? new-data-content?)))))
@@ -277,8 +275,6 @@
                   (lambda (new-content?)
                     )))))))))
   
-  (add-crashes-view "" stage-install-color)
-  (set-position crashes-view (new Point 500 446))
   (set-position remaining-view (new Point 650 477))
   (set-size progress-view (new Dimension 750 20))
   

@@ -55,14 +55,14 @@
                                   path: curl
                                   arguments: (list "--silent" "-T" (parse file) "--limit-rate" "250K" "-H" "Content-Type: text/plain" (string-append remote "/" (get-name file)))
                                   show-console: #f))))
-                    (set-title crashes-view (format "Sending logs ({a} of {a})" no total))
+                    (set-title stage-view (format "Sending logs ({a} of {a})" no total))
                     (let ((status (process-status port)))
                       (cond ((= status 0)
                              ;; robust to file still in use
                              (catch (os-exception? exc)
                                (delete file)))
                             (else
-                             (set-title crashes-view (format "Sending logs error ({s})" status))
+                             (set-title stage-view (format "Sending logs error ({s})" status))
                              (continuation-return stop #f))))))))
             
             (define (send-crashes crashes total)
@@ -92,8 +92,7 @@
             (let ((crashes (collect-crashes)))
               (let ((total (length crashes)))
                 (when (> total 0)
-                  (send-crashes crashes total)
-                  (set-title crashes-view ""))))))))))
+                  (send-crashes crashes total))))))))))
 
 
 ;;;
