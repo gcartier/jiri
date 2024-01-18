@@ -74,14 +74,14 @@
               (let ((queue (new-queue)))
                 (for-each (lambda (info)
                             (when info
-                              (bind (name dir extensions remote) info
+                              (bind (name dir remote) info
                                 (let ((effective-dir (if (string? dir)
                                                          (dirname->directory (string-append (current-root-dir) dir))
                                                        dir)))
                                   (when (exists? effective-dir)
                                     (iterate-directory effective-dir
                                       (lambda (file)
-                                        (when (member? (get-extension file) extensions test: extension=?)
+                                        (when (extension=? (get-extension file) "report")
                                           (enqueue queue (list file remote))))
                                       files?: #t
                                       directories?: #f
