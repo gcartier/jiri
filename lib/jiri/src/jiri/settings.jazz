@@ -62,14 +62,14 @@
 
 
 ;;;
-;;;; Crashes
+;;;; Snapshots
 ;;;
 
 
-(define-jiri jiri-installer-crashes
+(define-jiri jiri-installer-snapshots
   #f)
 
-(define-jiri jiri-application-crashes
+(define-jiri jiri-application-snapshots
   #f)
 
 

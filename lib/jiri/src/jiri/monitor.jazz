@@ -28,18 +28,18 @@
 
 
 ;;;
-;;;; Crashes
+;;;; Snapshots
 ;;;
 
 
-(definition public (send-crash-reports monitor)
+(definition public (send-snapshot-reports monitor)
   (when monitor
     (let ((curl (curl-path)))
       (when (file-exists? curl)
         (continuation-capture
           (lambda (stop)
-            (define (send-crash crash no total)
-              (bind (file remote) crash
+            (define (send-snapshot snapshot no total)
+              (bind (file remote) snapshot
                 (define (normalize-file file)
                   (let ((name (get-name file)))
                     (if (find name #\space)
@@ -65,12 +65,12 @@
                              (set-title stage-view (format "Sending logs error ({s})" status))
                              (continuation-return stop #f))))))))
             
-            (define (send-crashes crashes total)
-              (loop (for crash in crashes)
+            (define (send-snapshots snapshots total)
+              (loop (for snapshot in snapshots)
                     (for no from 1)
-                    (send-crash crash no total)))
+                    (send-snapshot snapshot no total)))
             
-            (define (collect-crashes)
+            (define (collect-snapshots)
               (let ((queue (new-queue)))
                 (for-each (lambda (info)
                             (when info
@@ -89,10 +89,10 @@
                           monitor)
                 (queue-list queue)))
             
-            (let ((crashes (collect-crashes)))
-              (let ((total (length crashes)))
+            (let ((snapshots (collect-snapshots)))
+              (let ((total (length snapshots)))
                 (when (> total 0)
-                  (send-crashes crashes total))))))))))
+                  (send-snapshots snapshots total))))))))))
 
 
 ;;;
