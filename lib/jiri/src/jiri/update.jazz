@@ -189,7 +189,7 @@
     directory: (app-directory)))
 
 
-(definition public (launch-app title new-content? cont)
+(definition public (launch-app title new-content? load-expected cont)
   (let ((section (jiri-splash-section)))
     (bind (task) (get-tasks section)
       (set-title stage-view (if new-content? (jiri-splash-updated) (jiri-splash-uptodate)))
@@ -199,6 +199,7 @@
                 (build-arguments
                   (lambda (add)
                     (add "load-feedback" (number->string (socket-info-port-number (tcp-server-socket-info server-port))))
+                    (add "load-expected" (number->string load-expected))
                     (add "called-from" "sirius")
                     (let ((url (effective-launch-url)))
                       (when url
