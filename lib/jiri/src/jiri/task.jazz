@@ -28,6 +28,7 @@
   
   (slot status     initialize #f  getter generate)
   (slot part       initialize #f  getter generate)
+  (slot doneable?  initialize #t  getter generate setter explicit)
   (slot range      initialize #f  getter generate setter explicit)
   (slot pos        initialize #f  getter generate setter explicit)
   (slot downloaded initialize #f  getter generate setter explicit)
@@ -35,8 +36,9 @@
   (slot children   initialize '() accessors generate)
   
   
-  (method override (initialize self (part: part #f))
+  (method override (initialize self (part: part #f) (doneable?: doneable? #t))
     (set! self.part part)
+    (set! self.doneable? doneable?)
     (set! self.range (new Range 0 1))
     (set! self.pos 0))
   
@@ -63,7 +65,9 @@
   
   
   (method public (done? self)
-    (= pos (get-end range)))
+    (if doneable?
+        (= pos (get-end range))
+      #f))
   
   
   (method public (set-done self)
