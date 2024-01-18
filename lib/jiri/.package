@@ -21,6 +21,7 @@
                           jiri.section
                           jiri.settings
                           jiri.structure
+                          jiri.syntax
                           jiri.task
                           jiri.update
                           jiri.view
