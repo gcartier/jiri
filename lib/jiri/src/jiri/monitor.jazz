@@ -18,6 +18,7 @@
 
 (import (jazz.event)
         (jazz.io)
+        (jazz.pack)
         (jazz.ui)
         (jazz.view)
         (jiri.base)
@@ -39,28 +40,21 @@
         (continuation-capture
           (lambda (stop)
             (define (send-snapshot snapshot no total)
-              (bind (file remote) snapshot
-                (define (normalize-file file)
-                  (let ((name (get-name file)))
-                    (if (find name #\space)
-                        (let ((brother-name (substitute #\space #\_ name)))
-                          (let ((brother (new-brother file brother-name)))
-                            (rename file brother)
-                            brother))
-                      file)))
-                
-                (let ((file (normalize-file file)))
+              (bind (dir remote) snapshot
+                (let ((report (new-file (get-parent dir) (add-extension (get-name dir) "report"))))
+                  (pack-directory dir report)
+                  (delete dir)
                   (let ((port (open-process
                                 (list
                                   path: curl
-                                  arguments: (list "--silent" "-T" (parse file) "--limit-rate" "250K" "-H" "Content-Type: text/plain" (string-append remote "/" (get-name file)))
+                                  arguments: (list "--silent" "-T" (parse report) "--limit-rate" "250K" "-H" "Content-Type: text/plain" (string-append remote "/" (get-name report)))
                                   show-console: #f))))
                     (set-title stage-view (format "Sending logs ({a} of {a})" no total))
                     (let ((status (process-status port)))
                       (cond ((= status 0)
-                             ;; robust to file still in use
+                             ;; robust to report still in use
                              (catch (os-exception? exc)
-                               (delete file)))
+                               (delete report)))
                             (else
                              (set-title stage-view (format "Sending logs error ({s})" status))
                              (continuation-return stop #f))))))))
@@ -80,11 +74,11 @@
                                                        dir)))
                                   (when (exists? effective-dir)
                                     (iterate-directory effective-dir
-                                      (lambda (file)
-                                        (when (extension=? (get-extension file) "report")
-                                          (enqueue queue (list file remote))))
-                                      files?: #t
-                                      directories?: #f
+                                      (lambda (dir)
+                                        (when (starts-with? (get-name dir) "snapshot_")
+                                          (enqueue queue (list dir remote))))
+                                      files?: #f
+                                      directories?: #t
                                       recursive?: #f))))))
                           monitor)
                 (queue-list queue)))
