@@ -89,18 +89,25 @@
   (for-each set-done (get-children (get-connection (jiri-update-section)))))
 
 
-(definition (exception-header)
-  (if (or (not (file-exists? (update-dir)))
-          (not (file-exists? (data-dir))))
-      "Failed to install"
-    "Failed to update"))
-
-
 (definition public update-priority
   -10)
 
 
 (definition public (catch-jiri-exception thunk)
+  (define (exception-message exc)
+    (typecase exc
+      ((Jas-Unable-To-Connect) "Unable to connect to server")
+      ((Jas-Invalid-Version) (format "Your version of {a} is obsolete. Please reinstall" (jiri-invite)))
+      ((Jas-Invalid-Path) "Invalid path")
+      ((Jas-Inexistant-Repository) "Inexistant repository")
+      ((Jas-Connection-Broke) "Connection broke")
+      (else "An unexpected problem occurred")))
+  
+  (define (exception-header exc)
+    (if (is? exc Jas-Connection-Exception)
+        "Failed to connect"
+      "Unexpected problem"))
+  
   (catch-exception-filter
     (lambda (exc)
       (snapshot-process
@@ -111,13 +118,14 @@
         current-thread-only?: #t)
       #t)
     (lambda (exc)
-      (let ((exception-message (exception-reason exc)))
+      (let ((message (exception-message exc))
+            (header (exception-header exc)))
         (delay-event
           (lambda ()
-            (system-message exception-message
+            (system-message message
                             type: 'problem
-                            title: (jiri-application)
-                            header: (exception-header))
+                            title: (jiri-invite)
+                            header: header)
             (exit 1)))
         (sleep +inf.0)))
     (lambda ()
