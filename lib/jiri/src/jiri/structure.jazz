@@ -70,10 +70,10 @@
 (cond-expand
   (mac
     (definition public (app-exe)
-      (app-dir)))
+      (string-append (app-dir) "Contents/MacOS/" (jiri-app-exe))))
   (else
     (definition public (app-exe)
-      (add-extension (string-append (app-dir) (jiri-application)) (executable-extension kernel-platform)))))
+      (string-append (app-dir) (jiri-app-exe)))))
 
 
 ;;;

@@ -138,6 +138,9 @@
 (define-jiri jiri-app-section
   #f)
 
+(define-jiri jiri-app-exe
+  #f)
+
 
 ;;;
 ;;;; Splash
