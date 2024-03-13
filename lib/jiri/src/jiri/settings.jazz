@@ -110,6 +110,15 @@
 
 
 ;;;
+;;;; Worker
+;;;
+
+
+(define-jiri jiri-worker-section
+  #f)
+
+
+;;;
 ;;;; Data
 ;;;
 

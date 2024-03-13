@@ -47,6 +47,9 @@
 (definition public (update-dir)
   (string-append (current-root-dir) (section-dir (jiri-update-section))))
 
+(definition public (worker-dir)
+  (string-append (current-root-dir) (section-dir (jiri-worker-section))))
+
 (definition public (app-dir)
   (string-append (current-root-dir) (section-dir (jiri-app-section))))
 
