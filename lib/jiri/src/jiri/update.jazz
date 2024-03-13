@@ -180,12 +180,14 @@
 
 
 (definition public (update-app/data cont)
-  (pull-repository (jiri-app-section) (app-dir)
-    (lambda (new-app-content?)
-      (pull-repository (jiri-data-section) (data-dir)
-        (lambda (new-data-content?)
-          (cont (or new-app-content? new-data-content?)))))
-    directory: (app-directory)))
+  (pull-repository-if (jiri-worker-section) (worker-dir)
+    (lambda (new-content?)
+      (pull-repository (jiri-app-section) (app-dir)
+        (lambda (new-app-content?)
+          (pull-repository (jiri-data-section) (data-dir)
+            (lambda (new-data-content?)
+              (cont (or new-app-content? new-data-content?)))))
+        directory: (app-directory)))))
 
 
 (definition public (launch-app title new-content? load-expected cont)
