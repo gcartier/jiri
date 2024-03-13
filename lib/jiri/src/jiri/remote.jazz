@@ -68,6 +68,12 @@
           (check client))))))
 
 
+(definition public (pull-repository-if section dir cont . rest)
+  (if (not section)
+      (cont #f)
+    (apply pull-repository section dir cont rest)))
+
+
 (definition public (pull-repository section dir cont (directory: directory #f) (cache-repository: cache-repository #f) (cache-exclude: cache-exclude #f))
   (let ((title (get-title section))
         (connection (get-connection section)))
