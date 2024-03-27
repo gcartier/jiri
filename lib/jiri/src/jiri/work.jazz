@@ -21,6 +21,7 @@
         (jazz.graphic)
         (jazz.snapshot)
         (jazz.tree)
+        (jazz.ui)
         (jazz.view)
         (jazz.window)
         (jiri.base)
