@@ -36,8 +36,10 @@
         (jiri.base)
         (jiri.connection)
         (jiri.manage)
+        (jiri.section)
         (jiri.settings)
         (jiri.structure)
+        (jiri.task)
         (jiri.window)
         (jiri.work))
 

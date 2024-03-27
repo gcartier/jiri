@@ -17,7 +17,11 @@
 
 
 (import (jiri)
-        (jiri.settings))
+        (jiri.connection)
+        (jiri.manager)
+        (jiri.section)
+        (jiri.settings)
+        (jiri.task))
 
 
 ;;;

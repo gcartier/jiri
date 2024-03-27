@@ -31,6 +31,7 @@
         (jiri.font)
         (jiri.manage)
         (jiri.settings)
+        (jiri.task)
         (jiri.window))
 
 
