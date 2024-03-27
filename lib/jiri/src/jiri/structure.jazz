@@ -49,7 +49,9 @@
   (string-append (current-root-dir) (section-dir (jiri-update-section))))
 
 (definition public (worker-dir)
-  (string-append (current-root-dir) (section-dir (jiri-worker-section))))
+  (let ((section (jiri-worker-section)))
+    (and section
+         (string-append (current-root-dir) (section-dir section)))))
 
 (definition public (app-dir)
   (string-append (current-root-dir) (section-dir (jiri-app-section))))
