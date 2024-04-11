@@ -13,4 +13,45 @@
 ;;;  See www.jazzscheme.org for details.
 
 
-(module jiri jazz)
+(module jiri jazz
+
+
+(import (jazz.io)
+        @splashoo
+        (jazz.snapshot)
+        (jiri.settings)
+        (jiri.structure)
+        (jiri.view)
+        (jiri.window))
+
+
+(definition package (jiri-prepare)
+  (when (jiri-process-name)
+    (current-process-name-set! (jiri-process-name)))
+  @splashoo
+  (when (jiri-name-setting)
+    (when (exists? (jiri-name-setting))
+      (snapshot-user (call-with-input-file (path-settings (jiri-name-setting))
+                       read))))
+  @splashoo
+  (when (jiri-snapshots-directory)
+    (snapshots-directory (jiri-snapshots-directory)))
+  @splashoo
+  (unless kernel-source-accessible?
+    (set-exception-debugger (application-exception-debugger))
+    (set-exception-hook exception-debugger-hook)))
+  
+  
+(definition package (jiri-finish)
+  (let ((position (if (and (/= window-h -1)
+                           (/= window-v -1))
+                      (new Point window-h window-v)
+                    {Point 100 100}))
+        (size (cache-background-size)))
+    (setup-jiri-pane position size))
+  (jiri-init)
+  ;(jiri-startup)
+  (when send-ready?
+    (write 'ready)
+    (newline)
+    (force-output))))

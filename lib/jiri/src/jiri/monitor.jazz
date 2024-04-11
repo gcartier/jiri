@@ -16,14 +16,12 @@
 (module jiri.monitor jazz
 
 
-(import (jazz.event)
-        (jazz.io)
+(import (jazz.io)
         (jazz.pack)
-        (jazz.ui)
-        (jazz.view)
         (jiri.base)
         (jiri.settings)
         (jiri.structure)
+        (jiri.view)
         (jiri.window)
         (jiri.work))
 

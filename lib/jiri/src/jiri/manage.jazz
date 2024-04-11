@@ -16,8 +16,7 @@
 (module jiri.manage jazz
 
 
-(import (jiri)
-        (jiri.connection)
+(import (jiri.connection)
         (jiri.manager)
         (jiri.section)
         (jiri.settings)

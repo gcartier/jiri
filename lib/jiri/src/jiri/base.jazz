@@ -16,10 +16,11 @@
 (module jiri.base jazz
 
 
-(import (jazz.debuggee)
+(import @splashoo
+        (jazz.debuggee)
         (jazz.io)
-        (jazz.platform)
-        (jazz.window))
+        (jazz.splash)
+        (jiri.view))
 
 
 ;;;
@@ -52,7 +53,7 @@
 
 (definition public (delegate-process path (arguments: arguments '()) (wait-and-quit?: wait-and-quit? #f) (mac-open?: mac-open? #f))
   (define (add-debugger arguments)
-    (let ((debugger (debugger-argument)))
+    (let ((debugger #f @splashoo (debugger-argument)))
       (if (not debugger)
           arguments
         (cons "-debugger" (cons debugger arguments)))))
@@ -71,8 +72,8 @@
   
   (if (not wait-and-quit?)
       (open redirect?: #f)
-    (jazz.window:set-cursor :wait)
-    (disable-window (jazz.application:current-toplevel))
+    (splash-set-cursor :wait)
+    (disable-window jiri-pane)
     (let ((port (open redirect?: #t)))
       (thread-join!
         (thread-start!

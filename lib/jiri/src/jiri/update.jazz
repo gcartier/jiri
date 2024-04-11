@@ -16,20 +16,13 @@
 (module jiri.update jazz
 
 
-(import (jazz.application)
+(import (jazz.appl)
         (jazz.associative)
         (jazz.associative.remote)
-        (jazz.component)
-        (jazz.event)
         (jazz.io)
-        (jazz.outline)
-        (jazz.platform)
         (jazz.settings)
+        @splashoo
         (jazz.snapshot)
-        (jazz.tree)
-        (jazz.view)
-        (jazz.window)
-        (jiri)
         (jiri.base)
         (jiri.connection)
         (jiri.manage)
@@ -112,6 +105,7 @@
   
   (catch-exception-filter
     (lambda (exc)
+      @splashoo
       (snapshot-process
         exception: exc
         max-depth: 0
@@ -122,6 +116,7 @@
     (lambda (exc)
       (let ((message (exception-message exc))
             (header (exception-header exc)))
+        @splashoo
         (delay-event
           (lambda ()
             (system-message message
@@ -142,13 +137,14 @@
 
 
 (definition public (setup-stage-view)
+  (add-stage-view stage-ready-color) @splashoo 
   (if first-install?
       (add-stage-view stage-install-color)
     (add-stage-view stage-ready-color)))
 
 
 (definition public (set-stage-view-updating)
-  (set-title stage-view (if first-install?
+  (set-title stage-view (jiri-splash-uptodate) @splashoo (if first-install?
                             (string-append "Installing " (jiri-title) " for the first time, please be patient")
                           (string-append "Updating " (jiri-title)))))
 
@@ -166,7 +162,7 @@
               (add "called-from" called-from)
               (add "first-install" (if first-install? "yes" "no"))
               (add "work-downloaded" (number->string (or (calculate-downloaded) 0)))
-              (let ((pos (get-position (current-toplevel))))
+              (let ((pos (get-position jiri-pane)))
                 (add "window-h" (number->string (get-h pos)))
                 (add "window-v" (number->string (get-v pos))))
               (add "send-ready" "true")
@@ -252,44 +248,11 @@
 
 
 (definition public (jiri-layout)
-  (add-pane-view root-view)
   (add-pane-view (invite-view))
   (when close-view
     (add-pane-view close-view))
   (when minimize-view
     (add-pane-view minimize-view))
-  
-  (when (jiri-connections?)
-    (add-pane-view connections-view)
-    (let ((section (jiri-app-section)))
-      (let ((connections (get-connections section))
-            (default (get-default section)))
-        (if (not connections)
-            (let ((connection (get-connection section))
-                  (tree (locate connections-view 'tree)))
-              (add-row tree children: (list (new Tree-Node title: (get-title connection))) user-data: connection)
-              (set-single-selection tree 0))
-          (assert default)
-          (set-connection-change
-            (lambda (connection)
-              (set-connection (jiri-app-section) connection)))
-          (let ((tree (locate connections-view 'tree)))
-            (for-each (lambda (connection)
-                        (add-row tree children: (list (new Tree-Node title: (get-title connection))) user-data: connection))
-                      connections)
-            (let ((default-connection (find connections default key: get-title test: equal? return: 'item)))
-              (select-user-data-row tree default-connection)))
-          (set-connection-change
-            (lambda (connection)
-              (set-connection (jiri-app-section) connection)
-              (unless (get-started? connection)
-                (pull-repository (jiri-app-section) (app-dir)
-                  (lambda (new-content?)
-                    )))))))))
-  
-  (set-position remaining-view (new Point 650 477))
-  (set-size progress-view (new Dimension 750 20))
-  
   (add-pane-view percentage-view)
   (add-pane-view downloaded-view)
   (add-pane-view status-view)

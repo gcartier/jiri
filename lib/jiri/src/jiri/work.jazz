@@ -19,13 +19,7 @@
 (import (jazz.event)
         (jazz.geometry)
         (jazz.graphic)
-        (jazz.snapshot)
-        (jazz.tree)
-        (jazz.ui)
-        (jazz.view)
-        (jazz.window)
         (jiri.base)
-        (jiri.font)
         (jiri.manage)
         (jiri.section)
         (jiri.settings)
@@ -43,17 +37,6 @@
 ;;   both repositories rapidly maybe even in parallel
 ;; - Install could pass info to the app of what was the last head so that we could show
 ;;   only what changed since last time by having a what's new system indexed by commit!?
-
-
-;;;
-;;;; Root
-;;;
-
-
-(definition public root-view
-  (new Jiri-Root
-    position: (new Point 0 0)
-    size: (new Dimension 850 550)))
 
 
 ;;;
@@ -88,37 +71,6 @@
   (new Jiri-Close
     position: (new Point 819 9)
     size: (new Dimension 22 22)))
-
-
-;;;
-;;;; Connections
-;;;
-
-
-(class Jiri-Connections extends Jiri-Tree
-  
-  
-  (method package (on-selection-change self evt)
-    (let ((tree (get-sender evt)))
-      (let ((selection (get-single-selection tree)))
-        (let ((row (get-row tree selection)))
-          (let ((connection (get-user-data row)))
-            (when connection-change
-              (connection-change connection))))))))
-
-
-(definition public connections-view
-  (new Jiri-Connections
-    background: {Color Black alpha: 0.2}
-    position: (new Point 24 118)
-    size: (new Dimension 175 300)))
-
-
-(definition connection-change
-  #f)
-
-(definition protected (set-connection-change proc)
-  (set! connection-change proc))
 
 
 ;;;
@@ -256,7 +208,7 @@
 (definition public remaining-view
   (new Jiri-Remaining
     font: default-label-font
-    position: (new Point 500 477)
+    position: (new Point 650 477)
     size: (new Dimension 150 20)
     justification: 'tail))
 
@@ -269,7 +221,7 @@
 (definition public progress-view
   (new Jiri-Progress
     position: (new Point 50 498)
-    size: (new Dimension 600 20)))
+    size: (new Dimension 750 20)))
 
 
 ;;;

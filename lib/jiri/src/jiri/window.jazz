@@ -29,18 +29,6 @@
 
 
 ;;;
-;;;; Startup
-;;;
-
-
-(definition public jiri-startup
-  #f)
-
-(definition public (set-jiri-startup thunk)
-  (set! jiri-startup thunk))
-
-
-;;;
 ;;;; Window
 ;;;
 

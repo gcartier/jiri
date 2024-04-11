@@ -42,9 +42,6 @@
 (define-jiri jiri-background
   #f)
 
-(define-jiri jiri-connections?
-  #t)
-
 (define-jiri jiri-dark-overlay?
   #f)
 

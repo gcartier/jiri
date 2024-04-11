@@ -16,57 +16,217 @@
 (module jiri.view jazz
 
 
-(import (jazz.application)
-        (jazz.cairo)
-        (jazz.component)
+(import (jazz.cairo)
         (jazz.geometry)
         (jazz.graphic)
-        (jazz.graphic.image)
-        (jazz.markup)
-        (jazz.tree)
-        (jazz.ui)
-        (jazz.view)
-        (jazz.window)
-        (jiri)
-        (jiri.font)
+        (jazz.io)
+        (jazz.splash)
         (jiri.manage)
         (jiri.settings)
         (jiri.task)
         (jiri.window))
 
 
+(definition public default-title-font
+  {Font font-name: tahoma point-size: 60})
+
+(definition public default-label-font
+  {Font font-name: tahoma point-size: 11})
+
+(definition public default-button-font
+  {Font font-name: tahoma point-size: 22})
+
+
+;;;
+;;;; Pane
+;;;
+
+
+(class Jiri-Pane extends Object implements Splashable
+  
+  
+  (slot width                 getter generate)
+  (slot height                getter generate)
+  (slot views  initialize '() getter generate)
+  
+  
+  (method override (initialize self position size)
+    (nextmethod self)
+    (set! width (get-width size))
+    (set! height (get-height size)))
+  
+  
+  (method public (get-position self)
+    (new Point 100 100))
+  
+  
+  (method override (splash-paint self context)
+    (with-splash-painting context width height
+      (lambda (context)
+        (paint-background self context)
+        (for-each (lambda (view)
+                    (let ((position (get-position view))
+                          (size (get-size view)))
+                      (let ((x (cast <fl> (get-h position)))
+                            (y (cast <fl> (get-v position)))
+                            (width (cast <fl> (get-width size)))
+                            (height (cast <fl> (get-height size))))
+                        (cairo-identity context)
+                        (cairo-translate context x y)
+                        (draw view context width height))))
+                  views))))
+  
+  
+  (method override (splash-close self)
+    )
+  
+  
+  (method override (splash-mouse-down self x y)
+    (let ((pos (new Point (fxround x) (fxround y))))
+      (let ((view (find-view self pos)))
+        (when view
+          (mouse-down view (nu- pos (get-position view)))))))
+  
+  
+  (method override (splash-mouse-move self x y)
+    (let ((pos (new Point (fxround x) (fxround y))))
+      (let ((view (find-view self pos)))
+        (when view
+          (mouse-move view (nu- pos (get-position view)))))))
+  
+  
+  (method override (splash-mouse-up self x y)
+    (let ((pos (new Point (fxround x) (fxround y))))
+      (let ((view (find-view self pos)))
+        (when view
+          (mouse-up view (nu- pos (get-position view)))))))
+  
+  
+  (method (paint-background self context)
+    (cairo-blit context (cache-background))
+    (when (jiri-dark-overlay?)
+      (let ((stops (list (list 0 0 0 0 0 0) (list 1 0 0 0 1))))
+        (cairo-gradient context 0 200 850 350 stops direction: 'vertical))))
+  
+  
+  @splashoo-from-jiri-root
+  (method override (cursor-update self evt)
+    (splash-set-cursor (if (work-in-progress?) :wait :arrow)))
+  
+  
+  (method public (find-view self pos)
+    (continuation-capture
+      (lambda (return)
+        (for-each (lambda (view)
+                    (when (in-rect? pos (get-rect view))
+                      (continuation-return return view)))
+                  views)
+        #f)))
+  
+  
+  (method public (add-view self view)
+    (set! views (append! views (list view))))
+  
+  
+  (method public (disable-window self)
+    )
+  
+  
+  @splashoo
+  (method override (escape-press self evt)
+    (quit-callback)))
+
+
 (definition protected jiri-pane
   #f)
 
-(definition public (set-jiri-pane pane)
-  (set! jiri-pane pane))
+(definition public (setup-jiri-pane position size)
+  (set! jiri-pane (new Jiri-Pane position size))
+  (splash-set! jiri-pane))
 
 
 (definition public (add-pane-view view)
-  (unless (get-parent view)
-    (set-parent view jiri-pane)
-    (invalidate-view view)))
-
-
-(definition public (remove-pane-view view)
-  (set-parent view #f)
+  (add-view jiri-pane view)
   (invalidate-view view))
 
 
 ;;;
-;;;; Look
+;;;; View
 ;;;
 
 
-(definition public jiri-look
-  (<form>
-    (<Trait>     name: jiri
-      (<install>
-        (<!>     name: menu               background: {Color White} highlight: {Gradient vertical {Color red: .588 green: .000 blue: .000} {Color red: .196 green: .000 blue: .000}} text-font: {Font Label point-size: 24} text-color: {Color Red} disabled-text-color: {Color red: .522 green: .506 blue: .427})
-        (<!>     name: scrollbar          background: none)
-        (<!>     name: scrollbar/tool     background: none)
-        (<!>     name: scrollbar/document background: none)
-        (<!>     name: tree               background: none line-color: {Color White} text-color: {Color White} focused-color: {Gradient vertical {Color red: 180 green: 0 blue: 0} {Color red: 250 green: 0 blue: 0}} unfocused-color: {Gradient vertical {Color red: 180 green: 0 blue: 0} {Color red: 250 green: 0 blue: 0}})))))
+(class Jiri-View extends Object
+  
+  
+  (slot title                getter generate)
+  (slot position <Point>     getter generate)
+  (slot size     <Dimension> getter generate)
+  (slot font                 getter generate)
+  
+  
+  (method override (initialize self (title: title #f) (position: position #f) (size: size #f) (font: font #f))
+    (nextmethod self)
+    (set! self.title title)
+    (set! self.position position)
+    (set! self.size size)
+    (set! self.font font))
+  
+  
+  ;; splashoo
+  (method public (set-position self pos)
+    )
+  
+  
+  ;; splashoo
+  (method public (set-font self value)
+    (set! font value)
+    (invalidate-view self))
+  
+  
+  (method public (get-rect self) <Rect>
+    (position/size->rect position size))
+  
+  
+  (method public (get-bounds self) <Rect>
+    (size-rect size))
+  
+  
+  ;; splashoo
+  (method public (set-enabled? self flag)
+    )
+  
+  
+  (method protected virtual (mouse-enter self)
+    )
+  
+  
+  (method protected virtual (mouse-leave self)
+    )
+  
+  
+  (method protected virtual (mouse-down self pos)
+    )
+  
+  
+  (method protected virtual (mouse-move self pos)
+    )
+  
+  
+  (method protected virtual (mouse-up self pos)
+    )
+  
+  
+  (method protected virtual (draw self context width height)
+    (cairo-color context 1 0 0 1)
+    (cairo-rect context 0 0 width height))
+  
+  
+  (method public (invalidate-view self)
+    (let ((x (cast <fl> (get-h position)))
+          (y (cast <fl> (get-v position)))
+          (width (cast <fl> (get-width size)))
+          (height (cast <fl> (get-height size))))
+      (splashInvalidate x y width height))))
 
 
 ;;;
@@ -82,7 +242,7 @@
   (when (not cached-background)
     (let ((background (jiri-background)))
       (assert background
-        (set! cached-background (load-image background)))))
+        (set! cached-background (cairo_image_surface_create_from_png (parse background))))))
   cached-background)
 
 
@@ -94,30 +254,11 @@
 
 
 ;;;
-;;;; Root
-;;;
-
-
-(class Jiri-Root extends View
-  
-  
-  (method override (draw self surface context)
-    (draw-surface surface (cache-background) 0 0)
-    (when (jiri-dark-overlay?)
-      (let ((rect (get-bounds self)))
-        (gradient-fill-rect surface (new Rect (get-left rect) (- (get-bottom rect) 350) (get-right rect) (get-bottom rect)) (list (list 0 {Color Black alpha: 0.}) (list 1 {Color Black})) direction: 'vertical))))
-  
-  
-  (method override (cursor-update self evt)
-    (set-cursor (if (work-in-progress?) :wait :arrow))))
-
-
-;;;
 ;;;; Title
 ;;;
 
 
-(class Jiri-Title extends View
+(class Jiri-Title extends Jiri-View
   
   
   (slot cursor-pos initialize #f getter generate)
@@ -125,16 +266,18 @@
   (slot moving?    initialize #f getter generate)
   
   
-  (method override (draw self surface context)
-    (set-font surface default-title-font)
-    ;; the or is a quick hack until debugged
-    (draw-text surface 0 0 (or title "") {Color White}))
+  (method override (draw self context width height)
+    (cairo-color context 1 1 1 1)
+    (cairo-font context "Tahoma" (get-point-size default-title-font))
+    (cairo-text context 0 0 title))
   
   
+  @splashoo
   (method override (cursor-update self evt)
-    (set-cursor :all))
+    (splash-set-cursor :all))
   
   
+  @splashoo
   (method override (mouse-down self evt)
     (set! cursor-pos (to-desktop self (get-position evt)))
     (set! window-pos (get-position (current-toplevel)))
@@ -142,6 +285,7 @@
     (acquire-capture self))
   
   
+  @splashoo
   (method override (drag-move self evt)
     (when moving?
       (let ((current (to-desktop self (get-position evt))))
@@ -150,6 +294,7 @@
             (set-position (current-toplevel) pos))))))
   
   
+  @splashoo
   (method override (mouse-up self evt)
     (when moving?
       (release-capture self)
@@ -161,11 +306,52 @@
 ;;;
 
 
-(class Jiri-Label extends Label-View
+(class Jiri-Label extends Jiri-View
   
   
-  (form
-    (<install> color: {Color White})))
+  (slot justification initialize 'head getter generate setter explicit)
+  (slot color         initialize #f    getter generate setter explicit)
+  
+  
+  (method override (initialize self . rest)
+    (bind-keywords ((justification #f) . others) rest
+      (apply nextmethod self others)))
+  
+  
+  (method public (set-title self value)
+    (set! title value)
+    (invalidate-view self))
+  
+  
+  (method public (set-justification self value)
+    (set! justification value)
+    (invalidate-view self))
+  
+  
+  (method public (set-color self value)
+    (set! color value)
+    (invalidate-view self))
+  
+  
+  ;; splashoo
+  (method protected virtual (label-title self)
+    title)
+  
+  
+  ;; splashoo
+  (method protected virtual (text-color self)
+    (or color {Color White}))
+  
+  
+  (method override (draw self context width height)
+    (cairo-font context "Tahoma" (get-point-size font))
+    (let ((title (or (label-title self) "")))
+      (let ((pos (justify-lazy (lambda () (cairo-extent context title))
+                               (lambda () (get-size self))
+                               (list justification 'center)))
+            (color (text-color self)))
+        (cairo-color context (get-red color) (get-green color) (get-blue color) (get-alpha color))
+        (cairo-text context (get-h pos) (get-v pos) title)))))
 
 
 ;;;
@@ -173,66 +359,53 @@
 ;;;
 
 
-(class Jiri-Button extends View
+(class Jiri-Button extends Jiri-View
   
   
   (property action  initialize #f accessors generate)
   (property active? initialize #t accessors generate)
   
   
-  (method override (draw self surface context)
+  (method override (draw self context width height)
+    (cairo-color context 0 1 0 1)
+    (cairo-rect context 0 0 width height)
+    @splashoo (
     (let ((bounds (get-bounds self)))
       (if (and enabled? active? (eq? self (mouse-view self)))
-          (fill-rect surface bounds {Color red: 230 green: 0 blue: 0})
-        (gradient-fill-rect surface bounds
+          (fill-rect context bounds {Color red: 230 green: 0 blue: 0})
+        (gradient-fill-rect context bounds
           (list (list 0 (if enabled? {Color red: 150 green: 0 blue: 0} {Color White}))
                 (list 1 (if enabled? {Color red: 220 green: 0 blue: 0} {Color White})))
           direction: 'horizontal)))
-    (set-font surface default-button-font)
+    (set-font context default-button-font)
     (when title
-      (let ((pos (justify-lazy (lambda () (get-text-extent surface title))
+      (let ((pos (justify-lazy (lambda () (get-text-extent context title))
                                (lambda () (get-size self))
                                'center)))
-        (draw-text surface (get-h pos) (get-v pos) title (if enabled? {Color White} {Color red: 160 green: 160 blue: 160})))))
+        (draw-text context (get-h pos) (get-v pos) title (if enabled? {Color White} {Color red: 160 green: 160 blue: 160}))))))
   
   
+  @splashoo
   (method override (cursor-update self evt)
     (if active?
-        (set-cursor :arrow)
-      (set-cursor (if (work-in-progress?) :wait :arrow))))
+        (splash-set-cursor :arrow)
+      (splash-set-cursor (if (work-in-progress?) :wait :arrow))))
   
   
+  @splashoo
   (method override (mouse-enter self)
     (invalidate-view self))
   
   
+  @splashoo
   (method override (mouse-leave self)
     (invalidate-view self))
   
   
+  @splashoo
   (method override (mouse-up self evt)
     (when (and enabled? active?)
       (process-action self self))))
-
-
-;;;
-;;;; Tree
-;;;
-
-
-(class Jiri-Tree extends Layout-View
-  
-  
-  (form
-    (<install>                                       background: {Color red: .000 green: .000 blue: .000 alpha: .2} layout-type: fill
-      (<Border-View>                                 border-type: edge style: entry
-        (<Scroller-View>                             vscroll?: #t
-          (<content~>                                layout-type: fill
-            (<Jiri-Tree-View>      name: tree        background: #f filled-column: environment font: {Font Label-User point-size: 18} default-row-height: 25 can-select-empty?: #f selection-handler: {Selection-Handler :form on-selection-change}
-              (<Tree-Node-Column>  name: environment toplevel-controls?: #f display-images?: #f))))))))
-
-
-(class Jiri-Tree-View extends Tree-View)
 
 
 ;;;
@@ -243,21 +416,22 @@
 (class Jiri-Close extends Jiri-Button
   
   
-  (method override (draw self surface context)
-    (let ((rect (get-bounds self)))
-      (let ((left (+ (get-left rect) 6))
-            (top (+ (get-top rect) 6))
-            (right (- (get-right rect) 6))
-            (bottom (- (get-bottom rect) 6)))
-        (define (draw-x width color)
-          (set-line-width surface width)
-          (set-color surface color)
-          (line surface left top right bottom)
-          (line surface right top left bottom))
-        
-        (draw-x 2. (if (eq? self (mouse-view self)) {Color red: 200 green: 0 blue: 0} {Color red: 255 green: 255 blue: 255})))))
+  (method override (draw self context width height)
+    (let ((left 6)
+          (top 6)
+          (right (- width 6))
+          (bottom (- height 6)))
+      (cairo-width context 2)
+      (cairo-color context 1 1 1 1)
+      (cairo-line context left top right bottom)
+      (cairo-line context right top left bottom)))
   
   
+  (method override (mouse-down self pos)
+    (exit))
+  
+  
+  @splashoo
   (method override (process-action self sender (properties (action-properties self)))
     (quit-callback)))
 
@@ -270,20 +444,17 @@
 (class Jiri-Minimize extends Jiri-Button
   
   
-  (method override (draw self surface context)
-    (let ((rect (get-bounds self)))
-      (let ((left (+ (get-left rect) 6))
-            (top (+ (get-top rect) 6))
-            (right (- (get-right rect) 6))
-            (bottom (- (get-bottom rect) 6)))
-        (define (draw-line width color)
-          (set-line-width surface width)
-          (set-color surface color)
-          (line surface left (- bottom 1) right (- bottom 1)))
-        
-        (draw-line 2. (if (eq? self (mouse-view self)) {Color red: 200 green: 0 blue: 0} {Color red: 255 green: 255 blue: 255})))))
+  (method override (draw self context width height)
+    (let ((left 6)
+          (top 6)
+          (right (- width 6))
+          (bottom (- height 6)))
+      (cairo-width context 2)
+      (cairo-color context 1 1 1 1)
+      (cairo-line context left (- bottom 1) right (- bottom 1))))
   
   
+  @splashoo
   (method override (process-action self sender (properties (action-properties self)))
     (minimize (current-toplevel))))
 
@@ -293,27 +464,26 @@
 ;;;
 
 
-(class Jiri-Progress extends View
+(class Jiri-Progress extends Jiri-View
   
   
-  (method override (draw self surface context)
-    (let ((rect (get-bounds self)))
-      (fill-rect surface rect {Color White})
-      (let ((left (get-left rect))
-            (top (get-top rect))
-            (right (get-right rect))
-            (bottom (get-bottom rect))
-            (width (rect-width rect))
-            (head {Color red: 150 green: 0 blue: 0})
-            (tail {Color red: 220 green: 0 blue: 0}))
-        (for-each-task-info
-          (lambda (task step from to)
-            (let ((l (+ left (fxfloor (* width from))))
-                  (r (+ left (fxceiling (* width to)))))
-              (let ((r (+ l (fxceiling (* (- r l) (progress-done task))))))
-                (with-clip surface (new Rect l top r bottom)
-                  (lambda ()
-                    (gradient-fill-rect surface (new Rect left top right bottom)
-                      (list (list 0 head)
-                            (list 1 tail))
-                      direction: 'horizontal))))))))))))
+  (method override (draw self context width height)
+    (cairo-color context 1 1 1 1)
+    (cairo-rect context 0 0 width height)
+    (let ((left 0)
+          (top 0)
+          (right width)
+          (bottom height)
+          (head {Color red: 150 green: 0 blue: 0})
+          (tail {Color red: 220 green: 0 blue: 0}))
+      (for-each-task-info
+        (lambda (task step from to)
+          (let ((l (+ left (fxfloor (* width from))))
+                (r (+ left (fxceiling (* width to)))))
+            (let ((r (+ l (fxceiling (* (- r l) (progress-done task))))))
+              (with-cairo-clip context l top (- r l) (- bottom top)
+                (lambda ()
+                  (cairo-gradient context left top right bottom
+                    (list (list 0 .588 0 0 1)
+                          (list 1 .863 0 0 1))
+                    direction: 'horizontal)))))))))))
