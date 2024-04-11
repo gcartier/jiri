@@ -50,7 +50,6 @@
         (size (cache-background-size)))
     (setup-jiri-pane position size))
   (jiri-init)
-  ;(jiri-startup)
   (when send-ready?
     (write 'ready)
     (newline)

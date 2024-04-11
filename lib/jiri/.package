@@ -23,8 +23,13 @@
                           jiri.window
                           jiri.work)
                   (dependencies jazz
+                                jazz.appl
                                 jazz.associative
+                                jazz.cairo
                                 jazz.foreign
+                                jazz.graphic
                                 jazz.io
+                                jazz.math
+                                jazz.settings
                                 jazz.splash)))
   (project ".project"))

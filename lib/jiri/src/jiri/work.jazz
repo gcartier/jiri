@@ -16,8 +16,7 @@
 (module jiri.work jazz
 
 
-(import (jazz.event)
-        (jazz.geometry)
+(import (jazz.geometry)
         (jazz.graphic)
         (jiri.base)
         (jiri.manage)
