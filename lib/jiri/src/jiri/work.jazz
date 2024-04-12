@@ -17,7 +17,6 @@
 
 
 (import (jazz.geometry)
-        (jazz.graphic)
         (jiri.base)
         (jiri.manage)
         (jiri.section)
@@ -78,16 +77,16 @@
 
 
 (definition public stage-setup-color
-  {Color red: 175 green: 0 blue: 0})
+  '(.686 .000 .000 1.))
 
 (definition public stage-install-color
-  {Color red: .763 green: .414 blue: .004})
+  '(.763 .414 .004 1.))
 
 (definition public stage-ready-color
-  {Color red: 0 green: 150 blue: 0})
+  '(.000 .588 .000 1.))
 
 (definition public stage-error-color
-  {Color red: 175 green: 0 blue: 0})
+  '(.686 .000 .000 1.))
 
 
 (definition public stage-view
@@ -101,7 +100,7 @@
 (definition public (add-stage-view color)
   (add-pane-view stage-view)
   (set-color stage-view color)
-  (set-font stage-view {Font font-name: tahoma point-size: 20 hint-style: full}))
+  (set-font stage-view '("Tahoma" 20)))
 
 
 ;;;
