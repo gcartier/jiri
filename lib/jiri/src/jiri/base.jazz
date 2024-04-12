@@ -82,4 +82,6 @@
               (input-port-timeout-set! port max-wait)
               (read port))
             'delegate)))
+      (exit)
+      @splashoo
       (quit)))))
