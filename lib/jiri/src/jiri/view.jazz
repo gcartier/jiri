@@ -354,65 +354,11 @@
 
 
 ;;;
-;;;; Button
-;;;
-
-
-(class Jiri-Button extends Jiri-View
-  
-  
-  (property action  initialize #f accessors generate)
-  (property active? initialize #t accessors generate)
-  
-  
-  (method override (draw self context width height)
-    (cairo-color context 0 1 0 1)
-    (cairo-rect context 0 0 width height)
-    @splashoo (
-    (let ((bounds (get-bounds self)))
-      (if (and enabled? active? (eq? self (mouse-view self)))
-          (fill-rect context bounds {Color red: 230 green: 0 blue: 0})
-        (gradient-fill-rect context bounds
-          (list (list 0 (if enabled? {Color red: 150 green: 0 blue: 0} {Color White}))
-                (list 1 (if enabled? {Color red: 220 green: 0 blue: 0} {Color White})))
-          direction: 'horizontal)))
-    (set-font context default-button-font)
-    (when title
-      (let ((pos (justify-lazy (lambda () (get-text-extent context title))
-                               (lambda () (get-size self))
-                               'center)))
-        (draw-text context (get-h pos) (get-v pos) title (if enabled? {Color White} {Color red: 160 green: 160 blue: 160}))))))
-  
-  
-  @splashoo
-  (method override (cursor-update self evt)
-    (if active?
-        (splash-set-cursor :arrow)
-      (splash-set-cursor (if (work-in-progress?) :wait :arrow))))
-  
-  
-  @splashoo
-  (method override (mouse-enter self)
-    (invalidate-view self))
-  
-  
-  @splashoo
-  (method override (mouse-leave self)
-    (invalidate-view self))
-  
-  
-  @splashoo
-  (method override (mouse-up self evt)
-    (when (and enabled? active?)
-      (process-action self self))))
-
-
-;;;
 ;;;; Close
 ;;;
 
 
-(class Jiri-Close extends Jiri-Button
+(class Jiri-Close extends Jiri-View
   
   
   (method override (draw self context width height)
@@ -426,12 +372,9 @@
       (cairo-line context right top left bottom)))
   
   
-  (method override (mouse-down self pos)
-    (exit))
-  
-  
-  @splashoo
-  (method override (process-action self sender (properties (action-properties self)))
+  (method override (mouse-up self pos)
+    (exit)
+    @splashoo
     (quit-callback)))
 
 
@@ -440,7 +383,7 @@
 ;;;
 
 
-(class Jiri-Minimize extends Jiri-Button
+(class Jiri-Minimize extends Jiri-View
   
   
   (method override (draw self context width height)
@@ -454,7 +397,7 @@
   
   
   @splashoo
-  (method override (process-action self sender (properties (action-properties self)))
+  (method override (mouse-up self pos)
     (minimize (current-toplevel))))
 
 
