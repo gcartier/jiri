@@ -60,20 +60,18 @@
   
   
   (method override (splash-paint self context)
-    (with-splash-painting context width height
-      (lambda (context)
-        (paint-background self context)
-        (for-each (lambda (view)
-                    (let ((position (get-position view))
-                          (size (get-size view)))
-                      (let ((x (cast <fl> (get-h position)))
-                            (y (cast <fl> (get-v position)))
-                            (width (cast <fl> (get-width size)))
-                            (height (cast <fl> (get-height size))))
-                        (cairo-identity context)
-                        (cairo-translate context x y)
-                        (draw view context width height))))
-                  views))))
+    (paint-background self context)
+    (for-each (lambda (view)
+                (let ((position (get-position view))
+                      (size (get-size view)))
+                  (let ((x (cast <fl> (get-h position)))
+                        (y (cast <fl> (get-v position)))
+                        (width (cast <fl> (get-width size)))
+                        (height (cast <fl> (get-height size))))
+                    (cairo-identity context)
+                    (cairo-translate context x y)
+                    (draw view context width height))))
+              views))
   
   
   (method override (splash-close self)
