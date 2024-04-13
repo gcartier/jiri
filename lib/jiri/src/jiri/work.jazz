@@ -100,7 +100,7 @@
 (definition public (add-stage-view color)
   (add-pane-view stage-view)
   (set-color stage-view color)
-  (set-font stage-view '("Tahoma" 20)))
+  (set-font stage-view default-stage-font))
 
 
 ;;;

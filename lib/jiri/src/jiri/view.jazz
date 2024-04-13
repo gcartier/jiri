@@ -29,11 +29,11 @@
 (definition public default-title-font
   '("Tahoma" 60))
 
+(definition public default-stage-font
+  '("Tahoma" 20))
+
 (definition public default-label-font
   '("Tahoma" 11))
-
-(definition public default-button-font
-  '("Tahoma" 22))
 
 
 ;;;
