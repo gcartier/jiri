@@ -102,7 +102,7 @@
   (method (paint-background self context)
     (cairo-blit context (cache-background))
     (when (jiri-dark-overlay?)
-      (let ((stops (list (list 0 0 0 0 0 0) (list 1 0 0 0 1))))
+      (let ((stops (list (list 0 0 0 0 0) (list 1 0 0 0 1))))
         (cairo-gradient context 0 200 850 350 stops direction: 'vertical))))
   
   
