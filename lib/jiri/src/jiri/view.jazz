@@ -311,7 +311,9 @@
   
   
   (method override (initialize self . rest)
-    (bind-keywords ((justification #f) . others) rest
+    (bind-keywords ((justification 'head) (color #f) . others) rest
+      (set! self.justification justification)
+      (set! self.color color)
       (apply nextmethod self others)))
   
   
