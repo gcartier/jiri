@@ -137,14 +137,13 @@
 
 
 (definition public (setup-stage-view)
-  (add-stage-view stage-ready-color) @splashoo 
   (if first-install?
       (add-stage-view stage-install-color)
     (add-stage-view stage-ready-color)))
 
 
 (definition public (set-stage-view-updating)
-  (set-title stage-view (jiri-splash-uptodate) @splashoo (if first-install?
+  (set-title stage-view (if first-install?
                             (string-append "Installing " (jiri-title) " for the first time, please be patient")
                           (string-append "Updating " (jiri-title)))))
 
