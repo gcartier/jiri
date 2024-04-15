@@ -120,10 +120,6 @@
     (set! views (append! views (list view))))
   
   
-  (method public (disable-window self)
-    )
-  
-  
   @splashoo
   (method override (escape-press self evt)
     (quit-callback)))

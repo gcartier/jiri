@@ -72,7 +72,6 @@
   
   (if (not wait-and-quit?)
       (open redirect?: #f)
-    (disable-window jiri-pane)
     (let ((port (open redirect?: #t)))
       (thread-join!
         (thread-start!
