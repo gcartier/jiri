@@ -219,11 +219,11 @@
   
   
   (method public (invalidate-view self)
-    (let ((x (cast <fl> (get-h position)))
-          (y (cast <fl> (get-v position)))
-          (width (cast <fl> (get-width size)))
-          (height (cast <fl> (get-height size))))
-      (splashInvalidate x y width height))))
+    (let ((x (get-h position))
+          (y (get-v position))
+          (width (get-width size))
+          (height (get-height size)))
+      (splash-invalidate x y width height))))
 
 
 ;;;
