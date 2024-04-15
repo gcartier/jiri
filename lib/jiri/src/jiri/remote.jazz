@@ -123,14 +123,11 @@
         (lambda ()
           (unless (safe-abort-point
                     (lambda ()
-                      (splash-set-cursor :arrow)
                       (set-working? connection #f)))
-            (splash-set-cursor :arrow)
             (set-working? connection #f)
             (set-done task)
             (cont new-content?))))
       
-      (splash-set-cursor :wait)
       (set-started? connection #t)
       (set-working? connection #t)
       (set-status task (string-append "Downloading " title))

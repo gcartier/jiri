@@ -72,7 +72,6 @@
   
   (if (not wait-and-quit?)
       (open redirect?: #f)
-    (splash-set-cursor :wait)
     (disable-window jiri-pane)
     (let ((port (open redirect?: #t)))
       (thread-join!
