@@ -396,9 +396,8 @@
       (cairo-line context left (- bottom 1) right (- bottom 1))))
   
   
-  @splashoo
   (method override (mouse-up self pos)
-    (minimize (current-toplevel))))
+    (splash-minimize)))
 
 
 ;;;
