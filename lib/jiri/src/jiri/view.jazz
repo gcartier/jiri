@@ -249,39 +249,10 @@
 (class Jiri-Title extends Jiri-View
   
   
-  (slot cursor-pos initialize #f getter generate)
-  (slot window-pos initialize #f getter generate)
-  (slot moving?    initialize #f getter generate)
-  
-  
   (method override (draw self context width height)
     (cairo-color context 1 1 1 1)
     (cairo-font context (first default-title-font) (second default-title-font))
-    (cairo-text context 0 0 title))
-  
-  
-  @splashoo
-  (method override (mouse-down self evt)
-    (set! cursor-pos (to-desktop self (get-position evt)))
-    (set! window-pos (get-position (current-toplevel)))
-    (set! moving? #t)
-    (acquire-capture self))
-  
-  
-  @splashoo
-  (method override (drag-move self evt)
-    (when moving?
-      (let ((current (to-desktop self (get-position evt))))
-        (let ((delta (nu- current cursor-pos)))
-          (let ((pos (nu+ window-pos delta)))
-            (set-position (current-toplevel) pos))))))
-  
-  
-  @splashoo
-  (method override (mouse-up self evt)
-    (when moving?
-      (release-capture self)
-      (set! moving? #f))))
+    (cairo-text context 0 0 title)))
 
 
 ;;;
