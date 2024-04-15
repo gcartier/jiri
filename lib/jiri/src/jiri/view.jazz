@@ -117,12 +117,7 @@
   
   
   (method public (add-view self view)
-    (set! views (append! views (list view))))
-  
-  
-  @splashoo
-  (method override (escape-press self evt)
-    (quit-callback)))
+    (set! views (append! views (list view)))))
 
 
 (definition protected jiri-pane
@@ -160,12 +155,6 @@
     (set! self.font font))
   
   
-  ;; splashoo
-  (method public (set-position self pos)
-    )
-  
-  
-  ;; splashoo
   (method public (set-font self value)
     (set! font value)
     (invalidate-view self))
@@ -177,11 +166,6 @@
   
   (method public (get-bounds self) <Rect>
     (size-rect size))
-  
-  
-  ;; splashoo
-  (method public (set-enabled? self flag)
-    )
   
   
   (method protected virtual (mouse-enter self)
@@ -289,12 +273,10 @@
     (invalidate-view self))
   
   
-  ;; splashoo
   (method protected virtual (label-title self)
     title)
   
   
-  ;; splashoo
   (method protected virtual (text-color self)
     (or color '(1. 1. 1. 1.)))
   
