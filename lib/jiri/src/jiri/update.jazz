@@ -243,10 +243,8 @@
 
 (definition public (jiri-layout)
   (add-pane-view (invite-view))
-  (when close-view
-    (add-pane-view close-view))
-  (when minimize-view
-    (add-pane-view minimize-view))
+  (add-pane-view close-view)
+  (add-pane-view minimize-view)
   (add-pane-view percentage-view)
   (add-pane-view downloaded-view)
   (add-pane-view status-view)
