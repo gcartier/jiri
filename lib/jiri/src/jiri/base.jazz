@@ -73,11 +73,6 @@
   (if (not wait-and-exit?)
       (open #f)
     (let ((port (open #t)))
-      (thread-join!
-        (thread-start!
-          (new-thread
-            (lambda ()
-              (input-port-timeout-set! port max-wait)
-              (read port))
-            'delegate)))
+      (input-port-timeout-set! port max-wait)
+      (read port)
       (exit)))))
