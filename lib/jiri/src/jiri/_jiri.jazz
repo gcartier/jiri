@@ -40,13 +40,10 @@
   (unless kernel-source-accessible?
     (set-exception-debugger (application-exception-debugger))
     (set-exception-hook exception-debugger-hook)))
-  
-  
+
+
 (definition package (jiri-finish)
-  (let ((position (if (and (/= window-h -1)
-                           (/= window-v -1))
-                      (new Point window-h window-v)
-                    {Point 100 100}))
+  (let ((position {Point 100 100})
         (size (cache-background-size)))
     (setup-jiri-pane position size))
   (jiri-init))

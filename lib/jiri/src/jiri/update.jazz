@@ -161,9 +161,6 @@
               (add "called-from" called-from)
               (add "first-install" (if first-install? "yes" "no"))
               (add "work-downloaded" (number->string (or (calculate-downloaded) 0)))
-              (let ((pos (get-position jiri-pane)))
-                (add "window-h" (number->string (get-h pos)))
-                (add "window-v" (number->string (get-v pos))))
               (let ((url (effective-launch-url)))
                 (when url
                   (add "url" url)))))))
