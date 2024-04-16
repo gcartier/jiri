@@ -51,7 +51,7 @@
     (queue-list queue)))
 
 
-(definition public (delegate-process path (arguments: arguments '()) (wait-and-exit?: wait-and-exit? #f) (mac-open?: mac-open? #f))
+(definition public (delegate-process path (arguments: arguments '()) (wait-and-exit?: wait-and-exit? #f))
   (define (add-debugger arguments)
     (let ((debugger #f @splashoo (debugger-argument)))
       (if (not debugger)
