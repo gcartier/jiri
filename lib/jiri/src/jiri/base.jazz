@@ -16,9 +16,7 @@
 (module jiri.base jazz
 
 
-(import @splashoo
-        (jazz.debuggee)
-        (jazz.io)
+(import (jazz.io)
         (jazz.splash)
         (jiri.view))
 
@@ -52,19 +50,10 @@
 
 
 (definition public (delegate-process path (arguments: arguments '()) (wait-and-exit?: wait-and-exit? #f))
-  (define (add-debugger arguments)
-    (let ((debugger #f @splashoo (debugger-argument)))
-      (if (not debugger)
-          arguments
-        (cons "-debugger" (cons debugger arguments)))))
-  
-  (define (quote-string str)
-    (string-append "\"" str "\""))
-  
   (define (open redirect?)
     (open-process (list
                     path: path
-                    arguments: (add-debugger arguments)
+                    arguments: arguments
                     stdin-redirection: redirect?
                     stdout-redirection: redirect?
                     stderr-redirection: redirect?
