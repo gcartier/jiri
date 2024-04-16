@@ -61,7 +61,7 @@
   (define (quote-string str)
     (string-append "\"" str "\""))
   
-  (define (open (redirect?: redirect? #f))
+  (define (open redirect?)
     (open-process (list
                     path: path
                     arguments: (add-debugger arguments)
@@ -71,8 +71,8 @@
                     show-console: #f)))
   
   (if (not wait-and-exit?)
-      (open redirect?: #f)
-    (let ((port (open redirect?: #t)))
+      (open #f)
+    (let ((port (open #t)))
       (thread-join!
         (thread-start!
           (new-thread

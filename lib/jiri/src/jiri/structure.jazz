@@ -87,11 +87,4 @@
   0)
 
 (definition public (set-work-downloaded value)
-  (set! work-downloaded value))
-
-
-(definition public send-ready?
-  #f)
-
-(definition public (set-send-ready? send?)
-  (set! send-ready? send?)))
+  (set! work-downloaded value)))

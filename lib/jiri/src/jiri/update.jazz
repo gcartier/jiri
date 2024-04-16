@@ -164,7 +164,6 @@
               (let ((pos (get-position jiri-pane)))
                 (add "window-h" (number->string (get-h pos)))
                 (add "window-v" (number->string (get-v pos))))
-              (add "send-ready" "true")
               (let ((url (effective-launch-url)))
                 (when url
                   (add "url" url)))))))

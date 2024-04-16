@@ -49,8 +49,10 @@
                     {Point 100 100}))
         (size (cache-background-size)))
     (setup-jiri-pane position size))
-  (jiri-init)
-  (when send-ready?
-    (write 'ready)
-    (newline)
-    (force-output))))
+  (jiri-init))
+
+
+(definition package (jiri-ready)
+  (write 'ready)
+  (newline)
+  (force-output)))
