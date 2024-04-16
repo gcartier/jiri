@@ -21,6 +21,7 @@
         (jazz.snapshot)
         (jiri.settings)
         (jiri.structure)
+        (jiri.update)
         (jiri.view)
         (jiri.window))
 
@@ -46,7 +47,7 @@
   (let ((position {Point 100 100})
         (size (cache-background-size)))
     (setup-jiri-pane position size))
-  (jiri-init))
+  (jiri-layout))
 
 
 (definition package (jiri-ready)

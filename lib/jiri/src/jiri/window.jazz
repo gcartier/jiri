@@ -17,18 +17,6 @@
 
 
 ;;;
-;;;; Init
-;;;
-
-
-(definition public jiri-init
-  #f)
-
-(definition public (set-jiri-init thunk)
-  (set! jiri-init thunk))
-
-
-;;;
 ;;;; Exit
 ;;;
 
