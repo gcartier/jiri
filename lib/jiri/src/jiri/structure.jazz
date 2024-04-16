@@ -83,13 +83,6 @@
 ;;;
 
 
-(definition public work-done?
-  #f)
-
-(definition public (set-work-done? value)
-  (set! work-done? value))
-
-
 (definition public work-downloaded
   0)
 
