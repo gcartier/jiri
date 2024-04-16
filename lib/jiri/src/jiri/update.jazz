@@ -168,7 +168,7 @@
               (let ((url (effective-launch-url)))
                 (when url
                   (add "url" url)))))))
-    (delegate-process (update-exe) arguments: arguments @splashoo wait-and-exit?: @splashoo #t)))
+    (delegate-process (update-exe) arguments: arguments wait-and-exit?: #t)))
 
 
 ;;;
