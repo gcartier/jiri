@@ -21,9 +21,9 @@
         (jazz.io)
         (jazz.splash)
         (jiri.manage)
+        (jiri.remote)
         (jiri.settings)
-        (jiri.task)
-        (jiri.window))
+        (jiri.task))
 
 
 (definition public default-title-font
@@ -312,7 +312,7 @@
   
   
   (method override (mouse-up self pos)
-    (exit-callback)))
+    (exit-safely)))
 
 
 ;;;

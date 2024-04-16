@@ -20,7 +20,6 @@
                           jiri.task
                           jiri.update
                           jiri.view
-                          jiri.window
                           jiri.work)
                   (dependencies jazz
                                 jazz.appl

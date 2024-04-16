@@ -33,7 +33,6 @@
         (jiri.structure)
         (jiri.task)
         (jiri.view)
-        (jiri.window)
         (jiri.work))
 
 
@@ -252,5 +251,4 @@
   (add-pane-view downloaded-view)
   (add-pane-view status-view)
   (add-pane-view remaining-view)
-  (add-pane-view progress-view)
-  (set-exit-callback exit-safely)))
+  (add-pane-view progress-view)))

@@ -22,8 +22,7 @@
         (jiri.settings)
         (jiri.structure)
         (jiri.update)
-        (jiri.view)
-        (jiri.window))
+        (jiri.view))
 
 
 (definition package (jiri-prepare)

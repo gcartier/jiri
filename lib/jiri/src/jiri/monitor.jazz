@@ -22,7 +22,6 @@
         (jiri.settings)
         (jiri.structure)
         (jiri.view)
-        (jiri.window)
         (jiri.work))
 
 

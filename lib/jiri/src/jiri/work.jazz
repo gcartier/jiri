@@ -23,8 +23,7 @@
         (jiri.settings)
         (jiri.structure)
         (jiri.task)
-        (jiri.view)
-        (jiri.window))
+        (jiri.view))
 
 
 ;; TODO
@@ -235,23 +234,4 @@
   (invalidate-view progress-view))
 
 
-(set-task-invalidater invalidate-task)
-
-
-;;;
-;;;; Abort
-;;;
-
-
-(definition abort-requested
-  #f)
-
-(definition public (set-abort-requested abort)
-  (set! abort-requested abort))
-
-
-(definition protected (safe-abort-point)
-  (and abort-requested
-       (begin
-         (abort-requested)
-         #t))))
+(set-task-invalidater invalidate-task))

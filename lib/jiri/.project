@@ -23,7 +23,6 @@
         (<Jazz-File>       name: view       source: {File :context "src" "jiri" "view.jazz"})
         (<Jazz-File>       name: settings   source: {File :context "src" "jiri" "settings.jazz"})
         (<Jazz-File>       name: base       source: {File :context "src" "jiri" "base.jazz"})
-        (<Jazz-File>       name: window     source: {File :context "src" "jiri" "window.jazz"})
         (<Jazz-File>       name: update     source: {File :context "src" "jiri" "update.jazz"})
         (<Jazz-File>       name: syntax     source: {File :context "src" "jiri" "syntax.jazz"})
         (<Jazz-File>       name: connection source: {File :context "src" "jiri" "connection.jazz"})

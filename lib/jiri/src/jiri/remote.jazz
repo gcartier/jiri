@@ -18,18 +18,11 @@
 
 (import (jazz.associative)
         (jazz.associative.client)
-        (jazz.splash)
         (jazz.io)
-        (jiri.base)
         (jiri.connection)
         (jiri.manage)
         (jiri.section)
-        (jiri.settings)
-        (jiri.structure)
-        (jiri.task)
-        (jiri.view)
-        (jiri.window)
-        (jiri.work))
+        (jiri.task))
 
 
 ;;;
@@ -134,6 +127,25 @@
         (lambda (repo client)
           (set-range task (new Range 0 1))
           (download repo client))))))
+
+
+;;;
+;;;; Abort
+;;;
+
+
+(definition abort-requested
+  #f)
+
+(definition public (set-abort-requested abort)
+  (set! abort-requested abort))
+
+
+(definition protected (safe-abort-point)
+  (and abort-requested
+       (begin
+         (abort-requested)
+         #t)))
 
 
 ;;;
