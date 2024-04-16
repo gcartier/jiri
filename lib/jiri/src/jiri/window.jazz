@@ -47,12 +47,12 @@
 
 
 ;;;
-;;;; Quit
+;;;; Exit
 ;;;
 
 
-(definition public quit-callback
+(definition public exit-callback
   #f)
 
-(definition public (set-quit-callback callback)
-  (set! quit-callback callback)))
+(definition public (set-exit-callback callback)
+  (set! exit-callback callback)))

@@ -246,15 +246,12 @@
 (definition abort-requested
   #f)
 
-
 (definition public (set-abort-requested abort)
   (set! abort-requested abort))
 
 
-(definition protected (safe-abort-point cleanup)
+(definition protected (safe-abort-point)
   (and abort-requested
        (begin
-         (cleanup)
-         (when (not (work-in-progress?))
-           (abort-requested))
+         (abort-requested)
          #t))))

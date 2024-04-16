@@ -168,7 +168,7 @@
               (let ((url (effective-launch-url)))
                 (when url
                   (add "url" url)))))))
-    (delegate-process (update-exe) arguments: arguments @splashoo wait-and-quit?: @splashoo #t)))
+    (delegate-process (update-exe) arguments: arguments @splashoo wait-and-exit?: @splashoo #t)))
 
 
 ;;;
@@ -257,5 +257,4 @@
   (add-pane-view status-view)
   (add-pane-view remaining-view)
   (add-pane-view progress-view)
-  (set-quit-callback
-    (quit-safely))))
+  (set-exit-callback exit-safely)))

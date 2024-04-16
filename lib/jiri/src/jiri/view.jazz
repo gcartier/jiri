@@ -312,9 +312,7 @@
   
   
   (method override (mouse-up self pos)
-    (exit)
-    @splashoo
-    (quit-callback)))
+    (exit-callback)))
 
 
 ;;;

@@ -51,7 +51,7 @@
     (queue-list queue)))
 
 
-(definition public (delegate-process path (arguments: arguments '()) (wait-and-quit?: wait-and-quit? #f) (mac-open?: mac-open? #f))
+(definition public (delegate-process path (arguments: arguments '()) (wait-and-exit?: wait-and-exit? #f) (mac-open?: mac-open? #f))
   (define (add-debugger arguments)
     (let ((debugger #f @splashoo (debugger-argument)))
       (if (not debugger)
@@ -70,7 +70,7 @@
                     stderr-redirection: redirect?
                     show-console: #f)))
   
-  (if (not wait-and-quit?)
+  (if (not wait-and-exit?)
       (open redirect?: #f)
     (let ((port (open redirect?: #t)))
       (thread-join!
@@ -80,6 +80,4 @@
               (input-port-timeout-set! port max-wait)
               (read port))
             'delegate)))
-      (exit)
-      @splashoo
-      (quit)))))
+      (exit)))))
