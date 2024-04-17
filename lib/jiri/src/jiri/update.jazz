@@ -21,8 +21,8 @@
         (jazz.associative.remote)
         (jazz.io)
         (jazz.settings)
-        @splashoo
         (jazz.snapshot)
+        (jazz.splash)
         (jiri.base)
         (jiri.connection)
         (jiri.manage)
@@ -104,7 +104,6 @@
   
   (catch-exception-filter
     (lambda (exc)
-      @splashoo
       (snapshot-process
         exception: exc
         max-depth: 0
@@ -115,8 +114,7 @@
     (lambda (exc)
       (let ((message (exception-message exc))
             (header (exception-header exc)))
-        @splashoo
-        (delay-event
+        (splash-event
           (lambda ()
             (system-message message
                             type: 'problem

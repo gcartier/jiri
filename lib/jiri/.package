@@ -29,5 +29,6 @@
                                 jazz.io
                                 jazz.math
                                 jazz.settings
+                                jazz.snapshot
                                 jazz.splash)))
   (project ".project"))

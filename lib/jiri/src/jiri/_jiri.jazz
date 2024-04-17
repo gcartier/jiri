@@ -17,7 +17,6 @@
 
 
 (import (jazz.io)
-        @splashoo
         (jazz.snapshot)
         (jiri.settings)
         (jiri.structure)
@@ -28,15 +27,12 @@
 (definition package (jiri-prepare)
   (when (jiri-process-name)
     (current-process-name-set! (jiri-process-name)))
-  @splashoo
   (when (jiri-name-setting)
     (when (exists? (jiri-name-setting))
       (snapshot-user (call-with-input-file (path-settings (jiri-name-setting))
                        read))))
-  @splashoo
   (when (jiri-snapshots-directory)
     (snapshots-directory (jiri-snapshots-directory)))
-  @splashoo
   (unless kernel-source-accessible?
     (set-exception-debugger (application-exception-debugger))
     (set-exception-hook exception-debugger-hook)))
