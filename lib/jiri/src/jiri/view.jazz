@@ -44,9 +44,12 @@
 (class Jiri-Pane extends Object implements Splashable
   
   
-  (slot width                 getter generate)
-  (slot height                getter generate)
-  (slot views  initialize '() getter generate)
+  (slot width                     getter generate)
+  (slot height                    getter generate)
+  (slot views      initialize '() getter generate)
+  (slot cursor-pos initialize #f  getter generate)
+  (slot window-pos initialize #f  getter generate)
+  (slot moving?    initialize #f  getter generate)
   
   
   (method override (initialize self position size)
@@ -81,22 +84,46 @@
   (method override (splash-mouse-down self x y)
     (let ((pos (new Point (fxround x) (fxround y))))
       (let ((view (find-view self pos)))
-        (when view
+        (if (not view)
+            (pane-mouse-down self pos)
           (mouse-down view (nu- pos (get-position view)))))))
   
   
   (method override (splash-mouse-move self x y)
     (let ((pos (new Point (fxround x) (fxround y))))
       (let ((view (find-view self pos)))
-        (when view
+        (if (not view)
+            (pane-mouse-move self pos)
           (mouse-move view (nu- pos (get-position view)))))))
   
   
   (method override (splash-mouse-up self x y)
     (let ((pos (new Point (fxround x) (fxround y))))
       (let ((view (find-view self pos)))
-        (when view
+        (if (not view)
+            (pane-mouse-up self pos)
           (mouse-up view (nu- pos (get-position view)))))))
+  
+  
+  (method (to-screen self pos)
+    (nu+ (splash-position) pos))
+  
+  
+  (method (pane-mouse-down self pos)
+    (set! cursor-pos (to-screen self pos))
+    (set! window-pos (splash-position))
+    (set! moving? #t))
+  
+  
+  (method (pane-mouse-move self pos)
+    (when moving?
+      (let ((delta (nu- (to-screen self pos) cursor-pos)))
+        (let ((pos (nu+ window-pos delta)))
+          (splash-set-position pos)))))
+  
+  
+  (method (pane-mouse-up self pos)
+    (set! moving? #f))
   
   
   (method (paint-background self context)
@@ -110,7 +137,8 @@
     (continuation-capture
       (lambda (return)
         (for-each (lambda (view)
-                    (when (in-rect? pos (get-rect view))
+                    (when (and (mousable? view)
+                               (in-rect? pos (get-rect view)))
                       (continuation-return return view)))
                   views)
         #f)))
@@ -168,12 +196,8 @@
     (size-rect size))
   
   
-  (method protected virtual (mouse-enter self)
-    )
-  
-  
-  (method protected virtual (mouse-leave self)
-    )
+  (method protected virtual (mousable? self)
+    #f)
   
   
   (method protected virtual (mouse-down self pos)
@@ -311,6 +335,10 @@
       (cairo-line context right top left bottom)))
   
   
+  (method override (mousable? self)
+    #t)
+  
+  
   (method override (mouse-up self pos)
     (exit-safely)))
 
@@ -331,6 +359,10 @@
       (cairo-width context 2)
       (cairo-color context 1 1 1 1)
       (cairo-line context left (- bottom 1) right (- bottom 1))))
+  
+  
+  (method override (mousable? self)
+    #t)
   
   
   (method override (mouse-up self pos)
